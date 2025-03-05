@@ -1,7 +1,7 @@
 # ProjetoPDS
 
 
-| Nome                              | Número | Função                   |
+| **Nome**                          | **Número** |**Função**                  |
 |-----------------------------------|--------|--------------------------|
 | Fábio Rafael Gomes Costa          | 22997  | Product Owner            |
 | Gonçalo Tierri Martinho Gonçalves | 23020  | Scrum Master             |
