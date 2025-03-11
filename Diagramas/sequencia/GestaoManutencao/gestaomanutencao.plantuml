@@ -1,0 +1,41 @@
+@startuml gestaomanutencao
+autonumber
+title Processo de Gestão de Manutenção - CarXpress
+
+actor Administrador
+participant "Sistema" as UI
+participant "Base de Dados" as DB
+participant "Classe Veículo" as Veiculo
+participant "Classe Manutenção" as Manutencao
+participant "Classe Empresa" as Empresa
+
+Administrador -> UI : registarNecessidadeManutencao(IDVeiculo, Descricao)
+UI -> Veiculo : verificarEstado(IDVeiculo)
+Veiculo -> UI : retornarEstadoVeiculo()
+
+UI -> Manutencao : criarManutencao(IDVeiculo, Descricao)
+Manutencao -> DB : armazenarManutencao(IDManutencao)
+
+UI -> Empresa : notificarPrestador(IDManutencao)
+Empresa -> UI : enviarOrcamento(IDManutencao, Valor)
+
+Administrador -> UI : avaliarOrcamento(IDManutencao)
+alt Orçamento aprovado
+    UI -> Manutencao : atualizarStatus(IDManutencao, "Aprovado")
+    UI -> Empresa : confirmarOrcamento(IDManutencao)
+    Empresa -> UI : executarManutencao(IDManutencao)
+    UI -> DB : atualizarStatusManutencao(IDManutencao, "Concluída")
+
+    UI -> Administrador : notificarConclusaoManutencao(IDManutencao)
+    UI -> Veiculo : atualizarEstado(IDVeiculo, "Disponível")
+
+    alt Pagamento necessário
+        Administrador -> UI : efetuarPagamentoManutencao(IDManutencao)
+        UI -> DB : registarPagamento(IDManutencao, Valor)
+    end alt
+else Orçamento rejeitado
+    UI -> Manutencao : atualizarStatus(IDManutencao, "Rejeitado")
+    UI -> Empresa : notificarRejeicao(IDManutencao)
+end alt
+
+@enduml
