@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "SJsLdYg88DE=",
+  "dgSpecHash": "BNQQKP9qJgY=",
   "success": true,
-  "projectFilePath": "/Users/anytng/Documents/Developer/Aulinhas/PDS/ProjetoPDS/Backend/backend/logicanegocios/logicanegocios.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\fabio\\Source\\Repos\\ProjetoPDS\\backend\\backend\\logicanegocios\\logicanegocios.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\fabio\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\6.0.2\\microsoft.data.sqlclient.sni.runtime.6.0.2.nupkg.sha512"
+  ],
   "logs": []
 }
