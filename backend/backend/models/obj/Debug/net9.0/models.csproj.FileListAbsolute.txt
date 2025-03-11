@@ -1,0 +1,12 @@
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\bin\Debug\net9.0\models.deps.json
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\bin\Debug\net9.0\models.dll
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\bin\Debug\net9.0\models.pdb
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.AssemblyInfoInputs.cache
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.AssemblyInfo.cs
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.csproj.CoreCompileInputs.cache
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.sourcelink.json
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.dll
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\refint\models.dll
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\models.pdb
+C:\Users\fabio\source\repos\ProjetoPDS\backend\beckend\models\obj\Debug\net9.0\ref\models.dll
