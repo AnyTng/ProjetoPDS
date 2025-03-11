@@ -2,6 +2,23 @@
   "version": 3,
   "targets": {
     "net9.0": {
+      "Microsoft.Data.SqlClient.SNI.runtime/6.0.2": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll": {
+            "assetType": "native",
+            "rid": "win-arm64"
+          },
+          "runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
       "models/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
@@ -15,6 +32,22 @@
     }
   },
   "libraries": {
+    "Microsoft.Data.SqlClient.SNI.runtime/6.0.2": {
+      "sha512": "f+pRODTWX7Y67jXO3T5S2dIPZ9qMJNySjlZT/TKmWVNWe19N8jcWmHaqHnnchaq3gxEKv1SWVY5EFzOD06l41w==",
+      "type": "package",
+      "path": "microsoft.data.sqlclient.sni.runtime/6.0.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.txt",
+        "dotnet.png",
+        "microsoft.data.sqlclient.sni.runtime.6.0.2.nupkg.sha512",
+        "microsoft.data.sqlclient.sni.runtime.nuspec",
+        "runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll",
+        "runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll",
+        "runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll"
+      ]
+    },
     "models/1.0.0": {
       "type": "project",
       "path": "../models/models.csproj",
@@ -23,6 +56,7 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "Microsoft.Data.SqlClient.SNI.runtime >= 6.0.2",
       "models >= 1.0.0"
     ]
   },
@@ -79,6 +113,12 @@
     "frameworks": {
       "net9.0": {
         "targetAlias": "net9.0",
+        "dependencies": {
+          "Microsoft.Data.SqlClient.SNI.runtime": {
+            "target": "Package",
+            "version": "[6.0.2, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",
