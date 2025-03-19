@@ -1,6 +1,7 @@
 import { useState } from "react";
-import InputField from "./inputField.jsx";
+import InputFieldLong from "./inputFieldLong.jsx";
 import Button from "./Button";
+import { useNavigate } from "react-router-dom";
 import "../css/global.css";
 //import tailwind
 
@@ -15,11 +16,16 @@ const LoginForm = () => {
         console.log("Logging in with:", { email, password });
     };
 
+    const navigate = useNavigate();
+    const handleRegister = () => {
+        navigate("/registerUser");
+    };
+
     return (
         <div className={"outsideDiv"}>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
                 <div className="my-2">
-                    <InputField
+                    <InputFieldLong
                     placeholder="Email"
                     type="email"
                     value={email}
@@ -27,7 +33,7 @@ const LoginForm = () => {
                 />
                 </div>
                 <div className="my-2">
-                <InputField
+                <InputFieldLong
                     placeholder="Password"
                     type="password"
                     value={password}
@@ -36,8 +42,8 @@ const LoginForm = () => {
                 </div>
 
                 <div className="flex gap-2 justify-center w-full">
-                    <Button text="Registrar" variant="secondary" style={{flex: 1}} />
-                    <Button text="Sign In" variant="primary" type="submit" style={{flex: 1}} />
+                    <Button text="Registar" variant="secondary" type="button" style={{flex: 1}} onClick={handleRegister}/>
+                    <Button text="Sign In" variant="primary" type="submit" style={{flex: 1}} onClick={handleSubmit} />
                 </div>
 
 

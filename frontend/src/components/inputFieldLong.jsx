@@ -1,4 +1,4 @@
-const InputField = ({ placeholder, type, value, onChange }) => {
+const InputFieldLong = ({ placeholder, type, value, onChange }) => {
     return (
         <div className="w-full">
             <input
@@ -11,4 +11,4 @@ const InputField = ({ placeholder, type, value, onChange }) => {
         </div>
     );
 };
-export default InputField;
+export default InputFieldLong;
