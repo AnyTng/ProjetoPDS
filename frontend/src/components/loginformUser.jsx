@@ -43,7 +43,7 @@ const LoginForm = () => {
 
                 <div className="flex gap-2 justify-center w-full">
                     <Button text="Registar" variant="secondary" type="button" style={{flex: 1}} onClick={handleRegister}/>
-                    <Button text="Sign In" variant="primary" type="submit" style={{flex: 1}} onClick={handleSubmit} />
+                    <Button text="Iniciar Sessão" variant="primary" type="submit" style={{flex: 1}} onClick={handleSubmit} />
                 </div>
 
 

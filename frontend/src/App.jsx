@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/loginpageUserPrestador.jsx";
 import RegisterPageUser from "./pages/RegisterPageUser.jsx";
+import LoginPageAdmin from "./pages/loginpageAdmin.jsx";
 
 function App() {
     return (
@@ -14,7 +15,7 @@ function App() {
                 <Route path="/registerUser" element={<RegisterPageUser />} />
 
 
-
+                <Route path="/loginAdmin" element={<LoginPageAdmin />} />
 
             </Routes>
         </Router>
