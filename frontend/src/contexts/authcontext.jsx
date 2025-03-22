@@ -33,5 +33,5 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// Custom hook to use AuthContext easily
-export const useAuth = () => useContext(AuthContext);
+// Exportar apenas o contexto para ser usado pelo hook useAuth
+export { AuthContext };
