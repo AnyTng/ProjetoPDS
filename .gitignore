@@ -2,3 +2,4 @@
 /.vs
 frontend/src.zip
 .idea
+/backend/RESTful API/bin/Debug
