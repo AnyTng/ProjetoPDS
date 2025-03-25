@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/loginpageUserPrestador';
 import AdminLogin from '../pages/loginpageAdmin';
-import Register from '../pages/RegisterPageUser';
+import RegisterUser from '../pages/RegisterPageUser';
 import PrivateRoute from './PrivateRoute';
 
 const AppRoutes = () => (
@@ -10,7 +10,7 @@ const AppRoutes = () => (
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/registerUser" element={<RegisterUser />} />
 
         {/* Protected Routes (Require authentication) */}
         <Route
