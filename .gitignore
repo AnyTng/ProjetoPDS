@@ -1,6 +1,6 @@
-.DS_Store
+/.DS_Store
 /.vs
 frontend/src.zip
-.idea
+/.idea
 /backend/RESTful API/bin/Debug
 /backend/RESTful API/bin
