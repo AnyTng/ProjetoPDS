@@ -8177,11 +8177,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/anytng/Documents/Developer/Aulinhas/PDS/Untitled/ProjetoPDS/backend/RESTful API/RESTful API.csproj",
+      "projectUniqueName": "/Users/anytng/Documents/Developer/Aulinhas/PDS/ProjetoPDS/backend/RESTful API/RESTful API.csproj",
       "projectName": "RESTful API",
-      "projectPath": "/Users/anytng/Documents/Developer/Aulinhas/PDS/Untitled/ProjetoPDS/backend/RESTful API/RESTful API.csproj",
+      "projectPath": "/Users/anytng/Documents/Developer/Aulinhas/PDS/ProjetoPDS/backend/RESTful API/RESTful API.csproj",
       "packagesPath": "/Users/anytng/.nuget/packages/",
-      "outputPath": "/Users/anytng/Documents/Developer/Aulinhas/PDS/Untitled/ProjetoPDS/backend/RESTful API/obj/",
+      "outputPath": "/Users/anytng/Documents/Developer/Aulinhas/PDS/ProjetoPDS/backend/RESTful API/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/anytng/.nuget/NuGet/NuGet.Config"
