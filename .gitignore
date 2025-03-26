@@ -4,5 +4,5 @@ frontend/src.zip
 /.idea
 /backend/RESTful API/bin/Debug
 /backend/RESTful API/bin
-/backend/.idea
-/backend/RESTful API/obj
+backend/.idea
+backend/RESTful API/obj
