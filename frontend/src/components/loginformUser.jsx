@@ -3,17 +3,34 @@ import InputFieldLong from "./inputFieldLong.jsx";
 import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import "../css/global.css";
+import { useAuth } from "../hooks/useAuth";  // assuming this path is correct
 //import tailwind
 
 
-
 const LoginForm = () => {
+    const { login } = useAuth();  // <== this is what fixes the error
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Logging in with:", { email, password });
+
+        try {
+            const response = await fetch("http://localhost:5208/api/logins/authenticate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, hashPassword: password })
+            });
+
+            if (!response.ok) throw new Error("Email ou palavra-passe inválidos.");
+            const data = await response.json();
+            login(data);  // now this will work
+        } catch (err) {
+            alert("Erro ao iniciar sessão: " + err.message);
+        }
     };
 
     const navigate = useNavigate();
@@ -43,7 +60,7 @@ const LoginForm = () => {
 
                 <div className="flex gap-2 justify-center w-full">
                     <Button text="Registar" variant="secondary" type="button" style={{flex: 1}} onClick={handleRegister}/>
-                    <Button text="Iniciar Sessão" variant="primary" type="submit" style={{flex: 1}} onClick={handleSubmit} />
+                    <Button text="Iniciar Sessão" variant="primary" type="submit" style={{flex: 1}} />
                 </div>
 
 

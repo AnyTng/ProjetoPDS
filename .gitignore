@@ -8,3 +8,5 @@ backend/.idea
 backend/RESTful API/obj
 /backend/RESTful API/obj
 /backend/RESTful API/obj/
+*/.DS_Store
+*.zip

@@ -1,6 +1,9 @@
+-- Active: 1743546625822@@127.0.0.1@1433@pds
+
+
 CREATE TABLE Cliente (
   IDCliente       int IDENTITY NOT NULL, 
-  NomeCliente     varchar(255) NULL, 
+  NomeCliente     varchar(255) NULL,
   DataNascCliente datetime NULL, 
   NIFCliente      int NULL, 
   RuaCliente      varchar(255) NULL, 

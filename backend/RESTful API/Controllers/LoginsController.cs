@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Model;
+using BCrypt.Net;
 
 namespace RESTful_API.Controllers
 {
@@ -82,7 +83,32 @@ namespace RESTful_API.Controllers
 
             return CreatedAtAction("GetLogin", new { id = login.Idlogin }, login);
         }
+        
+            
+        
+        [HttpPost("authenticate")]
+        public async Task<IActionResult> Authenticate([FromBody] Login login)
+        {
+            if (string.IsNullOrWhiteSpace(login.Email) || string.IsNullOrWhiteSpace(login.HashPassword))
+                return BadRequest("Email and password are required.");
 
+            var user = await _context.Logins.FirstOrDefaultAsync(l => l.Email == login.Email);
+            if (user == null)
+                return Unauthorized("Invalid email or password.");
+
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(login.HashPassword, user.HashPassword);
+            if (!isValidPassword)
+                return Unauthorized("Invalid email or password.");
+
+            // Respond with safe data (no password hash!)
+            return Ok(new
+            {
+                id = user.Idlogin,
+                email = user.Email,
+                role = user.TipoLoginIdtlogin
+            });
+        }
+        
         // DELETE: api/Logins/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLogin(int id)
@@ -105,3 +131,4 @@ namespace RESTful_API.Controllers
         }
     }
 }
+
