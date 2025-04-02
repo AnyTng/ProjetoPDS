@@ -27,7 +27,7 @@ const LoginForm = () => {
 
             if (!response.ok) throw new Error("Email ou palavra-passe inválidos.");
             const data = await response.json();
-            login(data);  // now this will work
+            login(data);
         } catch (err) {
             alert("Erro ao iniciar sessão: " + err.message);
         }
