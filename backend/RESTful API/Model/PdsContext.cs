@@ -15,8 +15,6 @@ public partial class PdsContext : DbContext
     {
     }
 
-    public virtual DbSet<Admin> Admins { get; set; }
-
     public virtual DbSet<Aluguer> Aluguers { get; set; }
 
     public virtual DbSet<ClasseVeiculo> ClasseVeiculos { get; set; }
@@ -41,7 +39,6 @@ public partial class PdsContext : DbContext
 
     public virtual DbSet<Infraco> Infracoes { get; set; }
 
-    public virtual DbSet<Login> Logins { get; set; }
 
     public virtual DbSet<Manutencao> Manutencaos { get; set; }
 
@@ -67,26 +64,10 @@ public partial class PdsContext : DbContext
 
     public virtual DbSet<Veiculo> Veiculos { get; set; }
 
+    public virtual DbSet<Login> Logins { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Admin>(entity =>
-        {
-            entity.HasKey(e => e.Idadmin).HasName("PK__Admin__D704F3E8990859DF");
-
-            entity.ToTable("Admin");
-
-            entity.Property(e => e.Idadmin).HasColumnName("IDAdmin");
-            entity.Property(e => e.LoginIdlogin).HasColumnName("LoginIDLogin");
-            entity.Property(e => e.NomeAdmin)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-
-            entity.HasOne(d => d.LoginIdloginNavigation).WithMany(p => p.Admins)
-                .HasForeignKey(d => d.LoginIdlogin)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FKAdmin335875");
-        });
-
         modelBuilder.Entity<Aluguer>(entity =>
         {
             entity.HasKey(e => e.Idaluguer).HasName("PK__Aluguer__990E4C8476DF0F2C");
@@ -139,7 +120,6 @@ public partial class PdsContext : DbContext
             entity.Property(e => e.Idcliente).HasColumnName("IDCliente");
             entity.Property(e => e.CodigoPostalCp).HasColumnName("CodigoPostalCP");
             entity.Property(e => e.DataNascCliente).HasColumnType("datetime");
-            entity.Property(e => e.LoginIdlogin).HasColumnName("LoginIDLogin");
             entity.Property(e => e.Nifcliente).HasColumnName("NIFCliente");
             entity.Property(e => e.NomeCliente)
                 .HasMaxLength(255)
@@ -152,11 +132,6 @@ public partial class PdsContext : DbContext
                 .HasForeignKey(d => d.CodigoPostalCp)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FKCliente381375");
-
-            entity.HasOne(d => d.LoginIdloginNavigation).WithMany(p => p.Clientes)
-                .HasForeignKey(d => d.LoginIdlogin)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FKCliente791301");
         });
 
         modelBuilder.Entity<CodigoPostal>(entity =>
@@ -247,11 +222,6 @@ public partial class PdsContext : DbContext
                 .HasForeignKey(d => d.CodigoPostalCp)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FKEmpresa862944");
-
-            entity.HasOne(d => d.LoginIdloginNavigation).WithMany(p => p.Empresas)
-                .HasForeignKey(d => d.LoginIdlogin)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FKEmpresa698719");
         });
 
         modelBuilder.Entity<EstadoContestacao>(entity =>
@@ -335,27 +305,6 @@ public partial class PdsContext : DbContext
                 .HasForeignKey(d => d.TipoInfracaoIdtinfracao)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FKInfracoes818361");
-        });
-
-        modelBuilder.Entity<Login>(entity =>
-        {
-            entity.HasKey(e => e.Idlogin).HasName("PK__Login__EB32BAAD93B41353");
-
-            entity.ToTable("Login");
-
-            entity.Property(e => e.Idlogin).HasColumnName("IDLogin");
-            entity.Property(e => e.Email)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-            entity.Property(e => e.HashPassword)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-            entity.Property(e => e.TipoLoginIdtlogin).HasColumnName("TipoLoginIDTLogin");
-
-            entity.HasOne(d => d.TipoLoginIdtloginNavigation).WithMany(p => p.Logins)
-                .HasForeignKey(d => d.TipoLoginIdtlogin)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FKLogin479798");
         });
 
         modelBuilder.Entity<Manutencao>(entity =>

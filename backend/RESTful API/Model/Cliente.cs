@@ -17,7 +17,6 @@ public partial class Cliente
 
     public int CodigoPostalCp { get; set; }
 
-    public int LoginIdlogin { get; set; }
 
     public float? CreditoCliente { get; set; }
 
@@ -33,5 +32,4 @@ public partial class Cliente
 
     public virtual ICollection<HabilitacaoCliente> HabilitacaoClientes { get; set; } = new List<HabilitacaoCliente>();
 
-    public virtual Login LoginIdloginNavigation { get; set; } = null!;
 }

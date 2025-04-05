@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RESTful_API.Model;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,14 +15,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Minha API",
-        Version = "v1",
-        Description = "Documentação da Minha API",
-        Contact = new OpenApiContact
-        {
-            Name = "Seu Nome",
-            Email = "seu.email@example.com"
-        }
+        Title = "API",
+        Version = "V-Alpha",
+        Description = "Documentação da API",
     });
 });
 
@@ -29,6 +27,24 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 // Add DbContext to the service container
 builder.Services.AddDbContext<PdsContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+    };
+});
 
 // Add CORS policy
 builder.Services.AddCors(options =>

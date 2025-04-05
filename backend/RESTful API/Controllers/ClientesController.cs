@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Model;
+using RESTful_API.DTOS;
 
 namespace RESTful_API.Controllers
 {
@@ -37,8 +38,19 @@ namespace RESTful_API.Controllers
             {
                 return NotFound();
             }
-
-            return cliente;
+            
+            ClienteDTO clienteDTO = new ClienteDTO
+            {
+                NomeCliente = cliente.NomeCliente,
+                DataNascCliente = cliente.DataNascCliente,
+                Nifcliente = cliente.Nifcliente,
+                RuaCliente = cliente.RuaCliente,
+                CodigoPostalCp = cliente.CodigoPostalCp,
+                CreditoCliente = cliente.CreditoCliente,
+                ContactoC1 = cliente.ContactoC1,
+                ContactoC2 = cliente.ContactoC2
+            };
+            return Ok(clienteDTO);
         }
 
         // PUT: api/Clientes/5
