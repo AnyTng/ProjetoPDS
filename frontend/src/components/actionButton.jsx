@@ -6,7 +6,7 @@ import "../index.css";
 import '../css/global.css'
 
 const ActionButton = ({ type = "none", text = "", onClick }) => {
-    let style = "";
+    let style;
     let iconSrc = null;
 
     switch (type) {
@@ -33,7 +33,13 @@ const ActionButton = ({ type = "none", text = "", onClick }) => {
             className={`flex items-center gap-2 px-4 py-2 rounded ${style}`}
             onClick={onClick}
         >
-            {iconSrc && <img src={iconSrc} alt="" className="w-5 h-5" />}
+            {iconSrc && (
+                <img
+                    src={iconSrc}
+                    alt=""
+                    className={`w-5 h-5 ${iconSrc === xIcon ? 'text-white' : ''}`}
+                />
+            )}
             {text && <span>{text}</span>}
         </button>
     );

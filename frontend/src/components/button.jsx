@@ -1,4 +1,4 @@
-const Button = ({ text, variant, type = "button", onClick }) => { // Accept onClick as a prop
+const Button = ({ text, variant, type = "button", onClick, className = "" }) => { // Accept onClick as a prop
     const baseStyles = {
         display: "inline-flex",
         padding: "12px",
@@ -7,7 +7,6 @@ const Button = ({ text, variant, type = "button", onClick }) => { // Accept onCl
         gap: "8px",
         fontWeight: "600",
         width: "auto",
-        mx: "auto",
     };
 
     const primaryStyles = {
@@ -33,6 +32,13 @@ const Button = ({ text, variant, type = "button", onClick }) => { // Accept onCl
         textDecoration: "underline"
     };
 
+    const dangerStyles = {
+        borderRadius: "8px",
+        border: "1px solid #EC221F",
+        background: "#EC221F",
+        color: "white"
+    };
+
     const defaultStyles = {
         borderRadius: "4px",
         color: "black"
@@ -43,11 +49,18 @@ const Button = ({ text, variant, type = "button", onClick }) => { // Accept onCl
         ...(variant === "primary" ? primaryStyles : {}),
         ...(variant === "secondary" ? secondaryStyles : {}),
         ...(variant === "text" ? textButtonStyles : {}),
-        ...(variant !== "primary" && variant !== "secondary" && variant !=="text" ? defaultStyles : {})
+        ...(variant === "danger" ? dangerStyles : {}),
+        ...(variant !== "primary" && variant !== "secondary" && variant !== "text" && variant !== "danger" ? defaultStyles : {})
     };
 
+
     return (
-        <button type={type} onClick={onClick} style={combinedStyles}> {/* Pass onClick here */}
+        <button
+            type={type}
+            onClick={onClick}
+            className={`flex items-center justify-center px-4 py-2 rounded ${className}`}
+            style={combinedStyles}
+        >
             {text}
         </button>
     );

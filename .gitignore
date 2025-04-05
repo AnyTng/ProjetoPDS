@@ -10,3 +10,4 @@ backend/RESTful API/obj
 /backend/RESTful API/obj/
 */.DS_Store
 *.zip
+.vscode/settings.json
