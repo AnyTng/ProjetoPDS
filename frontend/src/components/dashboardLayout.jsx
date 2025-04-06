@@ -1,12 +1,12 @@
 import React from "react";
 import Header from "./header";
 
-const DashboardLayout = ({ title, filter, actions, children }) => {
+const DashboardLayout = ({ title, filter, actions, children, email }) => {
     return (
         <div className="h-screen flex flex-col bg-gray-100">
             {/* Área fixa */}
             <div className="flex-none">
-                <Header userType="Admin" email="email@email.com" />
+                <Header userType="Admin" email={email} />
             </div>
 
             {/* Container principal com padding lateral */}

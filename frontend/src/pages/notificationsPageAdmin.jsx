@@ -1,37 +1,19 @@
-// src/pages/notificationsPageAdmin.jsx
 import React, { useState } from "react";
 import DashboardLayout from "../components/dashboardLayout";
 import NotificationCard from "../components/notificationCard";
 import FilterInput from "../components/filterInput";
 
-const dummyNotifications = [
-    {
-        id: 1,
-        title: "Novo utilizador registado",
-        message: "Maria Pereira completou o registo na plataforma.",
-    },
-    {
-        id: 2,
-        title: "Erro no servidor",
-        message: "500 Internal Server Error no endpoint /api/v1.",
-    },
-    {
-        id: 3,
-        title: "Ajuda requisitada",
-        message: "João solicitou ajuda no suporte técnico.",
-    },
-];
-
-const NotificationsPageAdmin = () => {
+const NotificationsPageAdmin = ({ notifications = [], email = "admin@email.com" }) => {
     const [search, setSearch] = useState("");
 
-    const filtered = dummyNotifications.filter((notif) =>
+    const filtered = notifications.filter((notif) =>
         notif.title.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
         <DashboardLayout
             title="Notificações"
+            email={email}
             filter={
                 <FilterInput
                     placeholder="Pesquisar notificações..."
@@ -52,8 +34,8 @@ const NotificationsPageAdmin = () => {
                         key={notif.id}
                         title={notif.title}
                         message={notif.message}
-                        actionLabel="Ver mais"
-                        onActionClick={() => console.log("Clicou em:", notif.id)}
+                        actionLabel={notif.actionLabel}
+                        actionLink={notif.actionLink}
                     />
                 ))
             )}
