@@ -1,0 +1,44 @@
+@startuml gestaomultas
+autonumber
+title Processo de Gestão de Multas - CarXpress
+
+actor Administrador
+actor Cliente
+participant "Sistema" as UI
+participant "Base de Dados" as DB
+participant "Classe Cliente" as Cliente
+participant "Classe Fatura" as Fatura
+participant "Classe Recibo" as Recibo
+
+Administrador -> UI : registarMulta(IDCliente, Valor, Motivo)
+UI -> Cliente : verificarCliente(IDCliente)
+Cliente -> UI : retornarStatusCliente()
+
+UI -> Cliente : notificarMulta(IDMulta)
+Cliente -> UI : confirmarEnvioMulta(IDMulta)
+UI -> DB : armazenarMulta(IDMulta, IDCliente, Valor, Status="Pendente")
+
+alt Cliente aceita a multa
+    Cliente -> UI : efetuarPagamento(IDMulta)
+    UI -> Fatura : criarFatura(IDMulta, Valor)
+    Fatura -> DB : armazenarFatura(IDFatura)
+    
+    UI -> Recibo : criarRecibo(IDFatura, Data, Valor)
+    Recibo -> DB : armazenarRecibo(IDRecibo)
+
+    UI -> DB : atualizarStatusMulta(IDMulta, "Paga")
+    UI -> Cliente : confirmarPagamento(IDMulta)
+else Cliente contesta a multa
+    Cliente -> UI : enviarContestacao(IDMulta, Justificativa)
+    UI -> Administrador : avaliarContestacao(IDMulta)
+    
+    alt Contestação aceita
+        UI -> DB : atualizarStatusMulta(IDMulta, "Cancelada")
+        Administrador -> DB : apagarMulta(IDMulta)
+        UI -> Cliente : notificarCancelamentoMulta(IDMulta)
+    else Contestação rejeitada
+        UI -> Cliente : notificarRejeicaoContestacao(IDMulta)
+    end alt
+end alt
+
+@enduml
