@@ -1,25 +1,40 @@
 import React from "react";
-import Header from "./header"; // já existente
+import Header from "./header";
 
 const DashboardLayout = ({ title, filter, actions, children }) => {
     return (
-        <div className="bg-gray-100 min-h-screen">
-            <Header userType="Admin" email="email@email.com" />
+        <div className="h-screen flex flex-col bg-gray-100">
+            {/* Área fixa */}
+            <div className="flex-none">
+                <Header userType="Admin" email="email@email.com" />
+            </div>
 
-            <main className="px-10 py-8">
-
-                <div className="flex items-center gap-4 mb-8"> {/* Alterado: sempre flex-row e items-center */}
-                    <h2 className="text-2xl font-semibold whitespace-nowrap">{title}</h2>
-
-                    {filter && <div className="flex-1">{filter}</div>}
+            {/* Container principal com padding lateral */}
+            <div className="flex-1 flex flex-col px-10 overflow-hidden">
+                {/* Cabeçalho da página - fixo */}
+                <div className="flex-none py-6">
+                    <div className="flex items-center gap-4 mb-8">
+                        <h2 className="text-2xl font-semibold whitespace-nowrap">{title}</h2>
+                        {filter && <div className="flex-1">{filter}</div>}
+                    </div>
                 </div>
 
-                {/* Área para os cartões (conteúdo específico da página) */}
-                <div className="flex flex-col gap-6">{children}</div>
+                {/* Área de conteúdo - scrollável */}
+                <div className="flex-1 overflow-y-auto">
+                    <div className="flex flex-col gap-6">
+                        {children}
+                    </div>
+                </div>
 
-                {/* Área para ações (botão de "Adicionar", etc.) */}
-                {actions && <div className="flex justify-end mt-10">{actions}</div>}
-            </main>
+                {/* Área de ações - fixa na parte inferior */}
+                {actions && (
+                    <div className="flex-none py-4">
+                        <div className="flex justify-end">
+                            {actions}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
