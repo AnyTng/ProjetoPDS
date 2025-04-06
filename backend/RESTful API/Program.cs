@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,19 +7,9 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
+// Configurar JWT
+var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "chave-super-secreta");
 
-// Configure Swagger
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "API",
-        Version = "V-Alpha",
-        Description = "Documenta��o da API",
-    });
-});
 
 // Get ConnectionString from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -28,39 +18,51 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<PdsContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddAuthentication(opt =>
+//  Autenticação JWT
+builder.Services.AddAuthentication(options =>
 {
-    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.RequireHttpsMetadata = false; // em produção mete true
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        RoleClaimType = "role" // permite usar [Authorize(Roles = "...")]
     };
 });
 
-// Add CORS policy
-builder.Services.AddCors(options =>
+builder.Services.AddAuthorization();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+//  Swagger com suporte a JWT
+// Configure Swagger
+builder.Services.AddSwaggerGen(c =>
 {
-    options.AddPolicy("AllowAllOrigins",
-        builder =>
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Minha API",
+        Version = "v1",
+        Description = "Documentação da Minha API",
+        Contact = new OpenApiContact
         {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+            Name = "Seu Nome",
+            Email = "seu.email@example.com"
+        }
+    });
 });
 
 var app = builder.Build();
 
-// Swagger should be enabled in both Development and Production for this example
+//  Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -68,12 +70,7 @@ app.UseSwaggerUI(c =>
     // Optional: To serve the Swagger UI at the app's root
     c.RoutePrefix = string.Empty;
 });
-
-app.UseHttpsRedirection();
-
-// Enable CORS
-app.UseCors("AllowAllOrigins");
-
+app.UseAuthentication(); // tem de vir antes de Authorization!
 app.UseAuthorization();
 
 app.MapControllers();
