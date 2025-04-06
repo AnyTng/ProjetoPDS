@@ -5,7 +5,7 @@ import uploadIcon from "../assets/UploadIcon.svg";
 import "../index.css";
 import '../css/global.css'
 
-const ActionButton = ({ type = "none", text = "", onClick }) => {
+const FloatingButton = ({ type = "none", text = "", onClick }) => {
     let style;
     let iconSrc = null;
 
@@ -45,4 +45,4 @@ const ActionButton = ({ type = "none", text = "", onClick }) => {
     );
 };
 
-export default ActionButton;
+export default FloatingButton;

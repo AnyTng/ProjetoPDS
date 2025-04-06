@@ -18,8 +18,8 @@ const RatingBubble = ({ max = 5, onRate }) => {
       "
             style={{ backgroundImage: `url(${bubble})` }}
         >
-            {/* As estrelas, com um pequeno ajuste vertical */}
-            <div className="flex gap-2 items-center -translate-y-[4px]">
+            {/* Estrelas centralizadas visualmente (ignorando a ponta do balão) */}
+            <div className="flex gap-2 items-center -translate-y-[10px]">
                 {Array.from({ length: max }).map((_, index) => {
                     const value = index + 1;
                     const filled = hover >= value || (!hover && rating >= value);
@@ -34,7 +34,7 @@ const RatingBubble = ({ max = 5, onRate }) => {
                             onMouseLeave={() => setHover(0)}
                             onClick={() => {
                                 setRating(value);
-                                onRate?.(value);
+                                if (onRate) onRate(value);
                             }}
                         />
                     );

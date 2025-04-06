@@ -1,9 +1,9 @@
 import React from "react";
-import ActionButton from "../components/actionButton";
+import FloatingButton from "../components/floatingButton.jsx";
 
 export default {
-    title: "Components/ActionButton",
-    component: ActionButton,
+    title: "Components/FloatingButton",
+    component: FloatingButton,
     argTypes: {
         type: {
             control: { type: "select" },
@@ -14,7 +14,7 @@ export default {
     },
 };
 
-const Template = (args) => <ActionButton {...args} />;
+const Template = (args) => <FloatingButton {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

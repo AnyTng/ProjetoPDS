@@ -1,7 +1,7 @@
 import React from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import FilterInput from "../components/FilterInput";
-import ActionButton from "../components/ActionButton";
+import FloatingButton from "../components/floatingButton.jsx";
 
 export default {
     title: "Layouts/DashboardLayout",
@@ -21,9 +21,9 @@ Default.args = {
         />
     ),
     actions: (
-        <ActionButton onClick={() => alert("Clicado!")}>
+        <FloatingButton onClick={() => alert("Clicado!")}>
             <span className="text-xl">+</span> Ação
-        </ActionButton>
+        </FloatingButton>
     ),
     children: (
         <>
