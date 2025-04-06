@@ -1,39 +1,23 @@
-﻿namespace RESTful_API.Model
+﻿using System;
+using System.Collections.Generic;
+
+namespace RESTful_API.Model;
+
+public partial class Login
 {
-    public class Login
-    {
-        public int ID { get; set; }
+    public int Idlogin { get; set; }
 
-        public string? Nome { get; set; }
+    public string? Email { get; set; }
 
-        public string? Email { get; set; }
+    public string? HashPassword { get; set; }
 
-        public byte[] PasswordHash { get; set; }
+    public int TipoLoginIdtlogin { get; set; }
 
-        public byte[] PasswordSalt { get; set; }
+    public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
 
-        public Login(int id, string nome, string email)
-        {
-            Nome = nome;
-            Email = email;
-            ID = id;
-        }
+    public virtual ICollection<Cliente> Clientes { get; set; } = new List<Cliente>();
 
-        public Login(string nome, string email)
-        {
-            Nome = nome;
-            Email = email;
-        }
+    public virtual ICollection<Empresa> Empresas { get; set; } = new List<Empresa>();
 
-        public void AlterarPassword(byte[] passwordHash, byte[] passwordSalt)
-        {
-            PasswordHash = passwordHash;
-            PasswordSalt = passwordSalt;
-        }
-
-        
-
-
-
-    }
+    public virtual TipoLogin TipoLoginIdtloginNavigation { get; set; } = null!;
 }
