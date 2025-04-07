@@ -1,7 +1,7 @@
 import { useState } from "react";
-import InputFieldLong from "../../../../../../../../Downloads/ProjetoPDS-dev/ProjetoPDS-dev/frontend/src/components/inputFieldLong.jsx";
-import Button from "../../../../../../../../Downloads/ProjetoPDS-dev/ProjetoPDS-dev/frontend/src/components/button.jsx";
-import "../../../../../../../../Downloads/ProjetoPDS-dev/ProjetoPDS-dev/frontend/src/css/global.css";
+import InputFieldLong from "./inputFieldLong.jsx";
+import Button from "./button.jsx";
+import "../css/global.css";
 
 const RegisterForm = () => {
 
