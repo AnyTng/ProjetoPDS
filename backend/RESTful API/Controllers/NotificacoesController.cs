@@ -11,47 +11,47 @@ namespace RESTful_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DespesasController : ControllerBase
+    public class NotificacoesController : ControllerBase
     {
         private readonly PdsContext _context;
 
-        public DespesasController(PdsContext context)
+        public NotificacoesController(PdsContext context)
         {
             _context = context;
         }
 
-        // GET: api/Despesas
+        // GET: api/Notificacoes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Despesa>>> GetDespesas()
+        public async Task<ActionResult<IEnumerable<Notificacao>>> GetNotificacaos()
         {
-            return await _context.Despesas.ToListAsync();
+            return await _context.Notificacaos.ToListAsync();
         }
 
-        // GET: api/Despesas/5
+        // GET: api/Notificacoes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Despesa>> GetDespesa(int id)
+        public async Task<ActionResult<Notificacao>> GetNotificacao(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
+            var notificacao = await _context.Notificacaos.FindAsync(id);
 
-            if (despesa == null)
+            if (notificacao == null)
             {
                 return NotFound();
             }
 
-            return despesa;
+            return notificacao;
         }
 
-        // PUT: api/Despesas/5
+        // PUT: api/Notificacoes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDespesa(int id, Despesa despesa)
+        public async Task<IActionResult> PutNotificacao(int id, Notificacao notificacao)
         {
-            if (id != despesa.Iddespesa)
+            if (id != notificacao.Idnotif)
             {
                 return BadRequest();
             }
 
-            _context.Entry(despesa).State = EntityState.Modified;
+            _context.Entry(notificacao).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!DespesaExists(id))
+                if (!NotificacaoExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace RESTful_API.Controllers
             return NoContent();
         }
 
-        // POST: api/Despesas
+        // POST: api/Notificacoes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Despesa>> PostDespesa(Despesa despesa)
+        public async Task<ActionResult<Notificacao>> PostNotificacao(Notificacao notificacao)
         {
-            _context.Despesas.Add(despesa);
+            _context.Notificacaos.Add(notificacao);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
+            return CreatedAtAction("GetNotificacao", new { id = notificacao.Idnotif }, notificacao);
         }
 
-        // DELETE: api/Despesas/5
+        // DELETE: api/Notificacoes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDespesa(int id)
+        public async Task<IActionResult> DeleteNotificacao(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
-            if (despesa == null)
+            var notificacao = await _context.Notificacaos.FindAsync(id);
+            if (notificacao == null)
             {
                 return NotFound();
             }
 
-            _context.Despesas.Remove(despesa);
+            _context.Notificacaos.Remove(notificacao);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool DespesaExists(int id)
+        private bool NotificacaoExists(int id)
         {
-            return _context.Despesas.Any(e => e.Iddespesa == id);
+            return _context.Notificacaos.Any(e => e.Idnotif == id);
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RESTful_API.Model;
+using RESTful_API.Models;
 
 namespace RESTful_API.Controllers
 {
@@ -22,36 +22,36 @@ namespace RESTful_API.Controllers
 
         // GET: api/Infracoes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Infraco>>> GetInfracoes()
+        public async Task<ActionResult<IEnumerable<Infracao>>> GetInfracoes()
         {
             return await _context.Infracoes.ToListAsync();
         }
 
         // GET: api/Infracoes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Infraco>> GetInfraco(int id)
+        public async Task<ActionResult<Infracao>> GetInfracao(int id)
         {
-            var infraco = await _context.Infracoes.FindAsync(id);
+            var infracao = await _context.Infracoes.FindAsync(id);
 
-            if (infraco == null)
+            if (infracao == null)
             {
                 return NotFound();
             }
 
-            return infraco;
+            return infracao;
         }
 
         // PUT: api/Infracoes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutInfraco(int id, Infraco infraco)
+        public async Task<IActionResult> PutInfracao(int id, Infracao infracao)
         {
-            if (id != infraco.Idinfracao)
+            if (id != infracao.Idinfracao)
             {
                 return BadRequest();
             }
 
-            _context.Entry(infraco).State = EntityState.Modified;
+            _context.Entry(infracao).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!InfracoExists(id))
+                if (!InfracaoExists(id))
                 {
                     return NotFound();
                 }
@@ -75,31 +75,31 @@ namespace RESTful_API.Controllers
         // POST: api/Infracoes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Infraco>> PostInfraco(Infraco infraco)
+        public async Task<ActionResult<Infracao>> PostInfracao(Infracao infracao)
         {
-            _context.Infracoes.Add(infraco);
+            _context.Infracoes.Add(infracao);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetInfraco", new { id = infraco.Idinfracao }, infraco);
+            return CreatedAtAction("GetInfracao", new { id = infracao.Idinfracao }, infracao);
         }
 
         // DELETE: api/Infracoes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteInfraco(int id)
+        public async Task<IActionResult> DeleteInfracao(int id)
         {
-            var infraco = await _context.Infracoes.FindAsync(id);
-            if (infraco == null)
+            var infracao = await _context.Infracoes.FindAsync(id);
+            if (infracao == null)
             {
                 return NotFound();
             }
 
-            _context.Infracoes.Remove(infraco);
+            _context.Infracoes.Remove(infracao);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool InfracoExists(int id)
+        private bool InfracaoExists(int id)
         {
             return _context.Infracoes.Any(e => e.Idinfracao == id);
         }

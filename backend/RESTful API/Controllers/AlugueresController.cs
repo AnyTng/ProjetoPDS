@@ -11,47 +11,47 @@ namespace RESTful_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DespesasController : ControllerBase
+    public class AlugueresController : ControllerBase
     {
         private readonly PdsContext _context;
 
-        public DespesasController(PdsContext context)
+        public AlugueresController(PdsContext context)
         {
             _context = context;
         }
 
-        // GET: api/Despesas
+        // GET: api/Alugueres
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Despesa>>> GetDespesas()
+        public async Task<ActionResult<IEnumerable<Aluguer>>> GetAluguers()
         {
-            return await _context.Despesas.ToListAsync();
+            return await _context.Aluguers.ToListAsync();
         }
 
-        // GET: api/Despesas/5
+        // GET: api/Alugueres/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Despesa>> GetDespesa(int id)
+        public async Task<ActionResult<Aluguer>> GetAluguer(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
+            var aluguer = await _context.Aluguers.FindAsync(id);
 
-            if (despesa == null)
+            if (aluguer == null)
             {
                 return NotFound();
             }
 
-            return despesa;
+            return aluguer;
         }
 
-        // PUT: api/Despesas/5
+        // PUT: api/Alugueres/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDespesa(int id, Despesa despesa)
+        public async Task<IActionResult> PutAluguer(int id, Aluguer aluguer)
         {
-            if (id != despesa.Iddespesa)
+            if (id != aluguer.Idaluguer)
             {
                 return BadRequest();
             }
 
-            _context.Entry(despesa).State = EntityState.Modified;
+            _context.Entry(aluguer).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!DespesaExists(id))
+                if (!AluguerExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace RESTful_API.Controllers
             return NoContent();
         }
 
-        // POST: api/Despesas
+        // POST: api/Alugueres
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Despesa>> PostDespesa(Despesa despesa)
+        public async Task<ActionResult<Aluguer>> PostAluguer(Aluguer aluguer)
         {
-            _context.Despesas.Add(despesa);
+            _context.Aluguers.Add(aluguer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
+            return CreatedAtAction("GetAluguer", new { id = aluguer.Idaluguer }, aluguer);
         }
 
-        // DELETE: api/Despesas/5
+        // DELETE: api/Alugueres/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDespesa(int id)
+        public async Task<IActionResult> DeleteAluguer(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
-            if (despesa == null)
+            var aluguer = await _context.Aluguers.FindAsync(id);
+            if (aluguer == null)
             {
                 return NotFound();
             }
 
-            _context.Despesas.Remove(despesa);
+            _context.Aluguers.Remove(aluguer);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool DespesaExists(int id)
+        private bool AluguerExists(int id)
         {
-            return _context.Despesas.Any(e => e.Iddespesa == id);
+            return _context.Aluguers.Any(e => e.Idaluguer == id);
         }
     }
 }

@@ -11,47 +11,47 @@ namespace RESTful_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DespesasController : ControllerBase
+    public class ManutencoesController : ControllerBase
     {
         private readonly PdsContext _context;
 
-        public DespesasController(PdsContext context)
+        public ManutencoesController(PdsContext context)
         {
             _context = context;
         }
 
-        // GET: api/Despesas
+        // GET: api/Manutencoes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Despesa>>> GetDespesas()
+        public async Task<ActionResult<IEnumerable<Manutencao>>> GetManutencaos()
         {
-            return await _context.Despesas.ToListAsync();
+            return await _context.Manutencaos.ToListAsync();
         }
 
-        // GET: api/Despesas/5
+        // GET: api/Manutencoes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Despesa>> GetDespesa(int id)
+        public async Task<ActionResult<Manutencao>> GetManutencao(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
+            var manutencao = await _context.Manutencaos.FindAsync(id);
 
-            if (despesa == null)
+            if (manutencao == null)
             {
                 return NotFound();
             }
 
-            return despesa;
+            return manutencao;
         }
 
-        // PUT: api/Despesas/5
+        // PUT: api/Manutencoes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDespesa(int id, Despesa despesa)
+        public async Task<IActionResult> PutManutencao(int id, Manutencao manutencao)
         {
-            if (id != despesa.Iddespesa)
+            if (id != manutencao.Idmanutencao)
             {
                 return BadRequest();
             }
 
-            _context.Entry(despesa).State = EntityState.Modified;
+            _context.Entry(manutencao).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!DespesaExists(id))
+                if (!ManutencaoExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace RESTful_API.Controllers
             return NoContent();
         }
 
-        // POST: api/Despesas
+        // POST: api/Manutencoes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Despesa>> PostDespesa(Despesa despesa)
+        public async Task<ActionResult<Manutencao>> PostManutencao(Manutencao manutencao)
         {
-            _context.Despesas.Add(despesa);
+            _context.Manutencaos.Add(manutencao);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
+            return CreatedAtAction("GetManutencao", new { id = manutencao.Idmanutencao }, manutencao);
         }
 
-        // DELETE: api/Despesas/5
+        // DELETE: api/Manutencoes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDespesa(int id)
+        public async Task<IActionResult> DeleteManutencao(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
-            if (despesa == null)
+            var manutencao = await _context.Manutencaos.FindAsync(id);
+            if (manutencao == null)
             {
                 return NotFound();
             }
 
-            _context.Despesas.Remove(despesa);
+            _context.Manutencaos.Remove(manutencao);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool DespesaExists(int id)
+        private bool ManutencaoExists(int id)
         {
-            return _context.Despesas.Any(e => e.Iddespesa == id);
+            return _context.Manutencaos.Any(e => e.Idmanutencao == id);
         }
     }
 }

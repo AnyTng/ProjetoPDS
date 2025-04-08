@@ -3,9 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System;
-using RESTful_API.Model;
 using Microsoft.EntityFrameworkCore;
+using RESTful_API.Models;
 
 namespace RESTful_API.Controllers
 {

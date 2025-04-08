@@ -1,8 +1,8 @@
-ï»¿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using RESTful_API.Model;
+using RESTful_API.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +18,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<PdsContext>(options =>
     options.UseSqlServer(connectionString));
 
-//  AutenticaÃ§Ã£o JWT
+//  Autenticação JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -26,7 +26,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // em produÃ§Ã£o mete true
+    options.RequireHttpsMetadata = false; // em produção mete true
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -51,7 +51,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Minha API",
         Version = "v1",
-        Description = "DocumentaÃ§Ã£o da Minha API",
+        Description = "Documentação da Minha API",
         Contact = new OpenApiContact
         {
             Name = "Seu Nome",

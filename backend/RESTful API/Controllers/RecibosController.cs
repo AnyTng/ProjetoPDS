@@ -11,47 +11,47 @@ namespace RESTful_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DespesasController : ControllerBase
+    public class RecibosController : ControllerBase
     {
         private readonly PdsContext _context;
 
-        public DespesasController(PdsContext context)
+        public RecibosController(PdsContext context)
         {
             _context = context;
         }
 
-        // GET: api/Despesas
+        // GET: api/Recibos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Despesa>>> GetDespesas()
+        public async Task<ActionResult<IEnumerable<Recibo>>> GetRecibos()
         {
-            return await _context.Despesas.ToListAsync();
+            return await _context.Recibos.ToListAsync();
         }
 
-        // GET: api/Despesas/5
+        // GET: api/Recibos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Despesa>> GetDespesa(int id)
+        public async Task<ActionResult<Recibo>> GetRecibo(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
+            var recibo = await _context.Recibos.FindAsync(id);
 
-            if (despesa == null)
+            if (recibo == null)
             {
                 return NotFound();
             }
 
-            return despesa;
+            return recibo;
         }
 
-        // PUT: api/Despesas/5
+        // PUT: api/Recibos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDespesa(int id, Despesa despesa)
+        public async Task<IActionResult> PutRecibo(int id, Recibo recibo)
         {
-            if (id != despesa.Iddespesa)
+            if (id != recibo.Idrecibo)
             {
                 return BadRequest();
             }
 
-            _context.Entry(despesa).State = EntityState.Modified;
+            _context.Entry(recibo).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!DespesaExists(id))
+                if (!ReciboExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace RESTful_API.Controllers
             return NoContent();
         }
 
-        // POST: api/Despesas
+        // POST: api/Recibos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Despesa>> PostDespesa(Despesa despesa)
+        public async Task<ActionResult<Recibo>> PostRecibo(Recibo recibo)
         {
-            _context.Despesas.Add(despesa);
+            _context.Recibos.Add(recibo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
+            return CreatedAtAction("GetRecibo", new { id = recibo.Idrecibo }, recibo);
         }
 
-        // DELETE: api/Despesas/5
+        // DELETE: api/Recibos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDespesa(int id)
+        public async Task<IActionResult> DeleteRecibo(int id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
-            if (despesa == null)
+            var recibo = await _context.Recibos.FindAsync(id);
+            if (recibo == null)
             {
                 return NotFound();
             }
 
-            _context.Despesas.Remove(despesa);
+            _context.Recibos.Remove(recibo);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool DespesaExists(int id)
+        private bool ReciboExists(int id)
         {
-            return _context.Despesas.Any(e => e.Iddespesa == id);
+            return _context.Recibos.Any(e => e.Idrecibo == id);
         }
     }
 }
