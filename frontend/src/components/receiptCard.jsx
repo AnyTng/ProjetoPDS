@@ -13,8 +13,8 @@ const ReceiptCard = ({
                      }) => {
     return (
         <div className="w-full max-w-4xl bg-white border border-gray-200 rounded-xl px-8 py-6 flex flex-col gap-4 shadow-sm">
-            <div className="flex justify-between">
-                <div className="space-y-2 text-left">
+            <div className="flex justify-start">
+                <div className="space-y-2 text-left px-5">
                     <p className="text-base font-semibold text-slate-900">
                         Carro: <span className="font-normal">{carroId}</span>
                     </p>
@@ -34,7 +34,7 @@ const ReceiptCard = ({
                     </p>
                 </div>
 
-                <div className="text-right space-y-2">
+                <div className="text-right space-y-2 px-5">
                     <p className="text-base font-semibold text-slate-900">
                         Valor: <span className="font-normal">{valor}</span>
                     </p>
