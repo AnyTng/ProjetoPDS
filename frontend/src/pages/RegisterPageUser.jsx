@@ -5,7 +5,7 @@ const RegisterPageUser = () => {
 
         <div className="px-6">
 
-            <RegisterFormUser />
+            <RegisterFormUser/>
         </div>
     );
 };
