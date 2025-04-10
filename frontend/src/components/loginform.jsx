@@ -25,6 +25,7 @@ const LoginForm = () => {
                 body: JSON.stringify({ email, hashPassword: password })
             });
 
+            // LEMBRAR DE MUDAR ISTO DEPOISSSS AAAAAAA  IMPORTANTEEEEE
             if (!response.ok) throw new Error("Email ou palavra-passe inválidos.");
             const data = await response.json();
             login(data);
