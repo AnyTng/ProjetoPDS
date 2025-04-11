@@ -3,7 +3,7 @@ import React from "react";
 import UserCard from "../components/userCard.jsx";
 
 export default {
-    title: "Componentes/UserCard",
+    title: "Components/UserCard",
     component: UserCard,
     tags: ["autodocs"],
 };

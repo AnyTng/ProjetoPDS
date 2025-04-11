@@ -1,34 +1,55 @@
-import React from "react";
-import DashboardLayout from "../components/DashboardLayout";
-import FilterInput from "../components/FilterInput";
-import FloatingButton from "../components/floatingButton.jsx";
+import DashboardLayout from "../components/dashboardLayout";
+import FloatingButton from "../components/floatingButton";
 
 export default {
-    title: "Layouts/DashboardLayout",
+    title: "Layout/DashboardLayout",
     component: DashboardLayout,
+    argTypes: {
+        floatingButtonEnabled: { control: "boolean", name: "Ativar botão flutuante" },
+        floatingButtonType: {
+            control: { type: "select" },
+            options: ["add", "remove", "upload"],
+            name: "Tipo do botão",
+        },
+        floatingButtonText: {
+            control: "text",
+            name: "Texto do botão",
+        },
+    },
 };
 
-const Template = (args) => <DashboardLayout {...args} />;
-
-export const Default = Template.bind({});
-Default.args = {
-    title: "Exemplo de Título",
-    filter: (
-        <FilterInput
-            placeholder="Filtrar..."
-            onChange={() => {}}
-            value=""
+const Template = ({
+                      floatingButtonEnabled,
+                      floatingButtonType,
+                      floatingButtonText,
+                      ...args
+                  }) => {
+    const floatingButton = floatingButtonEnabled ? (
+        <FloatingButton
+            type={floatingButtonType}
+            text={floatingButtonText}
+            onClick={() =>
+                console.log(`[Botão Flutuante] Tipo: ${floatingButtonType} | Texto: ${floatingButtonText}`)
+            }
         />
-    ),
-    actions: (
-        <FloatingButton onClick={() => alert("Clicado!")}>
-            <span className="text-xl">+</span> Ação
-        </FloatingButton>
-    ),
+    ) : null;
+
+    return <DashboardLayout {...args} floatingAction={floatingButton} />;
+};
+
+export const ComControlo = Template.bind({});
+ComControlo.args = {
+    title: "Página de Teste",
+    email: "admin@email.com",
+    filter: <input type="text" placeholder="Pesquisar..." className="border p-2 rounded" />,
     children: (
-        <>
-            <div className="bg-white p-4 rounded shadow">Cartão 1</div>
-            <div className="bg-white p-4 rounded shadow">Cartão 2</div>
-        </>
+        <div className="space-y-4">
+            <div className="bg-white p-4 rounded shadow">Conteúdo 1</div>
+            <div className="bg-white p-4 rounded shadow">Conteúdo 2</div>
+            <div className="bg-white p-4 rounded shadow">Conteúdo 3</div>
+        </div>
     ),
+    floatingButtonEnabled: true,
+    floatingButtonType: "add",
+    floatingButtonText: "Criar coisa",
 };

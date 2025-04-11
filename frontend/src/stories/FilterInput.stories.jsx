@@ -3,7 +3,7 @@ import FilterInput from "../components/FilterInput";
 
 
 export default {
-    title: "Componentes/FilterInput",
+    title: "Components/FilterInput",
     component: FilterInput,
 };
 

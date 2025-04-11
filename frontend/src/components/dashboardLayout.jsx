@@ -1,17 +1,24 @@
 import React from "react";
 import Header from "./header";
 
-const DashboardLayout = ({ title, filter, actions, children, email }) => {
+const DashboardLayout = ({
+                             title,
+                             filter,
+                             actions,
+                             children,
+                             email,
+                             floatingAction, // <- novo prop opcional
+                         }) => {
     return (
         <div className="h-screen flex flex-col bg-gray-100">
-            {/* Área fixa */}
+            {/* Header fixo */}
             <div className="flex-none">
                 <Header userType="Admin" email={email} />
             </div>
 
             {/* Container principal com padding lateral */}
             <div className="flex-1 flex flex-col px-10 overflow-hidden">
-                {/* Cabeçalho da página - fixo */}
+                {/* Título e filtro */}
                 <div className="flex-none py-6">
                     <div className="flex items-center gap-4 mb-8">
                         <h2 className="text-2xl font-semibold whitespace-nowrap">{title}</h2>
@@ -19,14 +26,14 @@ const DashboardLayout = ({ title, filter, actions, children, email }) => {
                     </div>
                 </div>
 
-                {/* Área de conteúdo - scrollável */}
+                {/* Conteúdo principal scrollável */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="flex flex-col gap-6">
                         {children}
                     </div>
                 </div>
 
-                {/* Área de ações - fixa na parte inferior */}
+                {/* Área de ações no fundo (não flutuante) */}
                 {actions && (
                     <div className="flex-none py-4">
                         <div className="flex justify-end">
@@ -35,6 +42,13 @@ const DashboardLayout = ({ title, filter, actions, children, email }) => {
                     </div>
                 )}
             </div>
+
+            {/* Botão flutuante fixo no canto inferior direito */}
+            {floatingAction && (
+                <div className="fixed bottom-6 right-6 z-50">
+                    {floatingAction}
+                </div>
+            )}
         </div>
     );
 };

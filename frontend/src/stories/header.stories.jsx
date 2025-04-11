@@ -3,7 +3,7 @@ import Header from "../components/header";
 
 
 export default {
-    title: "Componentes/Header",
+    title: "Components/Header",
     component: Header,
     argTypes: {
         userType: {

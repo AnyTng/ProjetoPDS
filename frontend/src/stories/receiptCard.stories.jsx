@@ -2,7 +2,7 @@
 import ReceiptCard from "../components/receiptCard";
 
 export default {
-    title: "Componentes/ReceiptCard",
+    title: "Components/ReceiptCard",
     component: ReceiptCard,
     tags: ['autodocs'],
 };
