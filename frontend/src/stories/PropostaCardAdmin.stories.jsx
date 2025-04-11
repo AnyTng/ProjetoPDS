@@ -7,8 +7,8 @@ export default {
 
 const Template = (args) => <PropostaCardAdmin {...args} />;
 
-export const Padrao = Template.bind({});
-Padrao.args = {
+export const test = Template.bind({});
+test.args = {
     CarroId: "CARRO-123",
     CarroNome: "Toyota Corolla",
     EmpresaNome: "AutoManutenção SA",
