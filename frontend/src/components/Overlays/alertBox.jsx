@@ -1,6 +1,6 @@
-import XIcon from '../assets/XIconBlack.svg';
-import InfoIcon from '../assets/InfoIcon.svg'; // Adiciona este ícone manualmente
-import Button from './button';
+import XIcon from '../../assets/XIconBlack.svg';
+import InfoIcon from '../../assets/InfoIcon.svg'; // Adiciona este ícone manualmente
+import Button from '../button.jsx';
 
 const InfoAlertBox = ({
                           title = "Título",

@@ -1,19 +1,24 @@
+// src/components/dashboardLayout.jsx
 import React from "react";
 import Header from "./header";
+import { useAuth } from "../hooks/useAuth"; // <-- 1. Importar
 
 const DashboardLayout = ({
                              title,
                              filter,
                              actions,
                              children,
-                             email,
-                             floatingAction, // <- novo prop opcional
+
+                             floatingAction,
                          }) => {
+    const { user } = useAuth();
+
     return (
         <div className="h-screen flex flex-col bg-gray-100">
             {/* Header fixo */}
             <div className="flex-none">
-                <Header userType="Admin" email={email} />
+                {/* 4. Passar user?.email diretamente para o Header */}
+                <Header userType="Admin" email={user?.email} />
             </div>
 
             {/* Container principal com padding lateral */}

@@ -1,4 +1,4 @@
-import RatingBubble from "../components/ratingBubble.jsx";
+import RatingBubble from "../components/Overlays/ratingBubble.jsx";
 import "../css/global.css";
 
 export default {

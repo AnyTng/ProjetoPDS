@@ -1,5 +1,5 @@
 import React from 'react';
-import InfoAlertBox from '../components/alertBox.jsx';
+import InfoAlertBox from '../components/Overlays/alertBox.jsx';
 
 export default {
     title: 'Components/InfoAlertBox',

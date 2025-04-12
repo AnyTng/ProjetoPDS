@@ -1,7 +1,7 @@
 import { useState } from "react";
-import bubble from "../assets/evaluateBox.svg";
-import starEmpty from "../assets/starEmpty.svg";
-import starFilled from "../assets/starFilled.svg";
+import bubble from "../../assets/evaluateBox.svg";
+import starEmpty from "../../assets/starEmpty.svg";
+import starFilled from "../../assets/starFilled.svg";
 
 const RatingBubble = ({ max = 5, onRate }) => {
     const [rating, setRating] = useState(0);

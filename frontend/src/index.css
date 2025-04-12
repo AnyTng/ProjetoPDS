@@ -30,14 +30,11 @@ a:hover {
 }
 
 body {
-
-    margin: 0;
-    display: flex;
-    justify-content: center; /* Substitui place-items: center */
-    align-items: center;
-    min-width: 320px;
-    min-height: 100vh;
-
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f9fafb; /* gray-100 */
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 h1 {

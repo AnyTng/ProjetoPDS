@@ -1,6 +1,8 @@
 import React from "react";
 import menuIcon from "../assets/menu.svg"; // substitui pelo ícone real
 
+
+
 const Header = ({ userType, email }) => {
     if (userType === "Admin") {
         return (

@@ -1,7 +1,7 @@
 import FaturasPageAdmin from "../pages/Admin/faturasPageAdmin.jsx";
 
 export default {
-    title: "Páginas/Admin/FaturasPageAdmin",
+    title: "Páginas/FaturasPageAdmin",
     component: FaturasPageAdmin,
 };
 
