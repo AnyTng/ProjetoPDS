@@ -1,5 +1,5 @@
 import React from 'react';
-import MenuBar from '../components/menuBar.jsx';
+import MenuBar from '../components/Overlays/menuBar.jsx';
 
 export default {
     title: 'Components/menuBar',

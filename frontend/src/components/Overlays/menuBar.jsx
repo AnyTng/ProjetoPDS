@@ -1,4 +1,4 @@
-import Button from './button';
+import Button from '../button.jsx';
 
 const MenuBar = ({
                      menuItems = [],
