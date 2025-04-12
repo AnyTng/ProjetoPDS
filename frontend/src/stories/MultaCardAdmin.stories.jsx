@@ -1,4 +1,4 @@
-import MultaCardAdmin from "../components/multaCardAdmin";
+import MultaCardAdmin from "../components/Cards/multaCardAdmin.jsx";
 
 export default {
     title: "Componentes/MultaCardAdmin",

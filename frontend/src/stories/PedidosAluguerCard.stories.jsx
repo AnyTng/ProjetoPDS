@@ -1,4 +1,4 @@
-import PedidoAluguerCard from "../components/pedidoAluguerCard";
+import PedidoAluguerCard from "../components/Cards/pedidoAluguerCard.jsx";
 
 export default {
     title: "Components/PedidoAluguerCard",

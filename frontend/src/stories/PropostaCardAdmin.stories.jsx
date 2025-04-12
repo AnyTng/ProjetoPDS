@@ -1,4 +1,4 @@
-import PropostaCardAdmin from "../components/PropostaCardAdmin";
+import PropostaCardAdmin from "../components/Cards/propostaCardAdmin.jsx";
 
 export default {
     title: "Components/PropostaCardAdmin",

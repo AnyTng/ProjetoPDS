@@ -1,4 +1,4 @@
-import PropostasPageAdmin from "../pages/propostasCarroAdmin";
+import PropostasPageAdmin from "../pages/Admin/propostasCarroAdmin.jsx";
 
 export default {
     title: "Pages/PropostasPageAdmin",

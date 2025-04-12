@@ -1,4 +1,4 @@
-import MultasPageAdmin from "../pages/multasPageAdmin";
+import MultasPageAdmin from "../pages/Admin/multasPageAdmin.jsx";
 
 export default {
     title: "Páginas/MultasPageAdmin",

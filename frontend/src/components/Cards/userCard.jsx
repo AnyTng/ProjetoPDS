@@ -1,5 +1,5 @@
 // src/components/userCard.jsx
-import Button from "./button";
+import Button from "../button.jsx";
 
 const UserCard = ({ userId, estado, nome, contacto, onVerInfoClick, imageUrl }) => {
     return (
@@ -46,7 +46,7 @@ const UserCard = ({ userId, estado, nome, contacto, onVerInfoClick, imageUrl }) 
                 </div>
             </div>
 
-            {/* Botão alinhado à direita */}
+
             <div className="flex justify-end">
                 <Button
                     text="Ver Informação Completa"

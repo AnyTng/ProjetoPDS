@@ -1,6 +1,6 @@
 // src/stories/userCard.stories.jsx
 import React from "react";
-import UserCard from "../components/userCard.jsx";
+import UserCard from "../components/Cards/userCard.jsx";
 
 export default {
     title: "Components/UserCard",

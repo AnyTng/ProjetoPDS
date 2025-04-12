@@ -1,4 +1,4 @@
-import ConcursosManAdmin from "../pages/concursosManAdmin";
+import ConcursosManAdmin from "../pages/Admin/concursosManAdmin.jsx";
 
 export default {
     title: "Pages/ConcursosManAdmin",

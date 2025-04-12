@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import DashboardLayout from "../components/dashboardLayout";
-import PedidoAluguerCard from "../components/pedidoAluguerCard.jsx";
-import FilterInput from "../components/filterInput";
+import DashboardLayout from "../../components/dashboardLayout.jsx";
+import PedidoAluguerCard from "../../components/Cards/pedidoAluguerCard.jsx";
+import FilterInput from "../../components/filterInput.jsx";
 
 const PedidosPageAdmin = ({ pedidos = [], email = "admin@email.com" }) => {
     const [search, setSearch] = useState("");

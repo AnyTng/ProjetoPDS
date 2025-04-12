@@ -1,4 +1,4 @@
-import LoginForm from "../components/loginform.jsx";
+import LoginForm from "../../components/loginform.jsx";
 
 const LoginPageAdmin = () => {
     return (

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import ClientHeader from "../components/ClientHeader";
-import ClientSidebarPanel from "../components/ClientSidebarPanel";
-import InputFieldLong from "../components/inputFieldLong";
-import Button from "../components/button";
+import ClientHeader from "../../components/clientHeader.jsx";
+import ClientSidebarPanel from "../../components/clientSideBarPanel.jsx";
+import InputFieldLong from "../../components/inputFieldLong.jsx";
+import Button from "../../components/button.jsx";
 
 const ClientProfile = ({ userImage, userData }) => {
     const [formData, setFormData] = useState(userData || []);

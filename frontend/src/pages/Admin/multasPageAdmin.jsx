@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import DashboardLayout from "../components/dashboardLayout";
-import MultaCardAdmin from "../components/multaCardAdmin.jsx";
-import FilterInput from "../components/filterInput";
-import FloatingButton from "../components/floatingButton"; // 👈 Importação correta
+import DashboardLayout from "../../components/dashboardLayout.jsx";
+import MultaCardAdmin from "../../components/Cards/multaCardAdmin.jsx";
+import FilterInput from "../../components/filterInput.jsx";
+import FloatingButton from "../../components/floatingButton.jsx"; // 👈 Importação correta
 
 const MultasPageAdmin = ({ multas = [], email = "admin@email.com" }) => {
     const [search, setSearch] = useState("");

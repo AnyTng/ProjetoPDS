@@ -1,4 +1,4 @@
-import ConcursosManutencaoAdminCard from "../components/concursosManutencaoAdminCard.jsx";
+import ConcursosManutencaoAdminCard from "../components/Cards/concursosManutencaoAdminCard.jsx";
 
 export default {
     title: "Components/ConcursosManAdminCard",

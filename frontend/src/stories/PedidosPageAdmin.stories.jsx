@@ -1,4 +1,4 @@
-import PedidosPageAdmin from "../pages/pedidosPageAdmin";
+import PedidosPageAdmin from "../pages/Admin/pedidosPageAdmin.jsx";
 
 export default {
     title: "Pages/PedidosPageAdmin",

@@ -1,5 +1,5 @@
 import React from "react";
-import NotificationsPageAdmin from "../pages/notificationsPageAdmin";
+import NotificationsPageAdmin from "../pages/Admin/notificationsPageAdmin.jsx";
 import { MemoryRouter } from "react-router-dom";
 
 export default {

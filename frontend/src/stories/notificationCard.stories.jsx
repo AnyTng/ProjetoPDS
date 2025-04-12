@@ -1,4 +1,4 @@
-import NotificationCard from "../components/NotificationCard";
+import NotificationCard from "../components/Cards/notificationCard.jsx";
 
 export default {
     title: "Components/NotificationCard",

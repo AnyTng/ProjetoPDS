@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import DashboardLayout from "../components/dashboardLayout";
-import PropostaCardAdmin from "../components/propostaCardAdmin.jsx";
-import FilterInput from "../components/filterInput";
-import FloatingButton from "../components/floatingButton.jsx";
+import DashboardLayout from "../../components/dashboardLayout.jsx";
+import PropostaCardAdmin from "../../components/Cards/propostaCardAdmin.jsx";
+import FilterInput from "../../components/filterInput.jsx";
+import FloatingButton from "../../components/floatingButton.jsx";
 
 const PropostasPageAdmin = ({ pedidos = [], email = "admin@email.com" }) => {
     const [search, setSearch] = useState("");

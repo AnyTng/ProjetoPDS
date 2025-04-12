@@ -1,4 +1,4 @@
-import ClientProfile from "../pages/clientProfile.jsx";
+import ClientProfile from "../pages/Cliente/clientProfile.jsx";
 import profilePic from "../assets/react.svg"; // substitui pela imagem real
 
 export default {

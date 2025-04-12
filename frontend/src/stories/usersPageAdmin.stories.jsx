@@ -1,6 +1,6 @@
 // src/stories/usersPageAdmin.stories.jsx
 import React from "react";
-import UsersPageAdmin from "../pages/usersPageAdmin";
+import UsersPageAdmin from "../pages/Admin/usersPageAdmin.jsx";
 
 // Mock de utilizadores simulando o que viria da API
 const mockUsers = [
