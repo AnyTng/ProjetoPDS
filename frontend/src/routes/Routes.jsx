@@ -93,7 +93,7 @@ const AppRoutes = () => (
             }
         />
         <Route
-            path="/admin/propostas"
+            path="/admin/propostas/:concursoId" // <--- Rota dinâmica com parâmetro
             element={
                 <PrivateRoute allowedRoles={['admin']}>
                     <PropostasPageAdmin />

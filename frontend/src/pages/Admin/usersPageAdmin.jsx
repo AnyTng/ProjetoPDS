@@ -1,51 +1,203 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import UserCard from "../../components/Cards/userCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
+import { useAuth } from "../../hooks/useAuth.js";
+// Importar o novo modal (será criado a seguir)
+import UserDetailEditModal from "../../components/Overlays/UserDetailEditModal.jsx"; // Nome sugerido
 
-const UsersPageAdmin = ({ users = [], email = "admin@email.com" }) => {
+// Remover props 'users' e 'email'
+const UsersPageAdmin = () => {
+    // Estados para a lista de utilizadores
+    const [users, setUsers] = useState([]);
+    const [isLoadingList, setIsLoadingList] = useState(true); // Loading da lista
+    const [listError, setListError] = useState(null); // Erro da lista
     const [search, setSearch] = useState("");
+    const { user } = useAuth(); // Obter user autenticado
 
-    // Filtro por nome ou contacto
-    const filtered = users.filter((user) =>
-        user.nome?.toLowerCase().includes(search.toLowerCase()) ||
-        user.contacto?.toLowerCase().includes(search.toLowerCase())
-    );
+    // Estados para o modal e detalhes do utilizador
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [selectedUserData, setSelectedUserData] = useState(null); // Dados completos do user selecionado
+    const [isFetchingDetails, setIsFetchingDetails] = useState(false); // Loading dos detalhes
+    const [detailError, setDetailError] = useState(null); // Erro dos detalhes
+
+    // --- Fetch Inicial da Lista de Utilizadores (Dados Básicos) ---
+    const fetchUsersList = async () => {
+        setIsLoadingList(true);
+        setListError(null);
+        try {
+            // SUBSTITUIR '/api/admin/users' PELO ENDPOINT REAL DA LISTA
+            console.log("[API Placeholder] Fetching users list...");
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulação
+            // const response = await fetch('/api/admin/users', { headers: { /* Auth Token */ } });
+            // if (!response.ok) throw new Error('Falha ao buscar lista de utilizadores');
+            // const data = await response.json();
+            // // API deve retornar array com pelo menos: id, nome, estado, contacto, imageUrl para o UserCard
+            // setUsers(data);
+
+            // Dados Exemplo - REMOVER/SUBSTITUIR
+            setUsers([
+                { id: "1", nome: "João Silva", estado: "Ativo", contacto: "+351 912345678", imageUrl: null },
+                { id: "2", nome: "Maria Costa", estado: "Inativo", contacto: "+351 922333444", imageUrl: null },
+            ]);
+
+        } catch (err) {
+            console.error("Erro ao buscar lista de utilizadores:", err);
+            setListError(err.message || "Ocorreu um erro ao buscar os utilizadores.");
+            setUsers([]);
+        } finally {
+            setIsLoadingList(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsersList();
+    }, []); // Executa na montagem
+
+    // Filtra users baseado na lista (vindo da API)
+    const filteredUsers = !isLoadingList && !listError ? users.filter((usr) =>
+        (usr.nome?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (usr.contacto?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (usr.id?.toLowerCase() || "").includes(search.toLowerCase())
+    ) : [];
+
+    // --- Handlers do Modal ---
+    const handleCloseUserModal = () => {
+        setIsUserModalOpen(false);
+        setSelectedUserData(null);
+        setDetailError(null); // Limpa erro dos detalhes ao fechar
+    };
+
+    // Abre o modal e busca detalhes completos do utilizador
+    const handleOpenUserModal = async (userId) => {
+        if (!userId) return;
+        setIsUserModalOpen(true); // Abre o modal para mostrar o loading de detalhes
+        setIsFetchingDetails(true);
+        setDetailError(null);
+        setSelectedUserData(null); // Limpa dados antigos
+
+        try {
+            // SUBSTITUIR '/api/admin/users/{userId}' PELO ENDPOINT REAL DE DETALHES
+            console.log(`[API Placeholder] Fetching details for user ID: ${userId}`);
+            await new Promise(resolve => setTimeout(resolve, 800)); // Simulação fetch detalhes
+            // const response = await fetch(`/api/admin/users/${userId}`, { headers: { /* Auth Token */ } });
+            // if (!response.ok) throw new Error('Falha ao buscar detalhes do utilizador');
+            // const fullUserData = await response.json();
+            // // API deve retornar todos os campos: nome, dataNasc, rua, codPostal, contacto1, contacto2, cartaConducaoNum, cartaConducaoValida (boolean?)
+            // setSelectedUserData(fullUserData);
+
+            // Dados Exemplo Detalhes - REMOVER/SUBSTITUIR
+            const exampleDetails = {
+                id: userId, // Usa o ID recebido
+                nome: users.find(u=>u.id === userId)?.nome || 'Nome Exemplo', // Pega nome da lista ou default
+                dataNascimento: '1990-05-15',
+                rua: 'Rua Exemplo, 123',
+                codPostal: '1000-001',
+                contacto1: users.find(u=>u.id === userId)?.contacto || '911111111', // Pega contacto da lista
+                contacto2: '922222222',
+                cartaConducaoNum: 'LX-123456',
+                // Assumir que API retorna true/false ou 'valida'/'invalida'
+                // Mapear para 'valida'/'invalida' para o select
+                cartaConducaoValida: Math.random() > 0.5 ? 'valida' : 'invalida',
+                // Passar outros dados da lista se necessário
+                estado: users.find(u=>u.id === userId)?.estado,
+                imageUrl: users.find(u=>u.id === userId)?.imageUrl,
+            };
+            setSelectedUserData(exampleDetails);
+
+
+        } catch (err) {
+            console.error("Erro ao buscar detalhes do utilizador:", err);
+            setDetailError(err.message || "Ocorreu um erro ao buscar os detalhes.");
+        } finally {
+            setIsFetchingDetails(false);
+        }
+    };
+
+    // Handler para submeter a atualização do utilizador
+    const handleUpdateUser = async (userId, formData) => {
+        console.log(`[API Placeholder] Atualizar User ID: ${userId}`, formData);
+        // LÓGICA DA API (PUT /api/admin/users/{userId}) AQUI...
+        // try {
+        //    // Mapear 'valida'/'invalida' de volta para boolean ou o que API esperar, se necessário
+        //    const dataToSend = { ...formData, cartaConducaoValida: formData.cartaConducaoValida === 'valida' };
+        //    const response = await fetch(`/api/admin/users/${userId}`, {
+        //         method: 'PUT',
+        //         headers: { 'Content-Type': 'application/json', /* Auth Token */ },
+        //         body: JSON.stringify(dataToSend)
+        //     });
+        //    if (!response.ok) throw new Error('Falha ao atualizar utilizador');
+        //    await fetchUsersList(); // Re-fetch lista para ver mudanças no card
+        //    handleCloseUserModal();
+        //    alert('Utilizador atualizado com sucesso!');
+        // } catch (err) { console.error("Erro ao atualizar utilizador:", err); alert(`Erro: ${err.message}`); /* Show error */ }
+        handleCloseUserModal(); // Fechar modal (remover qd tiver API real)
+        alert('Placeholder: Atualização enviada (ver consola).'); // Remover qd tiver API real
+    };
+    // --- Fim Handlers ---
+
+    // --- Lógica de Renderização Condicional da Lista ---
+    let listContent;
+    if (isLoadingList) {
+        listContent = <div className="p-6 text-center text-gray-500">A carregar utilizadores...</div>;
+    } else if (listError) {
+        listContent = <div className="p-6 text-center text-red-600">Erro: {listError}</div>;
+    } else if (filteredUsers.length === 0) {
+        listContent = (
+            <div className="flex justify-center items-center h-64">
+                <p className="text-gray-600 text-lg text-center">
+                    {search ? "Nenhum utilizador corresponde à pesquisa." : "Não existem utilizadores registados."}
+                </p>
+            </div>
+        );
+    } else {
+        listContent = (
+            <div className="flex flex-col gap-6 pb-6">
+                {filteredUsers.map((userItem) => ( // Renomeado para evitar conflito com 'user' do useAuth
+                    <UserCard
+                        key={userItem.id}
+                        userId={userItem.id}
+                        estado={userItem.estado}
+                        nome={userItem.nome}
+                        contacto={userItem.contacto}
+                        imageUrl={userItem.imageUrl}
+                        // Passa a função para abrir o modal de detalhes/edição
+                        onVerInfoClick={() => handleOpenUserModal(userItem.id)}
+                    />
+                ))}
+            </div>
+        );
+    }
+    // --- Fim Lógica Renderização Lista ---
 
     return (
-        <DashboardLayout
-            title="Utilizadores"
-            email={email}
-            filter={
-                <FilterInput
-                    placeholder="Pesquisar utilizadores..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            }
-        >
-            {filtered.length === 0 ? (
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-600 text-lg text-center">
-                        Nenhum utilizador corresponde à pesquisa.
-                    </p>
-                </div>
-            ) : (
-                <div className="flex flex-col gap-6">
-                    {filtered.map((user) => (
-                        <UserCard
-                            key={user.id}
-                            userId={user.id}
-                            estado={user.estado}
-                            nome={user.nome}
-                            contacto={user.contacto}
-                            imageUrl={user.imageUrl}
-                            onVerInfoClick={() => console.log("Ver info de", user.id)}
-                        />
-                    ))}
-                </div>
-            )}
-        </DashboardLayout>
+        <>
+            <DashboardLayout
+                title="Utilizadores"
+                email={user?.email} // Usa email do user autenticado
+                filter={
+                    <FilterInput
+                        placeholder="Pesquisar por nome, contacto ou ID..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        disabled={isLoadingList || !!listError} // Desativa durante load/erro da LISTA
+                    />
+                }
+                // Sem botão flutuante nesta página por agora
+            >
+                {listContent} {/* Renderiza o conteúdo dinâmico da lista */}
+            </DashboardLayout>
+
+            {/* Renderizar Modal de Detalhes/Edição Condicionalmente */}
+            <UserDetailEditModal
+                isOpen={isUserModalOpen}
+                onClose={handleCloseUserModal}
+                onSubmit={handleUpdateUser} // Handler da página para guardar
+                userData={selectedUserData} // Dados completos do user (pode ser null inicialmente)
+                isLoading={isFetchingDetails} // Estado de loading dos DETALHES
+                error={detailError} // Erro ao buscar DETALHES
+            />
+        </>
     );
 };
 

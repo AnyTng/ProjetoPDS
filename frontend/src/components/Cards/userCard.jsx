@@ -3,7 +3,7 @@ import Button from "../button.jsx";
 
 const UserCard = ({ userId, estado, nome, contacto, onVerInfoClick, imageUrl }) => {
     return (
-        <div className="w-full max-w-3xl bg-white border border-gray-200 rounded-2xl px-6 py-5 flex flex-col gap-4 shadow-sm">
+        <div className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-5 flex flex-col gap-4 shadow-sm">
             <div className="flex items-center gap-6">
                 {/*aqui vai buscar uma imagem ou poe o placeholder se n existir */}
                 <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">

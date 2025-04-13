@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../button.jsx';
-import InputFieldLong from '../inputFieldLong.jsx'; // Usar onde aplicável
+import InputFieldLong from '../inputFieldLong.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
 
 // Estado inicial baseado na tabela e campos necessários
@@ -151,13 +151,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Classe</label>
                             {/* Usar select se tiveres as classes, senão input texto */}
                             <InputFieldLong type="text" name="classeVeiculo" placeholder="Ex: C" value={formData.classeVeiculo} onChange={handleChange} required />
-                            {/* Exemplo Select:
-                             <select name="classeVeiculo" value={formData.classeVeiculo} onChange={handleChange} className="w-full p-2 mt-1 border rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-                                 <option value="">Selecione...</option>
-                                 <option value="A">A</option>
-                                 <option value="B">B</option>
-                                  ... etc ...
-                             </select> */}
+
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Combustível</label>
