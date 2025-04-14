@@ -4,12 +4,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RESTful_API.Models;
 using System.Text;
+using System.Text.Json.Serialization; // Adicionar este using
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "chave-super-secreta");
-
 
 // Get ConnectionString from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -26,53 +26,112 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // em produção mete true
+    options.RequireHttpsMetadata = false; // Em produção, deve ser true
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        RoleClaimType = "role" // permite usar [Authorize(Roles = "...")]
+        ValidateIssuer = false, // Depende dos seus requisitos
+        ValidateAudience = false, // Depende dos seus requisitos
+        // Considerar adicionar validação de tempo de vida: ValidateLifetime = true,
+        RoleClaimType = "role" // Mapeia a claim 'role' do token para User.IsInRole()
     };
 });
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+// --- MODIFICAÇÃO AQUI ---
+// Adicionar configuração do JsonSerializer para ignorar ciclos
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        // Pode adicionar outras opções globais aqui, se necessário
+        // options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+// --- FIM DA MODIFICAÇÃO ---
+
 builder.Services.AddEndpointsApiExplorer();
 
+// ? CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy.WithOrigins("http://localhost:5173") // URL do seu frontend
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()); // Necessário se enviar cookies ou cabeçalho Authorization com credenciais
+});
+
 //  Swagger com suporte a JWT
-// Configure Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Minha API",
+        Title = "Minha API PDS", // Ajustar conforme necessário
         Version = "v1",
-        Description = "Documentação da Minha API",
+        Description = "Documentação da API do Projeto PDS", // Ajustar
         Contact = new OpenApiContact
         {
-            Name = "Seu Nome",
-            Email = "seu.email@example.com"
+            Name = "Nome da Equipa", // Ajustar
+            Email = string.Empty, // Ajustar
+            // Url = new Uri("https://example.com/contact"), // Opcional
+        }
+    });
+
+    // Adicionar definição de segurança para Bearer (JWT)
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Autorização JWT usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http, // Usar Http para Bearer
+        Scheme = "bearer", // Esquema em minúsculas
+        BearerFormat = "JWT"
+    });
+
+    // Adicionar requisito de segurança para operações que precisam de JWT
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
         }
     });
 });
 
+
 var app = builder.Build();
 
-//  Swagger
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Configure the HTTP request pipeline.
+// Swagger apenas em desenvolvimento (recomendado)
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API V1");
-    // Optional: To serve the Swagger UI at the app's root
-    c.RoutePrefix = string.Empty;
-});
-app.UseAuthentication(); // tem de vir antes de Authorization!
-app.UseAuthorization();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API V1");
+        // Para aceder à UI do Swagger na raiz da aplicação (ex: http://localhost:5159/)
+        c.RoutePrefix = string.Empty;
+    });
+}
 
-app.MapControllers();
+// HTTPS Redirection pode ser útil mesmo em desenvolvimento se configurar certificados
+// app.UseHttpsRedirection();
+
+// ? Aplica CORS antes de auth/authz
+app.UseCors("AllowFrontend");
+
+app.UseAuthentication(); // Adiciona middleware de autenticação
+app.UseAuthorization(); // Adiciona middleware de autorização
+
+app.MapControllers(); // Mapeia os atributos de rota nos controllers
 
 app.Run();

@@ -24,7 +24,7 @@ public partial class Aluguer
     public float? ValorReserva { get; set; }
 
     public float? ValorQuitacao { get; set; }
-
+    public string? EstadoAluguer { get; set; }
     public virtual Cliente ClienteIdclienteNavigation { get; set; } = null!;
 
     public virtual ICollection<Infracao> Infracos { get; set; } = new List<Infracao>();
