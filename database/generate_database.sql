@@ -15,6 +15,7 @@ CREATE TABLE CodigoPostal (
   CP         int NOT NULL, 
   Localidade varchar(255) NULL, 
   PRIMARY KEY (CP));
+
 CREATE TABLE Veiculo (
   IDVeiculo             int IDENTITY NOT NULL, 
   MatriculaVeiculo      varchar(10) NULL, 
@@ -29,6 +30,7 @@ CREATE TABLE Veiculo (
   CaminhoFotoVeiculo    varchar(8000) NULL, 
   DescVeiculo           varchar(8000) NULL, 
   PRIMARY KEY (IDVeiculo));
+
 CREATE TABLE Infracoes (
   IDInfracao       int IDENTITY NOT NULL, 
   AluguerIDAluguer int NOT NULL, 
@@ -75,6 +77,7 @@ CREATE TABLE Aluguer (
   Classificacao       float(1) NULL, 
   ValorReserva        float(10) NULL, 
   ValorQuitacao       float(10) NULL, 
+  EstadoAluguer		  VARCHAR(50) NULL,
   PRIMARY KEY (IDAluguer));
 CREATE TABLE Manutencao (
   IDManutencao     int IDENTITY NOT NULL, 
