@@ -14,6 +14,9 @@ import PedidosPageAdmin from '../pages/Admin/pedidosPageAdmin.jsx';
 import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
+//User Pages
+import ClientProfile from "../pages/Cliente/clientProfile.jsx";
+
 const AppRoutes = () => (
     <Routes>
         {/* Public Routes */}
@@ -24,11 +27,11 @@ const AppRoutes = () => (
 
         {/* Protected Routes (Require authentication) */}
         <Route
-            path="/dashboard"
+            path="/user/profile"
             element={
-                <PrivateRoute allowedRoles={['user', 'service-provider']}>
+                <PrivateRoute allowedRoles={['user']}>
                     {/* Exemplo temporário de dashboard do utilizador */}
-                    <div>User Dashboard</div>
+                    <div>< ClientProfile /></div>
                 </PrivateRoute>
             }
         />

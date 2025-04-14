@@ -8,7 +8,7 @@ import { useAuth } from "../hooks/useAuth";  // assuming this path is correct
 
 
 const LoginForm = () => {
-    const { login } = useAuth();  // <== this is what fixes the error
+    const { login } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
