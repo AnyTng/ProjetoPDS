@@ -110,8 +110,8 @@ const LoginForm = () => {
                     <InputFieldLong id="password-login" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} autoComplete="current-password"/>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center w-full mt-4">
-                    <Button text="Registar" variant="secondary" type="button" onClick={handleRegister} disabled={isLoading} className="flex-1"/>
-                    <Button text={isLoading ? "A iniciar..." : "Iniciar Sessão"} variant="primary" type="submit" disabled={isLoading} className="flex-1"/>
+                    <Button text="Registar" variant="secondary" type="button" onClick={handleRegister} disabled={isLoading} className="flex-1 !py-1"/>
+                    <Button text={isLoading ? "A iniciar..." : "Iniciar Sessão"} variant="primary" type="submit" disabled={isLoading} className="flex-1 !py-1"/>
                 </div>
                 <div className="text-center mt-4">
                     <Button text="É uma Empresa?" variant="text" type="button" disabled={isLoading} onClick={() => navigate('/registerEmpresa')} /> {/* Navega para registo empresa */}
