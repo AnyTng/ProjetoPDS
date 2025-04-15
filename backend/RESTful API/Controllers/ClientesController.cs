@@ -1,4 +1,4 @@
-﻿// GeminiTakeThis/Backend/RESTful API/Controllers/ClientesController.cs
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Models;
 using Microsoft.AspNetCore.Authorization; // Adicionar para [Authorize] se necessário
+using System.Security.Claims;
+
+
 
 namespace RESTful_API.Controllers
 {
@@ -48,6 +51,29 @@ namespace RESTful_API.Controllers
                                  .Include(c => c.CodigoPostalCpNavigation) // Incluir localidade
                                  .ToListAsync();
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<ActionResult<Cliente>> GetMe()
+        {
+            var idLoginClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(idLoginClaim, out int idLogin))
+                return Unauthorized("ID do login inválido no token");
+
+            var cliente = await _context.Clientes
+                                .Include(c => c.CodigoPostalCpNavigation)
+                                .FirstOrDefaultAsync(c => c.LoginIdlogin == idLogin);
+
+            if (cliente == null)
+            {
+                return NotFound();
+            }
+
+            return cliente;
+        }
+
+
 
         // GET: api/Clientes/5
         [HttpGet("{id}")]
