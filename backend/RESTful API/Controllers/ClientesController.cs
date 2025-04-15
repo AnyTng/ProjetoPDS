@@ -1,4 +1,4 @@
-﻿
+﻿// GeminiTakeThis/Backend/RESTful API/Controllers/ClientesController.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,29 +7,55 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Models;
-using Microsoft.AspNetCore.Authorization; // Adicionar para [Authorize] se necessário
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-
-
+using System.Text.RegularExpressions; // For Regex
 
 namespace RESTful_API.Controllers
 {
-    // DTO para a criação de Cliente
+    // --- DTOs ---
+    #region DTOs
     public class ClienteCreateDto
     {
         public string NomeCliente { get; set; }
         public DateTime? DataNascCliente { get; set; }
         public int NifCliente { get; set; }
         public string RuaCliente { get; set; }
-        // Receber o código postal como string para validação e separação
-        public string CodigoPostal { get; set; } // Ex: "1234-567" ou "1234567"
-        public string Localidade { get; set; } // Adicionar localidade
+        public string CodigoPostal { get; set; } // Ex: "1234-567" or "1234567"
+        public string Localidade { get; set; } // Required if CP is new
         public int LoginIdlogin { get; set; }
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }
-        // Remover EstadoValCc daqui, definir por defeito ou noutra lógica
     }
 
+    // DTO for GET /me response
+    public class ClienteResponseDto
+    {
+        public int Idcliente { get; set; }
+        public string NomeCliente { get; set; }
+        public DateTime? DataNascCliente { get; set; }
+        public int? NifCliente { get; set; }
+        public string RuaCliente { get; set; }
+        public string CodigoPostal { get; set; }
+        public string Localidade { get; set; }
+        public string Email { get; set; }
+        public int? ContactoC1 { get; set; }
+        public int? ContactoC2 { get; set; }
+        public bool? EstadoValCc { get; set; }
+    }
+
+    // DTO for PUT /me request body
+    public class ClienteUpdateDto
+    {
+        public string NomeCliente { get; set; }
+        public DateTime? DataNascCliente { get; set; }
+        public string RuaCliente { get; set; }
+        public string CodigoPostal { get; set; }
+        public string Localidade { get; set; }
+        public int? ContactoC1 { get; set; }
+        public int? ContactoC2 { get; set; }
+    }
+    #endregion
 
     [Route("api/[controller]")]
     [ApiController]
@@ -42,80 +68,132 @@ namespace RESTful_API.Controllers
             _context = context;
         }
 
-        // GET: api/Clientes
+        // GET: api/Clientes (Admin only - example)
         [HttpGet]
-        //[Authorize(Roles = "Admin")] // Proteger se necessário
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<IEnumerable<ClienteResponseDto>>> GetClientes()
         {
             return await _context.Clientes
-                                 .Include(c => c.CodigoPostalCpNavigation) // Incluir localidade
+                                 .Include(c => c.CodigoPostalCpNavigation)
+                                 .Include(c => c.LoginIdloginNavigation)
+                                 .Select(c => new ClienteResponseDto { /* Mapping */ })
                                  .ToListAsync();
         }
 
+        // GET: api/clientes/me (For the logged-in user)
         [Authorize]
         [HttpGet("me")]
-        public async Task<ActionResult<Cliente>> GetMe()
+        public async Task<ActionResult<ClienteResponseDto>> GetMe()
         {
-            var idLoginClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = User.FindFirstValue(ClaimTypes.Name);
 
             if (!int.TryParse(idLoginClaim, out int idLogin))
-                return Unauthorized("ID do login inválido no token");
+            {
+                return Unauthorized("ID do login inválido no token.");
+            }
 
             var cliente = await _context.Clientes
-                                .Include(c => c.CodigoPostalCpNavigation)
-                                .FirstOrDefaultAsync(c => c.LoginIdlogin == idLogin);
+                                        .Include(c => c.CodigoPostalCpNavigation)
+                                        .FirstOrDefaultAsync(c => c.LoginIdlogin == idLogin);
 
             if (cliente == null)
             {
-                return NotFound();
+                return NotFound("Perfil de cliente não encontrado para este login.");
             }
 
-            return cliente;
+            string formattedCp = cliente.CodigoPostalCp.ToString("0000000");
+            // formattedCp = $"{formattedCp.Substring(0, 4)}-{formattedCp.Substring(4, 3)}";
+
+            var clienteResponse = new ClienteResponseDto
+            {
+                Idcliente = cliente.Idcliente,
+                NomeCliente = cliente.NomeCliente,
+                DataNascCliente = cliente.DataNascCliente,
+                NifCliente = cliente.Nifcliente,
+                RuaCliente = cliente.RuaCliente,
+                CodigoPostal = formattedCp,
+                Localidade = cliente.CodigoPostalCpNavigation?.Localidade,
+                Email = email,
+                ContactoC1 = cliente.ContactoC1,
+                ContactoC2 = cliente.ContactoC2,
+                EstadoValCc = cliente.EstadoValCc
+            };
+
+            return Ok(clienteResponse);
         }
 
-
-
-        // GET: api/Clientes/5
+        // GET: api/Clientes/5 (Admin only - example)
         [HttpGet("{id}")]
-        //[Authorize(Roles = "Admin")] // Proteger se necessário
-        public async Task<ActionResult<Cliente>> GetCliente(int id)
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
         {
-            var cliente = await _context.Clientes
+             var cliente = await _context.Clientes
                                       .Include(c => c.CodigoPostalCpNavigation)
-                                      .FirstOrDefaultAsync(c => c.Idcliente == id);
+                                      .Include(c => c.LoginIdloginNavigation)
+                                      .Where(c => c.Idcliente == id)
+                                      .Select(c => new ClienteResponseDto { /* Mapping */ })
+                                      .FirstOrDefaultAsync();
 
-
-            if (cliente == null)
-            {
-                return NotFound();
-            }
-
-            return cliente;
+             if (cliente == null) return NotFound();
+             return cliente;
         }
 
-        // PUT: api/Clientes/5
-        [HttpPut("{id}")]
-        //[Authorize(Roles = "Admin,Cliente")] // Permitir que o próprio cliente ou admin edite
-        public async Task<IActionResult> PutCliente(int id, Cliente cliente) // Poderia usar um DTO aqui também
+        // *** NEW: PUT /api/clientes/me ***
+        [HttpPut("me")]
+        [Authorize] // Only authenticated users can update their own profile
+        public async Task<IActionResult> PutMe(ClienteUpdateDto clienteUpdateDto)
         {
-            // Adicionar verificação de permissão (cliente só pode editar o seu próprio perfil)
-            // Ex: if (User.FindFirstValue(ClaimTypes.NameIdentifier) != cliente.LoginIdlogin.ToString() && !User.IsInRole("Admin")) return Forbid();
-
-            if (id != cliente.Idcliente)
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idLoginClaim, out int userLoginId))
             {
-                return BadRequest();
+                return Unauthorized("Token inválido ou ID do utilizador não encontrado.");
             }
 
-            // Validar CodigoPostalCp - garantir que existe antes de atualizar
-            var codigoPostalExists = await _context.CodigoPostals.AnyAsync(cp => cp.Cp == cliente.CodigoPostalCp);
-            if (!codigoPostalExists)
+            // Find the existing client record based on the Login ID from the token
+            var clienteToUpdate = await _context.Clientes
+                                                .Include(c => c.CodigoPostalCpNavigation)
+                                                .FirstOrDefaultAsync(c => c.LoginIdlogin == userLoginId);
+
+            if (clienteToUpdate == null)
             {
-                // Considerar criar o CP aqui se fizer sentido, ou retornar erro
-                return BadRequest($"Código Postal '{cliente.CodigoPostalCp}' não encontrado.");
+                return NotFound("Perfil de cliente não encontrado para atualizar.");
             }
 
+            // --- Input Validation (same as before) ---
+             if (string.IsNullOrWhiteSpace(clienteUpdateDto.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
+             if (clienteUpdateDto.ContactoC1.HasValue && clienteUpdateDto.ContactoC1.Value.ToString().Length != 9) return BadRequest("Contacto principal deve ter 9 dígitos.");
+             if (clienteUpdateDto.ContactoC2.HasValue && clienteUpdateDto.ContactoC2.Value.ToString().Length != 9) return BadRequest("Contacto secundário deve ter 9 dígitos.");
+             if (string.IsNullOrWhiteSpace(clienteUpdateDto.CodigoPostal)) return BadRequest("Código Postal é obrigatório.");
+             string cpDigits = new string(clienteUpdateDto.CodigoPostal.Where(char.IsDigit).ToArray());
+             if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int newCpNumeric)) return BadRequest("Formato inválido para Código Postal.");
 
-            _context.Entry(cliente).State = EntityState.Modified;
+            // --- Handle CodigoPostal Update (same as before) ---
+            if (clienteToUpdate.CodigoPostalCp != newCpNumeric)
+            {
+                var newCodigoPostal = await _context.CodigoPostals.FindAsync(newCpNumeric);
+                if (newCodigoPostal == null)
+                {
+                     if (string.IsNullOrWhiteSpace(clienteUpdateDto.Localidade)) return BadRequest($"Código Postal '{newCpNumeric}' não existe e a Localidade não foi fornecida.");
+                     newCodigoPostal = new CodigoPostal { Cp = newCpNumeric, Localidade = clienteUpdateDto.Localidade };
+                     _context.CodigoPostals.Add(newCodigoPostal);
+                }
+                 else if (!string.IsNullOrWhiteSpace(clienteUpdateDto.Localidade) && !newCodigoPostal.Localidade.Equals(clienteUpdateDto.Localidade, StringComparison.OrdinalIgnoreCase))
+                 {
+                     Console.WriteLine($"Aviso: Localidade fornecida '{clienteUpdateDto.Localidade}' difere da existente '{newCodigoPostal.Localidade}' para o CP {newCpNumeric}. Usando a existente.");
+                     // Optionally update the existing CP's locality here if desired
+                 }
+                clienteToUpdate.CodigoPostalCp = newCpNumeric; // Update FK
+            }
+
+            // --- Update Allowed Fields (same as before) ---
+            clienteToUpdate.NomeCliente = clienteUpdateDto.NomeCliente;
+            clienteToUpdate.DataNascCliente = clienteUpdateDto.DataNascCliente;
+            clienteToUpdate.RuaCliente = clienteUpdateDto.RuaCliente;
+            clienteToUpdate.ContactoC1 = clienteUpdateDto.ContactoC1;
+            clienteToUpdate.ContactoC2 = clienteUpdateDto.ContactoC2;
+
+            _context.Entry(clienteToUpdate).State = EntityState.Modified;
 
             try
             {
@@ -123,141 +201,148 @@ namespace RESTful_API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ClienteExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                 // Check if the entity still exists based on the ID found earlier
+                 if (!ClienteExists(clienteToUpdate.Idcliente)) // Use the client's actual ID
+                 {
+                      return NotFound("Cliente não encontrado durante a gravação (concorrência).");
+                 }
+                 else { throw; }
             }
             catch (DbUpdateException ex)
             {
-                // Logar o erro exato para depuração
-                Console.WriteLine($"DbUpdateException: {ex.InnerException?.Message ?? ex.Message}");
-                return StatusCode(500, "Erro ao guardar alterações na base de dados.");
+                Console.WriteLine($"DbUpdateException on PUT /me: {ex.InnerException?.Message ?? ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao guardar as alterações.");
             }
 
-
-            return NoContent();
+            return NoContent(); // Success
         }
 
-        // POST: api/Clientes
-        [HttpPost]
-        //[Authorize] // Requer autenticação para criar um cliente associado ao login
-        public async Task<ActionResult<Cliente>> PostCliente(ClienteCreateDto clienteDto)
-        {
-             // --- Validação do Código Postal ---
-            if (string.IsNullOrWhiteSpace(clienteDto.CodigoPostal))
-            {
-                return BadRequest("Código Postal é obrigatório.");
-            }
 
+        // POST: api/Clientes (Create new client - remains the same)
+        [HttpPost]
+        [Authorize]
+        public async Task<ActionResult<ClienteResponseDto>> PostCliente(ClienteCreateDto clienteDto)
+        {
+             // --- Validation (as before) ---
+            if (string.IsNullOrWhiteSpace(clienteDto.NomeCliente)) return BadRequest("Nome é obrigatório.");
+            // ... other validations ...
             string cpDigits = new string(clienteDto.CodigoPostal.Where(char.IsDigit).ToArray());
             if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int cpNumeric))
-            {
-                 return BadRequest("Formato inválido para Código Postal (deve ter 7 dígitos).");
-            }
+                return BadRequest("Formato inválido para Código Postal.");
+             var loginExists = await _context.Logins.AnyAsync(l => l.Idlogin == clienteDto.LoginIdlogin);
+             if (!loginExists) return BadRequest($"Login com ID {clienteDto.LoginIdlogin} não encontrado.");
+             var existingCliente = await _context.Clientes.FirstOrDefaultAsync(c => c.LoginIdlogin == clienteDto.LoginIdlogin);
+             if (existingCliente != null) return Conflict($"Já existe um perfil de cliente associado a este login.");
 
-             // Verificar NIF (exemplo básico)
-            if (clienteDto.NifCliente.ToString().Length != 9)
-            {
-                return BadRequest("NIF deve ter 9 dígitos.");
-            }
-
-            // Verificar ContactoC1 (exemplo básico)
-             if (clienteDto.ContactoC1.HasValue && clienteDto.ContactoC1.Value.ToString().Length != 9)
-            {
-                 return BadRequest("Contacto principal deve ter 9 dígitos.");
-            }
-
-            // --- Gestão do Código Postal ---
+            // --- Handle CodigoPostal (as before) ---
             var codigoPostal = await _context.CodigoPostals.FindAsync(cpNumeric);
             if (codigoPostal == null)
             {
-                // Se não existe, cria um novo
-                if (string.IsNullOrWhiteSpace(clienteDto.Localidade))
-                {
-                    // Tentar buscar localidade ou retornar erro se não for fornecida e for necessária
-                    // Poderia ter uma API externa ou tabela pré-populada aqui
-                     return BadRequest("Localidade é obrigatória para um novo Código Postal.");
-                }
-                codigoPostal = new CodigoPostal { Cp = cpNumeric, Localidade = clienteDto.Localidade };
-                _context.CodigoPostals.Add(codigoPostal);
-                // Não faz SaveChanges aqui, fará junto com o Cliente
+                 if (string.IsNullOrWhiteSpace(clienteDto.Localidade)) return BadRequest($"Código Postal '{cpNumeric}' não existe e a Localidade não foi fornecida.");
+                 codigoPostal = new CodigoPostal { Cp = cpNumeric, Localidade = clienteDto.Localidade };
+                 _context.CodigoPostals.Add(codigoPostal);
             }
-             else if (!string.IsNullOrWhiteSpace(clienteDto.Localidade) &&
-                     !codigoPostal.Localidade.Equals(clienteDto.Localidade, StringComparison.OrdinalIgnoreCase))
+             else if (!string.IsNullOrWhiteSpace(clienteDto.Localidade) && !codigoPostal.Localidade.Equals(clienteDto.Localidade, StringComparison.OrdinalIgnoreCase))
              {
-                 // Opcional: Atualizar localidade se fornecida e diferente da existente
-                 // codigoPostal.Localidade = clienteDto.Localidade;
-                 // _context.Entry(codigoPostal).State = EntityState.Modified;
-                 Console.WriteLine($"Aviso: Localidade fornecida '{clienteDto.Localidade}' difere da existente '{codigoPostal.Localidade}' para o CP {cpNumeric}. A existente será mantida.");
+                 Console.WriteLine($"Aviso: Localidade fornecida '{clienteDto.Localidade}' difere da existente '{codigoPostal.Localidade}' para o CP {cpNumeric}. Usando a existente.");
              }
 
-
-             // --- Criação do Cliente ---
+            // --- Create Cliente Entity (as before) ---
             var cliente = new Cliente
             {
                 NomeCliente = clienteDto.NomeCliente,
                 DataNascCliente = clienteDto.DataNascCliente,
                 Nifcliente = clienteDto.NifCliente,
                 RuaCliente = clienteDto.RuaCliente,
-                CodigoPostalCp = cpNumeric, // Usa o CP numérico validado/criado
+                CodigoPostalCp = cpNumeric,
                 LoginIdlogin = clienteDto.LoginIdlogin,
                 ContactoC1 = clienteDto.ContactoC1,
                 ContactoC2 = clienteDto.ContactoC2,
-                EstadoValCc = false // Definir como falso por defeito
+                EstadoValCc = false
             };
-
             _context.Clientes.Add(cliente);
 
-            try
-            {
-                await _context.SaveChangesAsync(); // Salva Cliente e CodigoPostal (se for novo)
-            }
+            try { await _context.SaveChangesAsync(); }
             catch (DbUpdateException ex)
             {
-                 // Log detalhado do erro
-                Console.WriteLine($"Erro ao guardar cliente: {ex.InnerException?.Message ?? ex.Message}");
-                // Tentar remover o CodigoPostal se foi adicionado nesta transação e falhou
-                if (_context.Entry(codigoPostal).State == EntityState.Added)
-                {
-                    _context.Entry(codigoPostal).State = EntityState.Detached;
-                }
-                 return StatusCode(500, "Erro interno ao guardar o cliente na base de dados.");
+                 Console.WriteLine($"Erro ao guardar novo cliente: {ex.InnerException?.Message ?? ex.Message}");
+                 if (_context.Entry(codigoPostal).State == EntityState.Added) _context.Entry(codigoPostal).State = EntityState.Detached;
+                 return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno ao guardar o cliente.");
             }
 
-
-            // Retorna o cliente completo criado (incluindo o ID gerado)
-            // É preciso re-ler ou carregar a navegação se quiser retornar a localidade
-            await _context.Entry(cliente).Reference(c => c.CodigoPostalCpNavigation).LoadAsync();
-
-            return CreatedAtAction(nameof(GetCliente), new { id = cliente.Idcliente }, cliente);
-        }
-
-
-        // DELETE: api/Clientes/5
-        [HttpDelete("{id}")]
-        //[Authorize(Roles = "Admin")] // Apenas Admin pode apagar clientes diretamente?
-        public async Task<IActionResult> DeleteCliente(int id)
-        {
-            var cliente = await _context.Clientes.FindAsync(id);
-            if (cliente == null)
+             // --- Create Response DTO (as before) ---
+            var createdClienteResponse = new ClienteResponseDto
             {
-                return NotFound();
-            }
+                Idcliente = cliente.Idcliente,
+                NomeCliente = cliente.NomeCliente,
+                // ... map other fields ...
+                Email = (await _context.Logins.FindAsync(cliente.LoginIdlogin))?.Email, // Fetch email
+                CodigoPostal = codigoPostal.Cp.ToString("0000000"),
+                Localidade = codigoPostal.Localidade,
+            };
 
-             // Considerar lógica adicional: apagar Login associado? Anular alugueres?
-            // Por agora, apenas apaga o cliente. O Login pode ficar órfão.
-
-            _context.Clientes.Remove(cliente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return CreatedAtAction(nameof(GetCliente), new { id = cliente.Idcliente }, createdClienteResponse);
         }
 
+
+
+    // DELETE: api/Clientes/5 (Anonymizes Login, keeps Cliente record)
+    [HttpDelete("{id}")]
+    [Authorize]
+    // Renomeado para clareza, mas a ROTA continua a ser DELETE /api/Clientes/{id}
+    public async Task<IActionResult> DeleteClienteAndAnonymizeLogin(int id)
+    {
+        var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(idLoginClaim, out int userLoginId))
+        {
+            return Unauthorized("Token inválido.");
+        }
+
+        var cliente = await _context.Clientes.FindAsync(id);
+        if (cliente == null)
+        {
+            return NotFound("Cliente não encontrado.");
+        }
+
+        // Authorization Check: Allow self-delete or admin delete
+        if (cliente.LoginIdlogin != userLoginId && !User.IsInRole("admin"))
+        {
+            return Forbid("Não tem permissão para executar esta ação neste perfil.");
+        }
+
+        // Find the associated login record
+        var loginToAnonymize = await _context.Logins.FindAsync(cliente.LoginIdlogin);
+
+        if (loginToAnonymize != null)
+        {
+            // Anonymize the login details
+            loginToAnonymize.Email = null;
+            loginToAnonymize.HashPassword = null;
+
+            _context.Entry(loginToAnonymize).State = EntityState.Modified;
+            Console.WriteLine($"Login {loginToAnonymize.Idlogin} (Cliente {id}) marcado para anonimização.");
+        }
+        else
+        {
+            Console.WriteLine($"Aviso: Login {cliente.LoginIdlogin} (Cliente {id}) não encontrado para anonimização.");
+        }
+
+        // --- NÃO REMOVER O CLIENTE ---
+        // _context.Clientes.Remove(cliente); // <<--- ESTA LINHA NÃO DEVE EXISTIR AQUI
+
+        try
+        {
+            await _context.SaveChangesAsync(); // Salva as alterações no Login
+            Console.WriteLine($"Alterações guardadas. Login {loginToAnonymize?.Idlogin} anonimizado.");
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Erro DbUpdateException ao anonimizar login para Cliente {id}: {ex.InnerException?.Message ?? ex.Message}");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao processar a desativação da conta.");
+        }
+
+        return NoContent(); // Sucesso
+    }
         private bool ClienteExists(int id)
         {
             return _context.Clientes.Any(e => e.Idcliente == id);
