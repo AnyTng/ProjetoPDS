@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react"; // Adicionar useEffect
+// srcFrontend/pages/Admin/carsPageAdmin.jsx
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import VeiculoCard from "../../components/Cards/veiculoCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
@@ -6,11 +7,12 @@ import FloatingButton from "../../components/floatingButton.jsx";
 import AddVehicleModal from "../../components/Overlays/AddVehicleModal.jsx";
 import EditVehicleModal from "../../components/Overlays/EditVehicleModal.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
+import { fetchWithAuth } from "../../utils/api"; // IMPORTAR
 
 const CarsPageAdmin = () => {
-    const [carros, setCarros] = useState([]); // Começa como array vazio
-    const [isLoading, setIsLoading] = useState(true); // Estado para loading
-    const [error, setError] = useState(null); // Estado para erros de fetch
+    const [carros, setCarros] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -18,106 +20,147 @@ const CarsPageAdmin = () => {
     const { user } = useAuth();
 
     // --- Fetch Inicial de Veículos ---
+    const fetchVehicles = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            console.log("Fetching vehicles...");
+            // USA fetchWithAuth
+            const data = await fetchWithAuth('/api/Veiculos'); // Endpoint real
+            setCarros(data || []); // Garante que é um array mesmo se a API retornar null
+        } catch (err) {
+            console.error("Erro ao buscar veículos:", err);
+            setError(err.message || "Ocorreu um erro ao buscar os veículos.");
+            setCarros([]);
+            // Poderia tratar 401/403 aqui e deslogar o user se necessário
+            // if (err.status === 401 || err.status === 403) { logout(); navigate('/login'); }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchVehicles = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                // SUBSTITUIR '/api/admin/veiculos' PELO ENDPOINT REAL
-                console.log("[API Placeholder] Fetching vehicles...");
-                // Simulação de fetch - REMOVER/SUBSTITUIR ISTO
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simula delay da rede
-                // const response = await fetch('/api/admin/veiculos');
-                // if (!response.ok) throw new Error('Falha ao buscar veículos');
-                // const data = await response.json();
-                // setCarros(data); // <<== Definir o estado com dados da API
-                setCarros([]); // <<== Manter vazio por agora até ter API real
-
-            } catch (err) {
-                console.error("Erro ao buscar veículos:", err);
-                setError(err.message || "Ocorreu um erro ao buscar os veículos.");
-                setCarros([]); // Limpa carros em caso de erro
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchVehicles();
-    }, []); // Executa apenas na montagem inicial
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Dependência vazia para executar apenas na montagem
 
-    // Filtra os carros baseado no estado atual (vindo da API ou vazio)
+    // Filtra os carros
     const filtered = !isLoading && !error ? carros.filter((carro) =>
-        (carro.CarroId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (carro.CarroNome?.toLowerCase() || "").includes(search.toLowerCase())
+        // Adapta as chaves se necessário (ex: carro.matriculaVeiculo)
+        (carro.idveiculo?.toString().toLowerCase() || "").includes(search.toLowerCase()) ||
+        (carro.matriculaVeiculo?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (carro.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation?.descMarca?.toLowerCase() || "").includes(search.toLowerCase()) || // Marca
+        (carro.modeloVeiculoIdmodeloNavigation?.descModelo?.toLowerCase() || "").includes(search.toLowerCase()) // Modelo
     ) : [];
+
 
     // --- Funções Handler para Modais ---
     const handleOpenAddModal = () => setIsAddModalOpen(true);
-
     const handleOpenEditModal = (carroId) => {
-        const vehicleToEdit = carros.find(carro => carro.CarroId === carroId);
+        const vehicleToEdit = carros.find(carro => carro.idveiculo === carroId); // Ajusta chave primária se for idveiculo
         if (vehicleToEdit) {
             setSelectedVehicle(vehicleToEdit);
             setIsEditModalOpen(true);
         } else {
             console.error("Veículo não encontrado para o ID:", carroId);
-            // Poderia mostrar uma notificação de erro para o user aqui
+            alert("Erro: Veículo não encontrado.");
         }
     };
-
     const handleCloseModals = () => {
         setIsAddModalOpen(false);
         setIsEditModalOpen(false);
         setSelectedVehicle(null);
     };
 
-    // --- Funções Handler CRUD (APENAS placeholders API) ---
-    const handleAddVehicle = (vehicleData, vehicleFile) => {
-        console.log("[API Placeholder] Adicionar Veículo:", vehicleData, vehicleFile?.name);
-        // LÓGICA DA API (POST com FormData) AQUI
-        // fetch('/api/admin/veiculos', { method: 'POST', body: formDataComFicheiro })
-        //   .then(response => { if (!response.ok) throw Error... return response.json()})
-        //   .then(novoVeiculo => {
-        //      console.log("Veículo adicionado:", novoVeiculo);
-        //      // Idealmente, re-fetches a lista ou adiciona SÓ se a API retornar sucesso
-        //      // Ex: fetchVehicles(); // Re-buscar lista completa
-        //   })
-        //   .catch(err => console.error("Erro ao adicionar veículo:", err));
+    // --- Funções Handler CRUD ---
+    const handleAddVehicle = async (vehicleData, vehicleFile) => {
+        console.log("Tentando adicionar veículo:", vehicleData, vehicleFile?.name);
+        const formDataToSend = new FormData();
 
-        handleCloseModals(); // Fecha o modal independentemente do resultado por agora
-        // Poderia fechar apenas em caso de sucesso
+        // Adiciona campos de texto/número/etc.
+        Object.keys(vehicleData).forEach(key => {
+            // Trata valores null/undefined para não enviar 'null'/'undefined' como strings
+            if (vehicleData[key] !== null && vehicleData[key] !== undefined) {
+                formDataToSend.append(key, vehicleData[key]);
+            }
+        });
+
+        // Adiciona o ficheiro se existir
+        if (vehicleFile) {
+            // O nome 'fotoVeiculo' deve corresponder ao esperado pelo backend para IFormFile
+            formDataToSend.append('fotoVeiculo', vehicleFile, vehicleFile.name);
+        }
+
+        try {
+            // Usa fetchWithAuth para POST com FormData
+            // Não precisas de definir Content-Type, fetchWithAuth tratará disso
+            const novoVeiculo = await fetchWithAuth('/api/Veiculos', { // Endpoint POST
+                method: 'POST',
+                body: formDataToSend // Passa FormData diretamente
+            });
+            console.log("Veículo adicionado:", novoVeiculo);
+            await fetchVehicles(); // Re-busca a lista para atualizar
+            handleCloseModals();
+            alert('Veículo adicionado com sucesso!');
+        } catch (err) {
+            console.error("Erro ao adicionar veículo:", err);
+            alert(`Erro ao adicionar veículo: ${err.message}`);
+        }
     };
 
-    const handleUpdateVehicle = (vehicleId, updatedData, newFile) => {
-        console.log(`[API Placeholder] Atualizar Veículo ID: ${vehicleId}`, updatedData, newFile?.name);
-        // LÓGICA DA API (PUT com FormData se houver newFile) AQUI
-        // fetch(`/api/admin/veiculos/${vehicleId}`, { method: 'PUT', body: formDataAtualizado })
-        //   .then(...)
-        //   .then(veiculoAtualizado => {
-        //       console.log("Veículo atualizado:", veiculoAtualizado);
-        //       // Ex: fetchVehicles(); // Re-buscar lista
-        //   })
-        //   .catch(...)
 
-        handleCloseModals();
+    const handleUpdateVehicle = async (vehicleId, updatedData, newFile) => {
+        console.log(`Tentando atualizar veículo ID: ${vehicleId}`, updatedData, newFile?.name);
+        const formDataToSend = new FormData();
+
+        Object.keys(updatedData).forEach(key => {
+            if (updatedData[key] !== null && updatedData[key] !== undefined) {
+                formDataToSend.append(key, updatedData[key]);
+            }
+        });
+
+        if (newFile) {
+            formDataToSend.append('fotoVeiculo', newFile, newFile.name); // Nome esperado pelo backend
+        }
+        // Adiciona o ID no FormData se a API esperar (ou passa no URL como abaixo)
+        // formDataToSend.append('idveiculo', vehicleId);
+
+
+        try {
+            // Usa fetchWithAuth para PUT, ID no URL
+            await fetchWithAuth(`/api/Veiculos/${vehicleId}`, {
+                method: 'PUT',
+                body: formDataToSend
+            });
+            console.log("Veículo atualizado com sucesso.");
+            await fetchVehicles(); // Re-buscar lista
+            handleCloseModals();
+            alert('Veículo atualizado com sucesso!');
+        } catch (err) {
+            console.error("Erro ao atualizar veículo:", err);
+            alert(`Erro ao atualizar veículo: ${err.message}`);
+        }
     };
 
-    const handleDeleteVehicle = (vehicleId) => {
-        console.log(`[API Placeholder] Apagar Veículo ID: ${vehicleId}`);
-        // LÓGICA DA API (DELETE) AQUI
-        // fetch(`/api/admin/veiculos/${vehicleId}`, { method: 'DELETE' })
-        //   .then(response => {
-        //       if (!response.ok) throw new Error('Falha ao apagar');
-        //       console.log("Veículo apagado com sucesso");
-        //       // Ex: fetchVehicles(); // Re-buscar lista
-        //   })
-        //   .catch(...)
-
-        handleCloseModals(); // Fecha modal de edição (assumindo que veio dele)
+    const handleDeleteVehicle = async (vehicleId) => {
+        console.log(`Tentando apagar veículo ID: ${vehicleId}`);
+        // Confirmação já está no EditModal, mas pode adicionar outra aqui se quiser
+        try {
+            // Usa fetchWithAuth para DELETE
+            await fetchWithAuth(`/api/Veiculos/${vehicleId}`, {
+                method: 'DELETE'
+            });
+            console.log("Veículo apagado com sucesso.");
+            await fetchVehicles(); // Re-buscar lista
+            handleCloseModals(); // Fecha o modal de edição
+            alert('Veículo apagado com sucesso.');
+        } catch (err) {
+            console.error("Erro ao apagar veículo:", err);
+            alert(`Erro ao apagar veículo: ${err.message}`);
+        }
     };
-    // --- Fim das Funções Handler ---
 
-    // --- Renderização Condicional do Conteúdo ---
+    // --- Renderização Condicional ---
     let content;
     if (isLoading) {
         content = <div className="p-6 text-center text-gray-500">A carregar veículos...</div>;
@@ -133,23 +176,24 @@ const CarsPageAdmin = () => {
         );
     } else {
         content = (
-            <div className="flex flex-col gap-6 pb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6"> {/* Grid para melhor responsividade */}
                 {filtered.map((carro) => (
                     <VeiculoCard
-                        key={carro.CarroId}
-                        // Passa as props necessárias baseadas nos dados REAIS (vindos da API)
-                        CarroId={carro.CarroId}
-                        CarroNome={carro.CarroNome} // Ajustar nomes das props se necessário
-                        UltimaManutencao={carro.UltimaManutencao}
-                        Estado={carro.Estado}
-                        imageUrl={carro.imageUrl} // Ajustar nome da prop da imagem se necessário
-                        onVerInfoClick={() => handleOpenEditModal(carro.CarroId)}
+                        key={carro.idveiculo} // Usa a chave primária correta (idveiculo?)
+                        // Passa as props com os nomes corretos esperados pelo VeiculoCard
+                        // Mapeia dados da API para as props do Card
+                        CarroId={carro.matriculaVeiculo || `ID: ${carro.idveiculo}`} // Usa matrícula ou ID
+                        CarroNome={`${carro.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation?.descMarca || ''} ${carro.modeloVeiculoIdmodeloNavigation?.descModelo || ''}`}
+                        UltimaManutencao={carro.dataUltimaManutencao || "N/D"} // Adiciona este campo à API se necessário
+                        Estado={carro.estadoVeiculo || "Desconhecido"} // Adapta se nome for diferente na API
+                        imageUrl={carro.caminhoFotoVeiculo || ""} // Nome do campo da imagem na API
+                        onVerInfoClick={() => handleOpenEditModal(carro.idveiculo)}
                     />
                 ))}
             </div>
         );
     }
-    // --- Fim da Renderização Condicional ---
+    // --- Fim da Renderização ---
 
     return (
         <>
@@ -158,10 +202,10 @@ const CarsPageAdmin = () => {
                 email={user?.email}
                 filter={
                     <FilterInput
-                        placeholder="Pesquisar veículos..."
+                        placeholder="Pesquisar por ID, Matrícula, Marca, Modelo..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        disabled={isLoading || !!error} // Desativa filtro durante loading/erro
+                        disabled={isLoading || !!error}
                     />
                 }
                 floatingAction={
@@ -169,27 +213,27 @@ const CarsPageAdmin = () => {
                         type="add"
                         text="Novo veículo"
                         onClick={handleOpenAddModal}
-                        disabled={isLoading || !!error} // Desativa botão durante loading/erro
+                        disabled={isLoading || !!error}
                     />
                 }
             >
-                {content} {/* Renderiza o conteúdo (loading, erro, lista ou vazio) */}
+                {content}
             </DashboardLayout>
 
-            {/* Modais são renderizados fora do Layout principal para sobrepor */}
+            {/* Modais */}
             <AddVehicleModal
                 isOpen={isAddModalOpen}
                 onClose={handleCloseModals}
-                onSubmit={handleAddVehicle} // Passa a função que só chama a API (placeholder)
+                onSubmit={handleAddVehicle}
             />
 
             {selectedVehicle && (
                 <EditVehicleModal
                     isOpen={isEditModalOpen}
                     onClose={handleCloseModals}
-                    vehicleData={selectedVehicle} // Dados vêm do estado que foi populado pela lista da API
-                    onUpdate={handleUpdateVehicle} // Passa a função que só chama a API (placeholder)
-                    onDelete={handleDeleteVehicle} // Passa a função que só chama a API (placeholder)
+                    vehicleData={selectedVehicle}
+                    onUpdate={handleUpdateVehicle}
+                    onDelete={handleDeleteVehicle}
                 />
             )}
         </>

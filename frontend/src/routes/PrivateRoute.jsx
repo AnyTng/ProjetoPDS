@@ -3,31 +3,26 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const PrivateRoute = ({ children, allowedRoles }) => {
-    const { user, loading } = useAuth(); // <-- Obter loading
+    const { user, loading } = useAuth();
 
-    console.log("PrivateRoute: Loading state:", loading, "User:", user); // Log para depuração
+    console.log("PrivateRoute: Loading:", loading, "User:", user);
 
-    // Se ainda estiver a verificar a autenticação, espera
     if (loading) {
-        // Pode colocar aqui um componente Spinner ou similar
         return <div>A verificar autenticação...</div>;
     }
 
-    // Se terminou o loading e não há user, redireciona
     if (!user) {
-        console.log("PrivateRoute: No user, redirecting to /"); // Log
-        // Adicionado 'replace' para não adicionar a página admin ao histórico se for redirecionado
-        return <Navigate to="/" replace />;
+        console.log("PrivateRoute: No user, redirecting to /login"); // Ou '/' se for a principal
+        return <Navigate to="/login" replace />; // Redireciona para a página de login
     }
 
-    // Se há user mas a role não é permitida, redireciona
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-        console.log(`PrivateRoute: Role mismatch (User: ${user.role}, Allowed: ${allowedRoles}), redirecting to /unauthorized`); // Log
+    // Verifica se allowedRoles foi fornecido e se a roleName do user está incluída
+    if (allowedRoles && !allowedRoles.includes(user.roleName)) { // <-- USA roleName
+        console.log(`PrivateRoute: Role mismatch (User: ${user.roleName}, Allowed: ${allowedRoles.join(',')}), redirecting to /unauthorized`);
         return <Navigate to="/unauthorized" replace />;
     }
 
-    // Se passou por tudo, mostra a página protegida
-    console.log("PrivateRoute: Access granted."); // Log
+    console.log("PrivateRoute: Access granted.");
     return children;
 };
 

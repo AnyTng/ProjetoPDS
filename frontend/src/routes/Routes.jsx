@@ -1,3 +1,4 @@
+// srcFrontend/routes/Routes.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/loginpageUserPrestador';
 import AdminLogin from '../pages/Admin/loginpageAdmin.jsx';
@@ -16,28 +17,48 @@ import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
 //User Pages
 import ClientProfile from "../pages/Cliente/clientProfile.jsx";
+// Adicionar outras páginas de cliente/empresa aqui...
+// import EmpresaDashboard from '../pages/Empresa/EmpresaDashboard.jsx'; // Exemplo
+
 
 const AppRoutes = () => (
     <Routes>
-        {/* Public Routes */}
+        {/* --- Rotas Públicas --- */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/registerUser" element={<RegisterUser />} />
+        {/* Adicionar rota para /registerEmpresa se existir */}
+        {/* <Route path="/registerEmpresa" element={<RegisterEmpresa />} /> */}
 
-        {/* Protected Routes (Require authentication) */}
+
+        {/* --- Rotas Protegidas --- */}
+
+        {/* Rota do Perfil do Cliente (ID Role = 1) */}
         <Route
             path="/user/profile"
             element={
-                <PrivateRoute allowedRoles={['user']}>
-                    {/* Exemplo temporário de dashboard do utilizador */}
-                    <div>< ClientProfile /></div>
+                // ****** ATUALIZADO PARA 'cliente' ******
+                <PrivateRoute allowedRoles={['cliente']}>
+                    <ClientProfile />
                 </PrivateRoute>
             }
         />
 
+        {/* Exemplo Rota Dashboard Empresa (ID Role = 2) */}
+        {/* <Route
+            path="/prestador/dashboard"
+            element={
+                <PrivateRoute allowedRoles={['empresa']}>
+                    <EmpresaDashboard />
+                </PrivateRoute>
+            }
+        /> */}
+
+
+        {/* Rotas do Admin (ID Role = 3) */}
         <Route
-            path="/admin/dashboard" // Rota inicial para admin
+            path="/admin/dashboard" // Rota genérica dashboard admin
             element={
                 <PrivateRoute allowedRoles={['admin']}>
                     {/* Redireciona para a primeira página real do admin */}
@@ -45,8 +66,6 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
-
-        {/* Admin Specific Routes - AGORA PROTEGIDAS */}
         <Route
             path="/admin/veiculos"
             element={
@@ -60,6 +79,15 @@ const AppRoutes = () => (
             element={
                 <PrivateRoute allowedRoles={['admin']}>
                     <ConcursosManAdmin />
+                </PrivateRoute>
+            }
+        />
+        {/* Rota dinâmica para propostas de um concurso específico */}
+        <Route
+            path="/admin/propostas/:concursoId"
+            element={
+                <PrivateRoute allowedRoles={['admin']}>
+                    <PropostasPageAdmin />
                 </PrivateRoute>
             }
         />
@@ -80,26 +108,10 @@ const AppRoutes = () => (
             }
         />
         <Route
-            path="/admin/notificacoes"
-            element={
-                <PrivateRoute allowedRoles={['admin']}>
-                    <NotificationsPageAdmin />
-                </PrivateRoute>
-            }
-        />
-        <Route
-            path="/admin/pedidos"
+            path="/admin/pedidos" // Pedidos de Aluguer
             element={
                 <PrivateRoute allowedRoles={['admin']}>
                     <PedidosPageAdmin />
-                </PrivateRoute>
-            }
-        />
-        <Route
-            path="/admin/propostas/:concursoId" // <--- Rota dinâmica com parâmetro
-            element={
-                <PrivateRoute allowedRoles={['admin']}>
-                    <PropostasPageAdmin />
                 </PrivateRoute>
             }
         />
@@ -111,14 +123,22 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
+        <Route
+            path="/admin/notificacoes"
+            element={
+                <PrivateRoute allowedRoles={['admin']}>
+                    <NotificationsPageAdmin />
+                </PrivateRoute>
+            }
+        />
+        {/* --- Fim Rotas Admin --- */}
 
-        {/* --- Fim das Rotas Admin Protegidas --- */}
 
-        {/* Rota não autorizada (opcional, mas recomendada) */}
+        {/* --- Rotas de Feedback --- */}
         <Route path="/unauthorized" element={<div>Acesso Não Autorizado</div>} />
+        {/* Fallback para Rotas Não Encontradas */}
+        <Route path="*" element={<div>404 - Página Não Encontrada</div>} />
 
-        {/* Fallback route */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>
 );
 
