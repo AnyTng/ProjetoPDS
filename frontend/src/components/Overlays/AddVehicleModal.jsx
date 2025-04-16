@@ -3,21 +3,23 @@ import Button from "../button.jsx";
 import InputFieldLong from "../inputFieldLong.jsx";
 import XIcon from "../../assets/XIconBlack.svg";
 
+// mantém estado em camelCase, mas depois mapeamos para PascalCase ao enviar
 const initialFormData = {
-    matriculaVeiculo:    "",
-    lotacaoVeiculo:      "",
-    taraVeiculo:         "",
-    descCor:             "",
-    dataLegal:           "",
-    dataFabricacao:      "",
-    dataAquisicao:       "",
-    valorDiarioVeiculo:  "",
-    estadoVeiculo:       "",
-    marcaVeiculoIdmarca: "",
-    modeloVeiculoIdmodelo: ""
+    marcaVeiculoIdmarca:  "",
+    modeloVeiculoIdmodelo:"",
+
+    matriculaVeiculo:     "",
+    lotacaoVeiculo:       "",
+    taraVeiculo:          "",
+    descCor:              "",
+    dataFabricacao:       "",
+    dataLegal:            "",
+    dataAquisicao:        "",
+    valorDiarioVeiculo:   "",
+    estadoVeiculo:        ""
 };
 
-// ** Muda para a porta onde o teu ASP.NET Core está a correr **
+// Ajusta para a porta/host do teu backend ou configura proxy no package.json
 const BACKEND_URL = "http://localhost:5159";
 
 const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
@@ -27,52 +29,70 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileName, setFileName]         = useState("");
 
-    /* ----------------------------------------------------------------
-       Carrega marcas + modelos quando o modal abre
-    ---------------------------------------------------------------- */
+    // 1) carrega marcas+modelos ao abrir
     useEffect(() => {
         if (!isOpen) return;
         fetch(`${BACKEND_URL}/api/MarcaVeiculos`)
-            .then(r => r.ok && r.headers.get("content-type")?.includes("json")
-                ? r.json() : Promise.reject("Não veio JSON"))
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const ct = r.headers.get("content-type") || "";
+                if (!ct.includes("application/json")) throw new Error("Resposta não é JSON");
+                return r.json();
+            })
             .then(setBrands)
             .catch(err => console.error("Falha a carregar marcas:", err));
     }, [isOpen]);
 
-    /* ----------------------------------------------------------------
-       Filtra modelos quando muda a marca
-    ---------------------------------------------------------------- */
+    // 2) filtra modelos sempre que muda a marca
     useEffect(() => {
         const marca = brands.find(b => b.idmarca === Number(formData.marcaVeiculoIdmarca));
         setModels(marca ? marca.modelos : []);
-        setFormData(f => ({ ...f, modeloVeiculoIdmodelo: "" }));
+        // limpa o modelo selecionado se não pertencer à marca
+        if (
+            formData.modeloVeiculoIdmodelo &&
+            !marca?.modelos.some(m => m.idmodelo.toString() === formData.modeloVeiculoIdmodelo)
+        ) {
+            setFormData(fd => ({ ...fd, modeloVeiculoIdmodelo: "" }));
+        }
     }, [formData.marcaVeiculoIdmarca, brands]);
 
-    /* ----------------------------------------------------------------
-       Handlers genéricos
-    ---------------------------------------------------------------- */
+    // handlers
     const handleChange = e => {
         const { name, value } = e.target;
-        setFormData(f => ({ ...f, [name]: value }));
+        setFormData(fd => ({ ...fd, [name]: value }));
     };
-
     const handleFileChange = e => {
         const file = e.target.files[0];
         setSelectedFile(file || null);
         setFileName(file ? file.name : "");
     };
 
-    /* ----------------------------------------------------------------
-       Submit
-    ---------------------------------------------------------------- */
+    // 3) submit → mapeia camelCase → PascalCase
     const handleSubmit = e => {
         e.preventDefault();
-        const dataToSend = new FormData();
-        Object.entries(formData).forEach(([k, v]) => {
-            if (v !== "" && v != null) dataToSend.append(k, v);
-        });
-        if (selectedFile) dataToSend.append("fotoVeiculo", selectedFile);
-        onSubmit(dataToSend);
+        const fd = new FormData();
+
+        // obrigatórios
+        fd.append("MarcaVeiculoIdmarca",   formData.marcaVeiculoIdmarca);
+        fd.append("ModeloVeiculoIdmodelo", formData.modeloVeiculoIdmodelo);
+
+        // restantes campos, só se não vazios
+        if (formData.matriculaVeiculo)   fd.append("MatriculaVeiculo",     formData.matriculaVeiculo);
+        if (formData.lotacaoVeiculo)     fd.append("LotacaoVeiculo",       formData.lotacaoVeiculo);
+        if (formData.taraVeiculo)        fd.append("TaraVeiculo",          formData.taraVeiculo);
+        if (formData.descCor)            fd.append("DescCor",              formData.descCor);
+        if (formData.dataFabricacao)     fd.append("DataFabricacao",       formData.dataFabricacao);
+        if (formData.dataLegal)          fd.append("DataLegal",            formData.dataLegal);
+        if (formData.dataAquisicao)      fd.append("DataAquisicao",        formData.dataAquisicao);
+        if (formData.valorDiarioVeiculo) fd.append("ValorDiarioVeiculo",  formData.valorDiarioVeiculo);
+        if (formData.estadoVeiculo)      fd.append("EstadoVeiculo",        formData.estadoVeiculo);
+
+        // ficheiro de imagem
+        if (selectedFile) {
+            fd.append("ImagemVeiculo", selectedFile);
+        }
+
+        onSubmit(fd);
     };
 
     if (!isOpen) return null;
@@ -86,7 +106,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                 onClick={e => e.stopPropagation()}
                 className="bg-white p-6 rounded-xl w-full max-w-3xl relative"
             >
-                {/* Botão Fechar */}
+                {/* fechar */}
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 w-6 h-6 text-gray-500 hover:text-gray-800"
@@ -99,7 +119,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
 
                     {/* ---------- Marca / Modelo ---------- */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                         <div>
                             <label className="lbl">Marca</label>
                             <select
@@ -109,7 +129,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                                 className="input-select"
                                 required
                             >
-                                <option value="" disabled>Seleccione uma marca</option>
+                                <option value="" disabled>— Selecione uma marca —</option>
                                 {brands.map(b => (
                                     <option key={b.idmarca} value={b.idmarca}>{b.descMarca}</option>
                                 ))}
@@ -125,7 +145,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                                 required
                                 disabled={!models.length}
                             >
-                                <option value="" disabled>Seleccione um modelo</option>
+                                <option value="" disabled>— Selecione um modelo —</option>
                                 {models.map(m => (
                                     <option key={m.idmodelo} value={m.idmodelo}>{m.descModelo}</option>
                                 ))}
@@ -133,8 +153,9 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* ---------- Linha 1 ---------- */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    {/* Linha 1: Matrícula, Lotação, Tara */}
+                    <div className="grid md:grid-cols-3 gap-4">
                         <div>
                             <label className="lbl">Matrícula</label>
                             <InputFieldLong
@@ -166,8 +187,8 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* ---------- Linha 2 ---------- */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Linha 2: Cor, Data Fabrico, Data Legal */}
+                    <div className="grid md:grid-cols-3 gap-4">
                         <div>
                             <label className="lbl">Cor</label>
                             <InputFieldLong
@@ -199,8 +220,8 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* ---------- Linha 3 ---------- */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Linha 3: Data Aquisição, Valor Diário, Estado */}
+                    <div className="grid md:grid-cols-3 gap-4">
                         <div>
                             <label className="lbl">Data Aquisição</label>
                             <InputFieldLong
@@ -239,8 +260,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                             </select>
                         </div>
                     </div>
-
-                    {/* ---------- Upload ---------- */}
+                    {/* Upload de foto */}
                     <div>
                         <label className="lbl">Foto do Veículo</label>
                         <label className="input-file-label">
@@ -255,7 +275,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                         {fileName && <p className="mt-1 text-sm text-gray-600">{fileName}</p>}
                     </div>
 
-                    {/* ---------- Botões ---------- */}
+                    {/* Botões */}
                     <div className="flex justify-end gap-4 pt-6">
                         <Button text="Cancelar" variant="secondary" type="button" onClick={onClose} />
                         <Button text="Adicionar" variant="primary" type="submit" />

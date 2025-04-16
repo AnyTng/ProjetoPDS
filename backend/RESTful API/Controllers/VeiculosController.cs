@@ -11,6 +11,28 @@ using RESTful_API.Models;
 namespace RESTful_API.Controllers
 {
     // DTO permanece o mesmo
+
+    public class VeiculoCreateDTO
+    {
+        // --- campos obrigatórios ---
+        public string MatriculaVeiculo      { get; set; } = null!;
+        public int    ModeloVeiculoIdmodelo { get; set; }
+        public int?   MarcaVeiculoIdmarca   { get; set; }   // chega via navegação do modelo, mas podes receber
+
+        // --- opcionais ---
+        public int?    LotacaoVeiculo     { get; set; }
+        public int?    TaraVeiculo        { get; set; }
+        public string? DescCor            { get; set; }
+        public DateTime? DataLegal        { get; set; }
+        public DateTime  DataFabricacao   { get; set; }
+        public DateTime  DataAquisicao    { get; set; }
+        public float?   ValorDiarioVeiculo { get; set; }
+        public string?  DescVeiculo       { get; set; }
+        public string?  EstadoVeiculo     { get; set; }
+
+        // --- ficheiro ---
+        public IFormFile? ImagemVeiculo   { get; set; }
+    }
     public class VeiculoEditDTO
     {
         public int Idveiculo { get; set; }
@@ -71,6 +93,8 @@ namespace RESTful_API.Controllers
                         imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
                     }
                 }
+
+
 
                 listaDTO.Add(new VeiculoEditDTO
                 {
@@ -286,19 +310,106 @@ namespace RESTful_API.Controllers
         }
 
         // POST: api/Veiculos
-        [HttpPost]
-        public async Task<ActionResult<Veiculo>> PostVeiculo(Veiculo veiculo)
+
+[HttpPost]
+public async Task<ActionResult<Veiculo>> PostVeiculo([FromForm] VeiculoEditDTO veiculoDTO)
+{
+    // Validação básica
+    if (string.IsNullOrWhiteSpace(veiculoDTO.MatriculaVeiculo))
+    {
+        return BadRequest("A matrícula do veículo é obrigatória.");
+    }
+
+    if (veiculoDTO.ModeloVeiculoIdmodelo <= 0)
+    {
+        return BadRequest("O ID do modelo é inválido.");
+    }
+
+    // Processar imagem (se existir)
+    string? imageRelativePath = null;
+
+    if (veiculoDTO.ImagemVeiculo != null)
+    {
+        if (veiculoDTO.ImagemVeiculo.Length > 5 * 1024 * 1024) // 5MB
         {
-            _context.Veiculos.Add(veiculo);
-            await _context.SaveChangesAsync();
-
-            var criado = await _context.Veiculos
-                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
-                .FirstOrDefaultAsync(v => v.Idveiculo == veiculo.Idveiculo);
-
-            return CreatedAtAction(nameof(GetVeiculo), new { id = criado!.Idveiculo }, criado);
+            return BadRequest("A imagem excede o tamanho máximo de 5MB.");
         }
+
+        // Nome seguro do ficheiro
+        var fileName = Path.GetFileName(veiculoDTO.ImagemVeiculo.FileName);
+        var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
+        var relativeFolderPath = Path.Combine("imageVeiculo", veiculoDTO.MatriculaVeiculo);
+        var absoluteFolderPath = Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath);
+
+        if (!Directory.Exists(absoluteFolderPath))
+        {
+            Directory.CreateDirectory(absoluteFolderPath);
+        }
+
+        var absoluteFilePath = Path.Combine(absoluteFolderPath, uniqueFileName);
+
+        try
+        {
+            using (var stream = new FileStream(absoluteFilePath, FileMode.Create))
+            {
+                await veiculoDTO.ImagemVeiculo.CopyToAsync(stream);
+            }
+            imageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/');
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao guardar a imagem: {ex.Message}");
+        }
+    }
+
+    // Criar novo veículo
+    var veiculo = new Veiculo
+    {
+        MatriculaVeiculo = veiculoDTO.MatriculaVeiculo,
+        LotacaoVeiculo = veiculoDTO.LotacaoVeiculo,
+        TaraVeiculo = veiculoDTO.TaraVeiculo,
+        DescCor = veiculoDTO.DescCor,
+        DataLegal = veiculoDTO.DataLegal,
+        DataFabricacao = veiculoDTO.DataFabricacao,
+        DataAquisicao = veiculoDTO.DataAquisicao,
+        ValorDiarioVeiculo = veiculoDTO.ValorDiarioVeiculo,
+        ModeloVeiculoIdmodelo = veiculoDTO.ModeloVeiculoIdmodelo,
+        DescVeiculo = veiculoDTO.DescVeiculo,
+        EstadoVeiculo = veiculoDTO.EstadoVeiculo ?? "Disponível", // Valor padrão
+        CaminhoFotoVeiculo = imageRelativePath
+    };
+
+    _context.Veiculos.Add(veiculo);
+
+    try
+    {
+        await _context.SaveChangesAsync();
+    }
+    catch (DbUpdateException ex)
+    {
+        if (VeiculoExistsByMatricula(veiculoDTO.MatriculaVeiculo))
+        {
+            return Conflict("Já existe um veículo com esta matrícula.");
+        }
+        else
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
+        }
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
+    }
+
+    // Retorna o veículo criado com o ID gerado pela base de dados
+    return CreatedAtAction("GetVeiculo", new { id = veiculo.Idveiculo }, veiculo);
+}
+
+private bool VeiculoExistsByMatricula(string matricula)
+{
+    return _context.Veiculos.Any(e => e.MatriculaVeiculo == matricula);
+}
 
         // DELETE: api/Veiculos/5
         [HttpDelete("{id}")]
