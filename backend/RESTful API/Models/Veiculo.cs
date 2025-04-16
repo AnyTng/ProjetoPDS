@@ -29,6 +29,7 @@ public partial class Veiculo
 
     public string? DescVeiculo { get; set; }
 
+    public string? EstadoVeiculo { get; set; }
     public virtual ICollection<Aluguer> Aluguers { get; set; } = new List<Aluguer>();
 
     public virtual ICollection<Despesa> Despesas { get; set; } = new List<Despesa>();

@@ -1,14 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RESTful_API.Models;
+using RESTful_API.Models;   // ajusta se o namespace for outro
 
 namespace RESTful_API.Controllers
 {
+    // DTO para um modelo
+    public class ModeloVeiculoDTO
+    {
+        public int Idmodelo { get; set; }
+        public string? DescModelo { get; set; }
+    }
+
+    // DTO para uma marca + lista de modelos
+    public class MarcaVeiculoEditDTO
+    {
+        public int Idmarca { get; set; }
+        public string? DescMarca { get; set; }
+        public List<ModeloVeiculoDTO> Modelos { get; set; } = new();
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class MarcaVeiculosController : ControllerBase
@@ -16,92 +29,127 @@ namespace RESTful_API.Controllers
         private readonly PdsContext _context;
 
         public MarcaVeiculosController(PdsContext context)
-        {
-            _context = context;
-        }
+            => _context = context;
 
-        // GET: api/MarcaVeiculos
+        // ----------------------------------------------------------
+        // GET: api/MarcaVeiculos          ← devolve TODAS as marcas + modelos
+        // ----------------------------------------------------------
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MarcaVeiculo>>> GetMarcaVeiculos()
+        public async Task<ActionResult<IEnumerable<MarcaVeiculoEditDTO>>> GetMarcaVeiculos()
         {
-            return await _context.MarcaVeiculos.ToListAsync();
+            // Faz um GroupJoin (LEFT JOIN) entre marcas e modelos
+            var dtos = await _context.MarcaVeiculos
+                .GroupJoin(
+                    _context.ModeloVeiculos,                       // tabela dos modelos
+                    marca  => marca.Idmarca,                       // FK na marca
+                    modelo => modelo.MarcaVeiculoIdmarca,          // FK no modelo
+                    (marca, modelos) => new MarcaVeiculoEditDTO
+                    {
+                        Idmarca   = marca.Idmarca,
+                        DescMarca = marca.DescMarca,
+                        Modelos   = modelos.Select(md => new ModeloVeiculoDTO {
+                                        Idmodelo   = md.Idmodelo,
+                                        DescModelo = md.DescModelo
+                                    })
+                                    .ToList()
+                    })
+                .ToListAsync();
+
+            return dtos;
         }
 
-        // GET: api/MarcaVeiculos/5
+        // ----------------------------------------------------------
+        // GET: api/MarcaVeiculos/5        ← devolve UMA marca + modelos
+        // ----------------------------------------------------------
         [HttpGet("{id}")]
-        public async Task<ActionResult<MarcaVeiculo>> GetMarcaVeiculo(int id)
+        public async Task<ActionResult<MarcaVeiculoEditDTO>> GetMarcaVeiculo(int id)
         {
-            var marcaVeiculo = await _context.MarcaVeiculos.FindAsync(id);
+            var dto = await _context.MarcaVeiculos
+                .Where(m => m.Idmarca == id)
+                .GroupJoin(
+                    _context.ModeloVeiculos,
+                    marca  => marca.Idmarca,
+                    modelo => modelo.MarcaVeiculoIdmarca,
+                    (marca, modelos) => new MarcaVeiculoEditDTO
+                    {
+                        Idmarca   = marca.Idmarca,
+                        DescMarca = marca.DescMarca,
+                        Modelos   = modelos.Select(md => new ModeloVeiculoDTO {
+                                        Idmodelo   = md.Idmodelo,
+                                        DescModelo = md.DescModelo
+                                    })
+                                    .ToList()
+                    })
+                .FirstOrDefaultAsync();
 
-            if (marcaVeiculo == null)
-            {
+            if (dto == null)
                 return NotFound();
-            }
 
-            return marcaVeiculo;
+            return dto;
         }
 
+        // ----------------------------------------------------------
         // PUT: api/MarcaVeiculos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // ----------------------------------------------------------
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMarcaVeiculo(int id, MarcaVeiculo marcaVeiculo)
+        public async Task<IActionResult> PutMarcaVeiculo(int id, MarcaVeiculoEditDTO dto)
         {
-            if (id != marcaVeiculo.Idmarca)
-            {
+            if (id != dto.Idmarca)
                 return BadRequest();
-            }
 
-            _context.Entry(marcaVeiculo).State = EntityState.Modified;
+            var entity = await _context.MarcaVeiculos.FindAsync(id);
+            if (entity == null)
+                return NotFound();
+
+            entity.DescMarca = dto.DescMarca;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MarcaVeiculoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/MarcaVeiculos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<MarcaVeiculo>> PostMarcaVeiculo(MarcaVeiculo marcaVeiculo)
-        {
-            _context.MarcaVeiculos.Add(marcaVeiculo);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMarcaVeiculo", new { id = marcaVeiculo.Idmarca }, marcaVeiculo);
-        }
-
-        // DELETE: api/MarcaVeiculos/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMarcaVeiculo(int id)
-        {
-            var marcaVeiculo = await _context.MarcaVeiculos.FindAsync(id);
-            if (marcaVeiculo == null)
+            catch (DbUpdateConcurrencyException) when (!MarcaVeiculoExists(id))
             {
                 return NotFound();
             }
 
-            _context.MarcaVeiculos.Remove(marcaVeiculo);
+            return NoContent();
+        }
+
+        // ----------------------------------------------------------
+        // POST: api/MarcaVeiculos
+        // ----------------------------------------------------------
+        [HttpPost]
+        public async Task<ActionResult<MarcaVeiculoEditDTO>> PostMarcaVeiculo(MarcaVeiculoEditDTO dto)
+        {
+            var entity = new MarcaVeiculo { DescMarca = dto.DescMarca };
+
+            _context.MarcaVeiculos.Add(entity);
             await _context.SaveChangesAsync();
 
+            dto.Idmarca = entity.Idmarca;
+            dto.Modelos.Clear();       // nenhum modelo aquando da criação
+
+            return CreatedAtAction(nameof(GetMarcaVeiculo),
+                                   new { id = dto.Idmarca },
+                                   dto);
+        }
+
+        // ----------------------------------------------------------
+        // DELETE: api/MarcaVeiculos/5
+        // ----------------------------------------------------------
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMarcaVeiculo(int id)
+        {
+            var entity = await _context.MarcaVeiculos.FindAsync(id);
+            if (entity == null)
+                return NotFound();
+
+            _context.MarcaVeiculos.Remove(entity);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         private bool MarcaVeiculoExists(int id)
-        {
-            return _context.MarcaVeiculos.Any(e => e.Idmarca == id);
-        }
+            => _context.MarcaVeiculos.Any(e => e.Idmarca == id);
     }
 }

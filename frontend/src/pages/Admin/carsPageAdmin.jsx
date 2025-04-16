@@ -109,38 +109,20 @@ const CarsPageAdmin = () => {
     };
 
 
-    const handleUpdateVehicle = async (vehicleId, updatedData, newFile) => {
-        console.log(`Tentando atualizar veículo ID: ${vehicleId}`, updatedData, newFile?.name);
-        const formDataToSend = new FormData();
-
-        Object.keys(updatedData).forEach(key => {
-            if (updatedData[key] !== null && updatedData[key] !== undefined) {
-                formDataToSend.append(key, updatedData[key]);
-            }
-        });
-
-        if (newFile) {
-            formDataToSend.append('fotoVeiculo', newFile, newFile.name); // Nome esperado pelo backend
-        }
-        // Adiciona o ID no FormData se a API esperar (ou passa no URL como abaixo)
-        // formDataToSend.append('idveiculo', vehicleId);
-
-
-        try {
-            // Usa fetchWithAuth para PUT, ID no URL
-            await fetchWithAuth(`/api/Veiculos/${vehicleId}`, {
-                method: 'PUT',
-                body: formDataToSend
-            });
-            console.log("Veículo atualizado com sucesso.");
-            await fetchVehicles(); // Re-buscar lista
-            handleCloseModals();
-            alert('Veículo atualizado com sucesso!');
-        } catch (err) {
-            console.error("Erro ao atualizar veículo:", err);
-            alert(`Erro ao atualizar veículo: ${err.message}`);
-        }
-    };
+    const handleUpdateVehicle = async (formData) => {
+          try {
+                await fetchWithAuth('/api/Veiculos/edit', {
+                      method: 'PUT',
+                      body: formData            // já vem pronto do modal
+              });
+                await fetchVehicles();
+                handleCloseModals();
+                alert('Veículo atualizado com sucesso!');
+              } catch (err) {
+                console.error(err);
+                alert(`Erro ao atualizar veículo: ${err.message}`);
+              }
+        };
 
     const handleDeleteVehicle = async (vehicleId) => {
         console.log(`Tentando apagar veículo ID: ${vehicleId}`);
@@ -179,14 +161,12 @@ const CarsPageAdmin = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6"> {/* Grid para melhor responsividade */}
                 {filtered.map((carro) => (
                     <VeiculoCard
-                        key={carro.idveiculo} // Usa a chave primária correta (idveiculo?)
-                        // Passa as props com os nomes corretos esperados pelo VeiculoCard
-                        // Mapeia dados da API para as props do Card
-                        CarroId={carro.matriculaVeiculo || `ID: ${carro.idveiculo}`} // Usa matrícula ou ID
-                        CarroNome={`${carro.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation?.descMarca || ''} ${carro.modeloVeiculoIdmodeloNavigation?.descModelo || ''}`}
-                        UltimaManutencao={carro.dataUltimaManutencao || "N/D"} // Adiciona este campo à API se necessário
-                        Estado={carro.estadoVeiculo || "Desconhecido"} // Adapta se nome for diferente na API
-                        imageUrl={carro.caminhoFotoVeiculo || ""} // Nome do campo da imagem na API
+                        key={carro.idveiculo}
+                        CarroId={carro.matriculaVeiculo || `ID: ${carro.idveiculo}`}
+                        CarroNome={`${carro.descMarca} ${carro.descModelo}`.trim()}   // ← aqui
+                        UltimaManutencao={carro.dataUltimaManutencao || "N/D"}
+                        Estado={carro.estadoVeiculo || "Desconhecido"}
+                        imageUrl={carro.imagemBase64|| ("")}
                         onVerInfoClick={() => handleOpenEditModal(carro.idveiculo)}
                     />
                 ))}
