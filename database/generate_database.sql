@@ -29,6 +29,7 @@ CREATE TABLE Veiculo (
   ModeloVeiculoIDModelo int NOT NULL, 
   CaminhoFotoVeiculo    varchar(8000) NULL, 
   DescVeiculo           varchar(8000) NULL, 
+  EstadoVeiculo			varchar(50) NULL,
   PRIMARY KEY (IDVeiculo));
 
 CREATE TABLE Infracoes (
