@@ -3,7 +3,6 @@ import DashboardLayout from "../../components/dashboardLayout.jsx";
 import UserCard from "../../components/Cards/userCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
-// Importar o novo modal (será criado a seguir)
 import UserDetailEditModal from "../../components/Overlays/UserDetailEditModal.jsx"; // Nome sugerido
 
 // Remover props 'users' e 'email'
@@ -26,20 +25,16 @@ const UsersPageAdmin = () => {
         setIsLoadingList(true);
         setListError(null);
         try {
-            // SUBSTITUIR '/api/admin/users' PELO ENDPOINT REAL DA LISTA
-            console.log("[API Placeholder] Fetching users list...");
+
+            console.log("/api/Clientes/listAdmin Fetching users list...");
             await new Promise(resolve => setTimeout(resolve, 500)); // Simulação
-            // const response = await fetch('/api/admin/users', { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar lista de utilizadores');
-            // const data = await response.json();
+             const response = await fetch('/api/Clientes/listAdmin', { headers: { /* Auth Token */ } });
+             if (!response.ok) throw new Error('Falha ao buscar lista de utilizadores');
+            const data = await response.json();
             // // API deve retornar array com pelo menos: id, nome, estado, contacto, imageUrl para o UserCard
             // setUsers(data);
 
             // Dados Exemplo - REMOVER/SUBSTITUIR
-            setUsers([
-                { id: "1", nome: "João Silva", estado: "Ativo", contacto: "+351 912345678", imageUrl: null },
-                { id: "2", nome: "Maria Costa", estado: "Inativo", contacto: "+351 922333444", imageUrl: null },
-            ]);
 
         } catch (err) {
             console.error("Erro ao buscar lista de utilizadores:", err);
@@ -86,24 +81,8 @@ const UsersPageAdmin = () => {
             // // API deve retornar todos os campos: nome, dataNasc, rua, codPostal, contacto1, contacto2, cartaConducaoNum, cartaConducaoValida (boolean?)
             // setSelectedUserData(fullUserData);
 
-            // Dados Exemplo Detalhes - REMOVER/SUBSTITUIR
-            const exampleDetails = {
-                id: userId, // Usa o ID recebido
-                nome: users.find(u=>u.id === userId)?.nome || 'Nome Exemplo', // Pega nome da lista ou default
-                dataNascimento: '1990-05-15',
-                rua: 'Rua Exemplo, 123',
-                codPostal: '1000-001',
-                contacto1: users.find(u=>u.id === userId)?.contacto || '911111111', // Pega contacto da lista
-                contacto2: '922222222',
-                cartaConducaoNum: 'LX-123456',
-                // Assumir que API retorna true/false ou 'valida'/'invalida'
-                // Mapear para 'valida'/'invalida' para o select
-                cartaConducaoValida: Math.random() > 0.5 ? 'valida' : 'invalida',
-                // Passar outros dados da lista se necessário
-                estado: users.find(u=>u.id === userId)?.estado,
-                imageUrl: users.find(u=>u.id === userId)?.imageUrl,
-            };
-            setSelectedUserData(exampleDetails);
+
+
 
 
         } catch (err) {
