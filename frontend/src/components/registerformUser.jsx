@@ -28,7 +28,7 @@ const RegisterFormUser = () => {
     const [nifCliente, setNifCliente] = useState("");
     const [ruaCliente, setRuaCliente] = useState("");
     const [codigoPostal, setCodigoPostal] = useState("");
-    const [localidade, setLocalidade] = useState("");
+    const [localidade] = "placeholder";
     const [contactoC1, setContactoC1] = useState("");
     const [contactoC2, setContactoC2] = useState("");
     const [error, setError] = useState("");
@@ -47,11 +47,6 @@ const RegisterFormUser = () => {
         }
         if (!validateCodigoPostal(codigoPostal)) {
             setError("Formato inválido para Código Postal (Ex: 1234-567 ou 1234567).");
-            setIsLoading(false);
-            return;
-        }
-        if (!localidade || !localidade.trim()) {
-            setError("Localidade é obrigatória.");
             setIsLoading(false);
             return;
         }
@@ -162,7 +157,6 @@ const RegisterFormUser = () => {
                 <InputFieldLong id="nif-register" placeholder="NIF (9 dígitos) *" type="text" pattern="\d{9}" title="NIF deve ter 9 dígitos" value={nifCliente} onChange={(e) => setNifCliente(e.target.value)} required disabled={isLoading} />
                 <InputFieldLong id="rua-register" placeholder="Rua *" type="text" value={ruaCliente} onChange={(e) => setRuaCliente(e.target.value)} required disabled={isLoading} autoComplete="street-address"/>
                 <InputFieldLong id="cp-register" placeholder="Código Postal (Ex: 1234-567) *" type="text" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} required disabled={isLoading} autoComplete="postal-code"/>
-                <InputFieldLong id="localidade-register" placeholder="Localidade *" type="text" value={localidade} onChange={(e) => setLocalidade(e.target.value)} required disabled={isLoading} autoComplete="address-level2"/>
                 <InputFieldLong id="contacto1-register" placeholder="Contacto Principal (9 dígitos) *" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoC1} onChange={(e) => setContactoC1(e.target.value)} required disabled={isLoading} autoComplete="tel-national"/>
                 <InputFieldLong id="contacto2-register" placeholder="Contacto Secundário (9 dígitos, Opcional)" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoC2} onChange={(e) => setContactoC2(e.target.value)} disabled={isLoading} />
                 <p className="text-xs text-gray-500 mt-1">* Campo obrigatório</p>
