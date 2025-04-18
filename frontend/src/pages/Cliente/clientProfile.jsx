@@ -19,6 +19,7 @@ const initialFormStructure = [
     { key: 'codigoPostal', label: "Código Postal", value: "", type: "text" }, // String format (backend handles lookup)
     { key: 'localidade', label: "Localidade", value: "", type: "text", readOnly: true }, // Often read-only, derived from CP
     { key: 'nifCliente', label: "NIF", value: "", type: "text", readOnly: true }, // NIF usually non-editable
+    { key: 'estadoValCc', label: "Estado da Carta de Condução", value: "", type: "text", readOnly: true }, // Read-only field for validation status
 ];
 
 // Maps data received from the API (GET /api/clientes/me) to the 'formData' state structure
@@ -83,7 +84,7 @@ const transformFormDataToApiData = (formDataArray) => {
 
     formDataArray.forEach(item => {
         // Include only fields that are NOT readOnly and have a key relevant for the update DTO
-        if (item.key && !item.readOnly && item.key !== 'email' && item.key !== 'localidade' && item.key !== 'nifCliente') {
+        if (item.key && !item.readOnly && item.key !== 'email' && item.key !== 'localidade' && item.key !== 'nifCliente' && item.key !== 'estadovalcc') {
             // Handle specific type conversions required by the backend DTO
             if (['contactoC1', 'contactoC2'].includes(item.key)) {
                 // Convert phone numbers to integers or null if empty
@@ -333,28 +334,57 @@ const ClientProfile = () => {
                         )}
 
                         {/* Form Fields (only render if not loading and no critical error preventing data display) */}
-                        {!isLoading && formData.length > 0 && formData.map((item, i) => (
-                            <div key={item.key || i}>
-                                <label htmlFor={item.key} className="block text-sm font-medium text-gray-700 mb-1">
-                                    {item.label}
-                                    {item.readOnly && <span className="text-xs text-gray-500"> (não editável)</span>}
-                                </label>
-                                <InputFieldLong
-                                    id={item.key}
-                                    name={item.key}
-                                    type={item.type || "text"}
-                                    placeholder={item.label}
-                                    value={item.value}
-                                    onChange={(e) => handleChange(i, e.target.value)}
-                                    disabled={disableFields || item.readOnly}
-                                    className={`${(disableFields || item.readOnly) ? 'bg-gray-100 cursor-not-allowed opacity-70' : ''}`}
-                                    readOnly={item.readOnly}
-                                    // Add patterns for basic validation if desired
-                                    pattern={item.key === 'contactoC1' || item.key === 'contactoC2' ? "[0-9]{9}" : undefined}
-                                    title={item.key === 'contactoC1' || item.key === 'contactoC2' ? "Deve conter 9 dígitos" : undefined}
-                                />
-                            </div>
-                        ))}
+                        {!isLoading && formData.length > 0 && formData.map((item, i) => {
+                            // Special handling for estadoValCc field
+                            if (item.key === 'estadoValCc') {
+                                const isValidated = item.value === "true";
+                                return (
+                                    <div key={item.key || i}>
+                                        <label htmlFor={item.key} className="block text-sm font-medium text-gray-700 mb-1">
+                                            {item.label}
+                                            {item.readOnly && <span className="text-xs text-gray-500"> (não editável)</span>}
+                                        </label>
+                                        <div 
+                                            className={`p-2.5 rounded-md ${isValidated ? 'bg-green-100' : 'bg-red-100'} relative group`}
+                                            title={!isValidated ? "Deverá dirigir-se à nossa loja para re-validar a carta de condução" : ""}
+                                        >
+                                            <span className="font-light">
+                                                {isValidated ? "Confirmada" : "Ação necessária"}
+                                            </span>
+                                            {!isValidated && (
+                                                <div className="hidden group-hover:block absolute left-0 top-full mt-2 p-2 bg-gray-800 text-white text-sm rounded-md z-10 w-64">
+                                                    Deverá dirigir-se à nossa loja para re-validar a carta de condução
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // Regular rendering for other fields
+                            return (
+                                <div key={item.key || i}>
+                                    <label htmlFor={item.key} className="block text-sm font-medium text-gray-700 mb-1">
+                                        {item.label}
+                                        {item.readOnly && <span className="text-xs text-gray-500"> (não editável)</span>}
+                                    </label>
+                                    <InputFieldLong
+                                        id={item.key}
+                                        name={item.key}
+                                        type={item.type || "text"}
+                                        placeholder={item.label}
+                                        value={item.value}
+                                        onChange={(e) => handleChange(i, e.target.value)}
+                                        disabled={disableFields || item.readOnly}
+                                        className={`${(disableFields || item.readOnly) ? 'bg-gray-100 cursor-not-allowed opacity-70' : ''}`}
+                                        readOnly={item.readOnly}
+                                        // Add patterns for basic validation if desired
+                                        pattern={item.key === 'contactoC1' || item.key === 'contactoC2' ? "[0-9]{9}" : undefined}
+                                        title={item.key === 'contactoC1' || item.key === 'contactoC2' ? "Deve conter 9 dígitos" : undefined}
+                                    />
+                                </div>
+                            );
+                        })}
 
                         {/* Action Buttons (only render if not loading and data was successfully fetched initially) */}
                         {!isLoading && originalData && (
