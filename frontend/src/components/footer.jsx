@@ -1,6 +1,6 @@
 // src/components/Footer.jsx
 import React from 'react';
-import icon from "carXPressIcon.svg";
+import icon from '../assets/carXPressIcon.svg'
 
 const Footer = () => {
     // Informações hardcoded (podes alterar estes valores)

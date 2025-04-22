@@ -3,7 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/LoggedOut/loginpageUserPrestador.jsx';
 import AdminLogin from '../pages/Admin/loginpageAdmin.jsx';
 import RegisterUser from '../pages/LoggedOut/RegisterPageUser.jsx';
-import PrivateRoute from './PrivateRoute'; // Certifique-se que a importação está correta
+import PrivateRoute from './PrivateRoute';
+
+
+//Public Pages
+
+import EShopPage from "../pages/LoggedOut/eShopPage.jsx";
 
 // Admin Pages
 import CarsPageAdmin from '../pages/Admin/carsPageAdmin.jsx';
@@ -24,10 +29,11 @@ import ClientProfile from "../pages/Cliente/clientProfile.jsx";
 const AppRoutes = () => (
     <Routes>
         {/* --- Rotas Públicas --- */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<EShopPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/registerUser" element={<RegisterUser />} />
+        <Route path="/eShop" element={<EShopPage />} />
         {/* Adicionar rota para /registerEmpresa se existir */}
         {/* <Route path="/registerEmpresa" element={<RegisterEmpresa />} /> */}
 
