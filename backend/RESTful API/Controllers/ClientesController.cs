@@ -146,7 +146,6 @@ namespace RESTful_API.Controllers
 
         // GET: api/Clientes/5 (Admin only - example)
         [HttpGet("{id}")]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
         {
              var cliente = await _context.Clientes
@@ -281,108 +280,109 @@ namespace RESTful_API.Controllers
         }
 
         [HttpPut("EditeClienteAdmin")]
-public async Task<IActionResult> PutClienteAdmin(ClienteResponseDtoAdmin clienteAdmin)
-{
-    var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var roleIdClaim = User.FindFirstValue("roleId");
-
-    if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
-        !int.TryParse(roleIdClaim, out int userTipoLogin))
-    {
-        return Unauthorized("Token inválido.");
-    }
-
-    // Verifica se é admin (TipoLogin ID = 3)
-    if (userTipoLogin != 3)
-    {
-        return Forbid("Acesso restrito a administradores.");
-    }
-
-    var clienteToUpdate = await _context.Clientes
-                                        .Include(c => c.LoginIdloginNavigation)
-                                        .Include(c => c.CodigoPostalCpNavigation)
-                                        .FirstOrDefaultAsync(c => c.Idcliente == clienteAdmin.Idcliente);
-
-
-    if (clienteToUpdate == null)
-    {
-        return NotFound("Perfil de cliente não encontrado para atualizar.");
-    }
-
-    // --- Input Validation (same as before) ---
-    if (string.IsNullOrWhiteSpace(clienteAdmin.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
-    if (clienteAdmin.ContactoC1.HasValue && clienteAdmin.ContactoC1.Value.ToString().Length != 9) return BadRequest("Contacto principal deve ter 9 dígitos.");
-    //if (clienteAdmin.ContactoC2.HasValue && clienteAdmin.ContactoC2.Value.ToString().Length != 9) return BadRequest("Contacto secundário deve ter 9 dígitos.");
-    if (string.IsNullOrWhiteSpace(clienteAdmin.CodigoPostal)) return BadRequest("Código Postal é obrigatório.");
-    string cpDigits = new string(clienteAdmin.CodigoPostal.Where(char.IsDigit).ToArray());
-    if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int newCpNumeric)) return BadRequest("Formato inválido para Código Postal.");
-
-    // --- Handle CodigoPostal Update (same as before) ---
-    if (clienteToUpdate.CodigoPostalCp != newCpNumeric)
-    {
-        var newCodigoPostal = await _context.CodigoPostals.FindAsync(newCpNumeric);
-        if (newCodigoPostal == null)
+        public async Task<IActionResult> PutClienteAdmin(ClienteResponseDtoAdmin clienteAdmin)
         {
-            if (string.IsNullOrWhiteSpace(clienteAdmin.Localidade)) return BadRequest($"Código Postal '{newCpNumeric}' não existe e a Localidade não foi fornecida.");
-            newCodigoPostal = new CodigoPostal { Cp = newCpNumeric, Localidade = clienteAdmin.Localidade };
-            _context.CodigoPostals.Add(newCodigoPostal);
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+
+            // Verifica se é admin (TipoLogin ID = 3)
+            if (userTipoLogin != 3)
+            {
+                return Forbid("Acesso restrito a administradores.");
+            }
+
+            var clienteToUpdate = await _context.Clientes
+                                                .Include(c => c.LoginIdloginNavigation)
+                                                .Include(c => c.CodigoPostalCpNavigation)
+                                                .FirstOrDefaultAsync(c => c.Idcliente == clienteAdmin.Idcliente);
+
+
+            if (clienteToUpdate == null)
+            {
+                return NotFound("Perfil de cliente não encontrado para atualizar.");
+            }
+
+            // --- Input Validation (same as before) ---
+            if (string.IsNullOrWhiteSpace(clienteAdmin.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
+            if (clienteAdmin.ContactoC1.HasValue && clienteAdmin.ContactoC1.Value.ToString().Length != 9) return BadRequest("Contacto principal deve ter 9 dígitos.");
+            //if (clienteAdmin.ContactoC2.HasValue && clienteAdmin.ContactoC2.Value.ToString().Length != 9) return BadRequest("Contacto secundário deve ter 9 dígitos.");
+            if (string.IsNullOrWhiteSpace(clienteAdmin.CodigoPostal)) return BadRequest("Código Postal é obrigatório.");
+            string cpDigits = new string(clienteAdmin.CodigoPostal.Where(char.IsDigit).ToArray());
+            if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int newCpNumeric)) return BadRequest("Formato inválido para Código Postal.");
+
+            // --- Handle CodigoPostal Update (same as before) ---
+            if (clienteToUpdate.CodigoPostalCp != newCpNumeric)
+            {
+                var newCodigoPostal = await _context.CodigoPostals.FindAsync(newCpNumeric);
+                if (newCodigoPostal == null)
+                {
+                    if (string.IsNullOrWhiteSpace(clienteAdmin.Localidade)) return BadRequest($"Código Postal '{newCpNumeric}' não existe e a Localidade não foi fornecida.");
+                    newCodigoPostal = new CodigoPostal { Cp = newCpNumeric, Localidade = clienteAdmin.Localidade };
+                    _context.CodigoPostals.Add(newCodigoPostal);
+                }
+                else if (!string.IsNullOrWhiteSpace(clienteAdmin.Localidade) && !newCodigoPostal.Localidade.Equals(clienteAdmin.Localidade, StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"Aviso: Localidade fornecida '{clienteAdmin.Localidade}' difere da existente '{newCodigoPostal.Localidade}' para o CP {newCpNumeric}. Usando a existente.");
+                    // Optionally update the existing CP's locality here if desired
+                }
+                clienteToUpdate.CodigoPostalCp = newCpNumeric; // Update FK
+            }
+
+            // --- Password to hash ---
+            string passwordHash;
+            try
+            {
+                passwordHash = BCrypt.Net.BCrypt.HashPassword(clienteAdmin.Password);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao gerar hash da password para {clienteAdmin.NomeCliente}: {ex.Message}");
+                return StatusCode(500, "Erro interno ao processar o registo.");
+            }
+
+            // --- Update Allowed Fields (same as before) ---
+            clienteToUpdate.NomeCliente = clienteAdmin.NomeCliente;
+            clienteToUpdate.Nifcliente = clienteAdmin.NifCliente;
+            clienteToUpdate.DataNascCliente = clienteAdmin.DataNascCliente;
+            clienteToUpdate.RuaCliente = clienteAdmin.RuaCliente;
+            clienteToUpdate.ContactoC1 = clienteAdmin.ContactoC1;
+            clienteToUpdate.ContactoC2 = clienteAdmin.ContactoC2;
+            clienteToUpdate.LoginIdloginNavigation.HashPassword = passwordHash;
+            clienteToUpdate.LoginIdloginNavigation.Email = clienteAdmin.Email;
+            clienteToUpdate.EstadoValCc = clienteAdmin.EstadoValCc;
+
+
+            _context.Entry(clienteToUpdate).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Check if the entity still exists based on the ID found earlier
+                if (!ClienteExists(clienteToUpdate.Idcliente)) // Use the client's actual ID
+                {
+                    return NotFound("Cliente não encontrado durante a gravação (concorrência).");
+                }
+                else { throw; }
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"DbUpdateException on PUT /me: {ex.InnerException?.Message ?? ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao guardar as alterações.");
+            }
+
+            return NoContent(); // Success
         }
-        else if (!string.IsNullOrWhiteSpace(clienteAdmin.Localidade) && !newCodigoPostal.Localidade.Equals(clienteAdmin.Localidade, StringComparison.OrdinalIgnoreCase))
-        {
-            Console.WriteLine($"Aviso: Localidade fornecida '{clienteAdmin.Localidade}' difere da existente '{newCodigoPostal.Localidade}' para o CP {newCpNumeric}. Usando a existente.");
-            // Optionally update the existing CP's locality here if desired
-        }
-        clienteToUpdate.CodigoPostalCp = newCpNumeric; // Update FK
-    }
-
-    // --- Password to hash ---
-    string passwordHash;
-    try
-    {
-        passwordHash = BCrypt.Net.BCrypt.HashPassword(clienteAdmin.Password);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Erro ao gerar hash da password para {clienteAdmin.NomeCliente}: {ex.Message}");
-        return StatusCode(500, "Erro interno ao processar o registo.");
-    }
-
-    // --- Update Allowed Fields (same as before) ---
-    clienteToUpdate.NomeCliente = clienteAdmin.NomeCliente;
-    clienteToUpdate.Nifcliente = clienteAdmin.NifCliente;
-    clienteToUpdate.DataNascCliente = clienteAdmin.DataNascCliente;
-    //clienteToUpdate.CodigoPostalCpNavigation.Localidade = clienteAdmin.Localidade;
-    clienteToUpdate.RuaCliente = clienteAdmin.RuaCliente;
-    clienteToUpdate.ContactoC1 = clienteAdmin.ContactoC1;
-    clienteToUpdate.ContactoC2 = clienteAdmin.ContactoC2;
-    clienteToUpdate.LoginIdloginNavigation.HashPassword = passwordHash;
-    clienteToUpdate.LoginIdloginNavigation.Email = clienteAdmin.Email;
-    clienteToUpdate.EstadoValCc = clienteAdmin.EstadoValCc;
 
 
-    _context.Entry(clienteToUpdate).State = EntityState.Modified;
-
-    try
-    {
-        await _context.SaveChangesAsync();
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-        // Check if the entity still exists based on the ID found earlier
-        if (!ClienteExists(clienteToUpdate.Idcliente)) // Use the client's actual ID
-        {
-            return NotFound("Cliente não encontrado durante a gravação (concorrência).");
-        }
-        else { throw; }
-    }
-    catch (DbUpdateException ex)
-    {
-        Console.WriteLine($"DbUpdateException on PUT /me: {ex.InnerException?.Message ?? ex.Message}");
-        return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao guardar as alterações.");
-    }
-
-    return NoContent(); // Success
-}
         // POST: api/Clientes (Create new client - remains the same)
         [HttpPost]
         [Authorize]
@@ -451,63 +451,63 @@ public async Task<IActionResult> PutClienteAdmin(ClienteResponseDtoAdmin cliente
 
 
 
-    // DELETE: api/Clientes/5 (Anonymizes Login, keeps Cliente record)
-    [HttpDelete("{id}")]
-    [Authorize]
-    // Renomeado para clareza, mas a ROTA continua a ser DELETE /api/Clientes/{id}
-    public async Task<IActionResult> DeleteClienteAndAnonymizeLogin(int id)
-    {
-        var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(idLoginClaim, out int userLoginId))
+        // DELETE: api/Clientes/5 (Anonymizes Login, keeps Cliente record)
+        [HttpDelete("{id}")]
+        [Authorize]
+        // Renomeado para clareza, mas a ROTA continua a ser DELETE /api/Clientes/{id}
+        public async Task<IActionResult> DeleteClienteAndAnonymizeLogin(int id)
         {
-            return Unauthorized("Token inválido.");
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(idLoginClaim, out int userLoginId))
+            {
+                return Unauthorized("Token inválido.");
+            }
+
+            var cliente = await _context.Clientes.FindAsync(id);
+            if (cliente == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+
+            // Authorization Check: Allow self-delete or admin delete
+            if (cliente.LoginIdlogin != userLoginId && !User.IsInRole("admin"))
+            {
+                return Forbid("Não tem permissão para executar esta ação neste perfil.");
+            }
+
+            // Find the associated login record
+            var loginToAnonymize = await _context.Logins.FindAsync(cliente.LoginIdlogin);
+
+            if (loginToAnonymize != null)
+            {
+                // Anonymize the login details
+                loginToAnonymize.Email = null;
+                loginToAnonymize.HashPassword = null;
+
+                _context.Entry(loginToAnonymize).State = EntityState.Modified;
+                Console.WriteLine($"Login {loginToAnonymize.Idlogin} (Cliente {id}) marcado para anonimização.");
+            }
+            else
+            {
+                Console.WriteLine($"Aviso: Login {cliente.LoginIdlogin} (Cliente {id}) não encontrado para anonimização.");
+            }
+
+            // --- NÃO REMOVER O CLIENTE ---
+            // _context.Clientes.Remove(cliente); // <<--- ESTA LINHA NÃO DEVE EXISTIR AQUI
+
+            try
+            {
+                await _context.SaveChangesAsync(); // Salva as alterações no Login
+                Console.WriteLine($"Alterações guardadas. Login {loginToAnonymize?.Idlogin} anonimizado.");
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Erro DbUpdateException ao anonimizar login para Cliente {id}: {ex.InnerException?.Message ?? ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao processar a desativação da conta.");
+            }
+
+            return NoContent(); // Sucesso
         }
-
-        var cliente = await _context.Clientes.FindAsync(id);
-        if (cliente == null)
-        {
-            return NotFound("Cliente não encontrado.");
-        }
-
-        // Authorization Check: Allow self-delete or admin delete
-        if (cliente.LoginIdlogin != userLoginId && !User.IsInRole("admin"))
-        {
-            return Forbid("Não tem permissão para executar esta ação neste perfil.");
-        }
-
-        // Find the associated login record
-        var loginToAnonymize = await _context.Logins.FindAsync(cliente.LoginIdlogin);
-
-        if (loginToAnonymize != null)
-        {
-            // Anonymize the login details
-            loginToAnonymize.Email = null;
-            loginToAnonymize.HashPassword = null;
-
-            _context.Entry(loginToAnonymize).State = EntityState.Modified;
-            Console.WriteLine($"Login {loginToAnonymize.Idlogin} (Cliente {id}) marcado para anonimização.");
-        }
-        else
-        {
-            Console.WriteLine($"Aviso: Login {cliente.LoginIdlogin} (Cliente {id}) não encontrado para anonimização.");
-        }
-
-        // --- NÃO REMOVER O CLIENTE ---
-        // _context.Clientes.Remove(cliente); // <<--- ESTA LINHA NÃO DEVE EXISTIR AQUI
-
-        try
-        {
-            await _context.SaveChangesAsync(); // Salva as alterações no Login
-            Console.WriteLine($"Alterações guardadas. Login {loginToAnonymize?.Idlogin} anonimizado.");
-        }
-        catch (DbUpdateException ex)
-        {
-            Console.WriteLine($"Erro DbUpdateException ao anonimizar login para Cliente {id}: {ex.InnerException?.Message ?? ex.Message}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao processar a desativação da conta.");
-        }
-
-        return NoContent(); // Sucesso
-    }
         private bool ClienteExists(int id)
         {
             return _context.Clientes.Any(e => e.Idcliente == id);

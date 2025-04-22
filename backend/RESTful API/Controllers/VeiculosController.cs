@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,23 +16,23 @@ namespace RESTful_API.Controllers
     public class VeiculoCreateDTO
     {
         // --- campos obrigatórios ---
-        public string MatriculaVeiculo      { get; set; } = null!;
-        public int    ModeloVeiculoIdmodelo { get; set; }
-        public int?   MarcaVeiculoIdmarca   { get; set; }   // chega via navegação do modelo, mas podes receber
+        public string MatriculaVeiculo { get; set; } = null!;
+        public int ModeloVeiculoIdmodelo { get; set; }
+        public int? MarcaVeiculoIdmarca { get; set; }   // chega via navegação do modelo, mas podes receber
 
         // --- opcionais ---
-        public int?    LotacaoVeiculo     { get; set; }
-        public int?    TaraVeiculo        { get; set; }
-        public string? DescCor            { get; set; }
-        public DateTime? DataLegal        { get; set; }
-        public DateTime  DataFabricacao   { get; set; }
-        public DateTime  DataAquisicao    { get; set; }
-        public float?   ValorDiarioVeiculo { get; set; }
-        public string?  DescVeiculo       { get; set; }
-        public string?  EstadoVeiculo     { get; set; }
+        public int? LotacaoVeiculo { get; set; }
+        public int? TaraVeiculo { get; set; }
+        public string? DescCor { get; set; }
+        public DateTime? DataLegal { get; set; }
+        public DateTime DataFabricacao { get; set; }
+        public DateTime DataAquisicao { get; set; }
+        public float? ValorDiarioVeiculo { get; set; }
+        public string? DescVeiculo { get; set; }
+        public string? EstadoVeiculo { get; set; }
 
         // --- ficheiro ---
-        public IFormFile? ImagemVeiculo   { get; set; }
+        public IFormFile? ImagemVeiculo { get; set; }
     }
     public class VeiculoEditDTO
     {
@@ -57,6 +58,32 @@ namespace RESTful_API.Controllers
         public string? EstadoVeiculo { get; set; }
         public IFormFile? ImagemVeiculo { get; set; }
     }
+    public class ClienteVeiculoDTO
+    {
+        public int Idveiculo { get; set; }
+        public string? MatriculaVeiculo { get; set; }
+        public int? LotacaoVeiculo { get; set; }
+        public int? TaraVeiculo { get; set; }
+        public string? DescCor { get; set; }
+        public DateTime? DataLegal { get; set; }
+        public DateTime? DataFabricacao { get; set; }
+        public DateTime? DataAquisicao { get; set; }
+        public float? ValorDiarioVeiculo { get; set; }
+
+        public string? CaminhoFotoVeiculo { get; set; }
+        public string? ImagemBase64 { get; set; }
+
+        public int ModeloVeiculoIdmodelo { get; set; }
+        public int MarcaVeiculoIdmarca { get; set; }
+        public string? DescModelo { get; set; }
+        public string? DescMarca { get; set; }
+
+        public string? DescVeiculo { get; set; }
+        public string? EstadoVeiculo { get; set; }
+
+        public float? Avaliacao { get; set; } // Adicionado para incluir a avaliação do veículo
+    }
+
 
     [Route("api/[controller]")]
     [ApiController]
@@ -98,23 +125,23 @@ namespace RESTful_API.Controllers
 
                 listaDTO.Add(new VeiculoEditDTO
                 {
-                    Idveiculo              = v.Idveiculo,
-                    MatriculaVeiculo       = v.MatriculaVeiculo,
-                    LotacaoVeiculo         = v.LotacaoVeiculo,
-                    TaraVeiculo            = v.TaraVeiculo,
-                    DescCor                = v.DescCor,
-                    DataLegal              = v.DataLegal,
-                    DataFabricacao         = v.DataFabricacao,
-                    DataAquisicao          = v.DataAquisicao,
-                    ValorDiarioVeiculo     = v.ValorDiarioVeiculo,
-                    CaminhoFotoVeiculo     = v.CaminhoFotoVeiculo,
-                    ImagemBase64           = imagemBase64,
-                    ModeloVeiculoIdmodelo  = v.ModeloVeiculoIdmodelo,
-                    MarcaVeiculoIdmarca    = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
-                    DescModelo             = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
-                    DescMarca              = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
-                    DescVeiculo            = v.DescVeiculo,
-                    EstadoVeiculo          = v.EstadoVeiculo
+                    Idveiculo = v.Idveiculo,
+                    MatriculaVeiculo = v.MatriculaVeiculo,
+                    LotacaoVeiculo = v.LotacaoVeiculo,
+                    TaraVeiculo = v.TaraVeiculo,
+                    DescCor = v.DescCor,
+                    DataLegal = v.DataLegal,
+                    DataFabricacao = v.DataFabricacao,
+                    DataAquisicao = v.DataAquisicao,
+                    ValorDiarioVeiculo = v.ValorDiarioVeiculo,
+                    CaminhoFotoVeiculo = v.CaminhoFotoVeiculo,
+                    ImagemBase64 = imagemBase64,
+                    ModeloVeiculoIdmodelo = v.ModeloVeiculoIdmodelo,
+                    MarcaVeiculoIdmarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
+                    DescModelo = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                    DescMarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    DescVeiculo = v.DescVeiculo,
+                    EstadoVeiculo = v.EstadoVeiculo
                 });
             }
 
@@ -147,23 +174,23 @@ namespace RESTful_API.Controllers
 
             var dto = new VeiculoEditDTO
             {
-                Idveiculo              = v.Idveiculo,
-                MatriculaVeiculo       = v.MatriculaVeiculo,
-                LotacaoVeiculo         = v.LotacaoVeiculo,
-                TaraVeiculo            = v.TaraVeiculo,
-                DescCor                = v.DescCor,
-                DataLegal              = v.DataLegal,
-                DataFabricacao         = v.DataFabricacao,
-                DataAquisicao          = v.DataAquisicao,
-                ValorDiarioVeiculo     = v.ValorDiarioVeiculo,
-                CaminhoFotoVeiculo     = v.CaminhoFotoVeiculo,
-                ImagemBase64           = img64,
-                ModeloVeiculoIdmodelo  = v.ModeloVeiculoIdmodelo,
-                MarcaVeiculoIdmarca    = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
-                DescModelo             = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
-                DescMarca              = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
-                DescVeiculo            = v.DescVeiculo,
-                EstadoVeiculo          = v.EstadoVeiculo
+                Idveiculo = v.Idveiculo,
+                MatriculaVeiculo = v.MatriculaVeiculo,
+                LotacaoVeiculo = v.LotacaoVeiculo,
+                TaraVeiculo = v.TaraVeiculo,
+                DescCor = v.DescCor,
+                DataLegal = v.DataLegal,
+                DataFabricacao = v.DataFabricacao,
+                DataAquisicao = v.DataAquisicao,
+                ValorDiarioVeiculo = v.ValorDiarioVeiculo,
+                CaminhoFotoVeiculo = v.CaminhoFotoVeiculo,
+                ImagemBase64 = img64,
+                ModeloVeiculoIdmodelo = v.ModeloVeiculoIdmodelo,
+                MarcaVeiculoIdmarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
+                DescModelo = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                DescMarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                DescVeiculo = v.DescVeiculo,
+                EstadoVeiculo = v.EstadoVeiculo
             };
 
             return Ok(dto);
@@ -171,9 +198,7 @@ namespace RESTful_API.Controllers
 
 
 
-    // PUT: api/Veiculos/edit
-
-
+        // PUT: api/Veiculos/edit
         [HttpPut("edit")]
         public async Task<IActionResult> PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
         {
@@ -311,105 +336,105 @@ namespace RESTful_API.Controllers
 
         // POST: api/Veiculos
 
-[HttpPost]
-public async Task<ActionResult<Veiculo>> PostVeiculo([FromForm] VeiculoEditDTO veiculoDTO)
-{
-    // Validação básica
-    if (string.IsNullOrWhiteSpace(veiculoDTO.MatriculaVeiculo))
-    {
-        return BadRequest("A matrícula do veículo é obrigatória.");
-    }
-
-    if (veiculoDTO.ModeloVeiculoIdmodelo <= 0)
-    {
-        return BadRequest("O ID do modelo é inválido.");
-    }
-
-    // Processar imagem (se existir)
-    string? imageRelativePath = null;
-
-    if (veiculoDTO.ImagemVeiculo != null)
-    {
-        if (veiculoDTO.ImagemVeiculo.Length > 5 * 1024 * 1024) // 5MB
+        [HttpPost]
+        public async Task<ActionResult<Veiculo>> PostVeiculo([FromForm] VeiculoEditDTO veiculoDTO)
         {
-            return BadRequest("A imagem excede o tamanho máximo de 5MB.");
-        }
-
-        // Nome seguro do ficheiro
-        var fileName = Path.GetFileName(veiculoDTO.ImagemVeiculo.FileName);
-        var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-
-        var relativeFolderPath = Path.Combine("imageVeiculo", veiculoDTO.MatriculaVeiculo);
-        var absoluteFolderPath = Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath);
-
-        if (!Directory.Exists(absoluteFolderPath))
-        {
-            Directory.CreateDirectory(absoluteFolderPath);
-        }
-
-        var absoluteFilePath = Path.Combine(absoluteFolderPath, uniqueFileName);
-
-        try
-        {
-            using (var stream = new FileStream(absoluteFilePath, FileMode.Create))
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(veiculoDTO.MatriculaVeiculo))
             {
-                await veiculoDTO.ImagemVeiculo.CopyToAsync(stream);
+                return BadRequest("A matrícula do veículo é obrigatória.");
             }
-            imageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/');
+
+            if (veiculoDTO.ModeloVeiculoIdmodelo <= 0)
+            {
+                return BadRequest("O ID do modelo é inválido.");
+            }
+
+            // Processar imagem (se existir)
+            string? imageRelativePath = null;
+
+            if (veiculoDTO.ImagemVeiculo != null)
+            {
+                if (veiculoDTO.ImagemVeiculo.Length > 5 * 1024 * 1024) // 5MB
+                {
+                    return BadRequest("A imagem excede o tamanho máximo de 5MB.");
+                }
+
+                // Nome seguro do ficheiro
+                var fileName = Path.GetFileName(veiculoDTO.ImagemVeiculo.FileName);
+                var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
+                var relativeFolderPath = Path.Combine("imageVeiculo", veiculoDTO.MatriculaVeiculo);
+                var absoluteFolderPath = Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath);
+
+                if (!Directory.Exists(absoluteFolderPath))
+                {
+                    Directory.CreateDirectory(absoluteFolderPath);
+                }
+
+                var absoluteFilePath = Path.Combine(absoluteFolderPath, uniqueFileName);
+
+                try
+                {
+                    using (var stream = new FileStream(absoluteFilePath, FileMode.Create))
+                    {
+                        await veiculoDTO.ImagemVeiculo.CopyToAsync(stream);
+                    }
+                    imageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/');
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao guardar a imagem: {ex.Message}");
+                }
+            }
+
+            // Criar novo veículo
+            var veiculo = new Veiculo
+            {
+                MatriculaVeiculo = veiculoDTO.MatriculaVeiculo,
+                LotacaoVeiculo = veiculoDTO.LotacaoVeiculo,
+                TaraVeiculo = veiculoDTO.TaraVeiculo,
+                DescCor = veiculoDTO.DescCor,
+                DataLegal = veiculoDTO.DataLegal,
+                DataFabricacao = veiculoDTO.DataFabricacao,
+                DataAquisicao = veiculoDTO.DataAquisicao,
+                ValorDiarioVeiculo = veiculoDTO.ValorDiarioVeiculo,
+                ModeloVeiculoIdmodelo = veiculoDTO.ModeloVeiculoIdmodelo,
+                DescVeiculo = veiculoDTO.DescVeiculo,
+                EstadoVeiculo = veiculoDTO.EstadoVeiculo ?? "Disponível", // Valor padrão
+                CaminhoFotoVeiculo = imageRelativePath
+            };
+
+            _context.Veiculos.Add(veiculo);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                if (VeiculoExistsByMatricula(veiculoDTO.MatriculaVeiculo))
+                {
+                    return Conflict("Já existe um veículo com esta matrícula.");
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
+            }
+
+            // Retorna o veículo criado com o ID gerado pela base de dados
+            return CreatedAtAction("GetVeiculo", new { id = veiculo.Idveiculo }, veiculo);
         }
-        catch (Exception ex)
+
+        private bool VeiculoExistsByMatricula(string matricula)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao guardar a imagem: {ex.Message}");
+            return _context.Veiculos.Any(e => e.MatriculaVeiculo == matricula);
         }
-    }
-
-    // Criar novo veículo
-    var veiculo = new Veiculo
-    {
-        MatriculaVeiculo = veiculoDTO.MatriculaVeiculo,
-        LotacaoVeiculo = veiculoDTO.LotacaoVeiculo,
-        TaraVeiculo = veiculoDTO.TaraVeiculo,
-        DescCor = veiculoDTO.DescCor,
-        DataLegal = veiculoDTO.DataLegal,
-        DataFabricacao = veiculoDTO.DataFabricacao,
-        DataAquisicao = veiculoDTO.DataAquisicao,
-        ValorDiarioVeiculo = veiculoDTO.ValorDiarioVeiculo,
-        ModeloVeiculoIdmodelo = veiculoDTO.ModeloVeiculoIdmodelo,
-        DescVeiculo = veiculoDTO.DescVeiculo,
-        EstadoVeiculo = veiculoDTO.EstadoVeiculo ?? "Disponível", // Valor padrão
-        CaminhoFotoVeiculo = imageRelativePath
-    };
-
-    _context.Veiculos.Add(veiculo);
-
-    try
-    {
-        await _context.SaveChangesAsync();
-    }
-    catch (DbUpdateException ex)
-    {
-        if (VeiculoExistsByMatricula(veiculoDTO.MatriculaVeiculo))
-        {
-            return Conflict("Já existe um veículo com esta matrícula.");
-        }
-        else
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
-        }
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
-    }
-
-    // Retorna o veículo criado com o ID gerado pela base de dados
-    return CreatedAtAction("GetVeiculo", new { id = veiculo.Idveiculo }, veiculo);
-}
-
-private bool VeiculoExistsByMatricula(string matricula)
-{
-    return _context.Veiculos.Any(e => e.MatriculaVeiculo == matricula);
-}
 
         // DELETE: api/Veiculos/5
         [HttpDelete("{id}")]
@@ -438,6 +463,166 @@ private bool VeiculoExistsByMatricula(string matricula)
         private bool VeiculoExists(int id)
         {
             return _context.Veiculos.Any(e => e.Idveiculo == id);
+        }
+
+
+        //----------------------------------------
+        //Cliente pesquisa veiculo
+        //----------------------------------------
+
+        [HttpGet("clientePesquisaVeiculo")]
+        public async Task<ActionResult<IEnumerable<ClienteVeiculoDTO>>> GetVeiculosCliente()
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+
+            // Verifica se é cliente (TipoLogin ID = 1)
+            if (userTipoLogin != 1)
+            {
+                return Forbid("Acesso restrito a Clientes.");
+            }
+
+            // FILTRAR VEÍCULOS COM ESTADO "Disponível" e incluir Aluguers
+            var veiculos = await _context.Veiculos
+                .Where(v => v.EstadoVeiculo == "Disponivel")
+                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
+                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .Include(v => v.Aluguers)
+                .ToListAsync();
+
+            var listaDTO = new List<ClienteVeiculoDTO>();
+            foreach (var v in veiculos)
+            {
+                string? imagemBase64 = null;
+                if (!string.IsNullOrEmpty(v.CaminhoFotoVeiculo))
+                {
+                    var abs = Path.Combine(Directory.GetCurrentDirectory(),
+                                           v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(abs))
+                    {
+                        var bytes = await System.IO.File.ReadAllBytesAsync(abs);
+                        var ext = Path.GetExtension(abs).TrimStart('.');
+                        imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
+                    }
+                }
+
+                float? avaliacaoMedia = null;
+                if (v.Aluguers.Any(a => a.Classificacao.HasValue))
+                {
+                    avaliacaoMedia = v.Aluguers
+                        .Where(a => a.Classificacao.HasValue)
+                        .Average(a => a.Classificacao.Value);
+                }
+
+                listaDTO.Add(new ClienteVeiculoDTO
+                {
+                    Idveiculo = v.Idveiculo,
+                    MatriculaVeiculo = v.MatriculaVeiculo,
+                    LotacaoVeiculo = v.LotacaoVeiculo,
+                    TaraVeiculo = v.TaraVeiculo,
+                    DescCor = v.DescCor,
+                    DataLegal = v.DataLegal,
+                    DataFabricacao = v.DataFabricacao,
+                    DataAquisicao = v.DataAquisicao,
+                    ValorDiarioVeiculo = v.ValorDiarioVeiculo,
+                    CaminhoFotoVeiculo = v.CaminhoFotoVeiculo,
+                    ImagemBase64 = imagemBase64,
+                    ModeloVeiculoIdmodelo = v.ModeloVeiculoIdmodelo,
+                    MarcaVeiculoIdmarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
+                    DescModelo = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                    DescMarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    DescVeiculo = v.DescVeiculo,
+                    EstadoVeiculo = v.EstadoVeiculo,
+                    Avaliacao = avaliacaoMedia
+                });
+            }
+
+            return Ok(listaDTO);
+        }
+
+        [HttpGet("clienteVeiculo")]
+        public async Task<ActionResult<ClienteVeiculoDTO>> GetVeiculoClienteID(int id)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+
+            // Verifica se é cliente (TipoLogin ID = 1)
+            if (userTipoLogin != 1)
+            {
+                return Forbid("Acesso restrito a Clientes.");
+            }
+
+            // Busca apenas o veículo com o ID fornecido e estado "Disponivel"
+            var veiculo = await _context.Veiculos
+                .Where(v => v.Idveiculo == id)
+                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
+                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .Include(v => v.Aluguers)
+                .FirstOrDefaultAsync();
+
+            if (veiculo == null)
+            {
+                return NotFound("Veículo não encontrado ou indisponível.");
+            }
+
+            // Processa imagem
+            string? imagemBase64 = null;
+            if (!string.IsNullOrEmpty(veiculo.CaminhoFotoVeiculo))
+            {
+                var abs = Path.Combine(Directory.GetCurrentDirectory(),
+                                       veiculo.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(abs))
+                {
+                    var bytes = await System.IO.File.ReadAllBytesAsync(abs);
+                    var ext = Path.GetExtension(abs).TrimStart('.');
+                    imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
+                }
+            }
+
+            // Calcula avaliação média
+            float? avaliacaoMedia = null;
+            if (veiculo.Aluguers.Any(a => a.Classificacao.HasValue))
+            {
+                avaliacaoMedia = veiculo.Aluguers
+                    .Where(a => a.Classificacao.HasValue)
+                    .Average(a => a.Classificacao.Value);
+            }
+
+            var dto = new ClienteVeiculoDTO
+            {
+                Idveiculo = veiculo.Idveiculo,
+                MatriculaVeiculo = veiculo.MatriculaVeiculo,
+                LotacaoVeiculo = veiculo.LotacaoVeiculo,
+                TaraVeiculo = veiculo.TaraVeiculo,
+                DescCor = veiculo.DescCor,
+                DataLegal = veiculo.DataLegal,
+                DataFabricacao = veiculo.DataFabricacao,
+                DataAquisicao = veiculo.DataAquisicao,
+                ValorDiarioVeiculo = veiculo.ValorDiarioVeiculo,
+                CaminhoFotoVeiculo = veiculo.CaminhoFotoVeiculo,
+                ImagemBase64 = imagemBase64,
+                ModeloVeiculoIdmodelo = veiculo.ModeloVeiculoIdmodelo,
+                MarcaVeiculoIdmarca = veiculo.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
+                DescModelo = veiculo.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                DescMarca = veiculo.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                DescVeiculo = veiculo.DescVeiculo,
+                EstadoVeiculo = veiculo.EstadoVeiculo,
+                Avaliacao = avaliacaoMedia
+            };
+
+            return Ok(dto);
         }
     }
 }
