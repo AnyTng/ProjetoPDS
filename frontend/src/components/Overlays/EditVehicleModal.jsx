@@ -169,12 +169,7 @@ const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate, onDelete }) 
         }
     }, [brands, isOpen, vehicleData]);
 
-    // Delete
-    const handleDeleteClick = () => {
-        if (window.confirm(`Apagar veículo ${formData.matriculaVeiculo}?`)) {
-            onDelete(vehicleData.idveiculo);
-        }
-    };
+
 
     if (!isOpen || !vehicleData) return null;
 
@@ -345,7 +340,7 @@ const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate, onDelete }) 
                                 required
                             >
                                 <option value="" disabled>Seleccione estado</option>
-                                <option value="Disponivel">Disponível</option>
+                                <option value="Disponível">Disponível</option>
                                 <option value="Em Manutenção">Em Manutenção</option>
                                 <option value="Avariado">Avariado</option>
                                 <option value="Alugado">Alugado</option>

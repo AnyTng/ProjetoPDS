@@ -1,4 +1,4 @@
-import RegisterFormUser from "../components/registerformUser.jsx";
+import RegisterFormUser from "../../components/registerformUser.jsx";
 
 const RegisterPageUser = () => {
     return (

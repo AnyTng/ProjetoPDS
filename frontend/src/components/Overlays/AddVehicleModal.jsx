@@ -253,7 +253,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
                                 required
                             >
                                 <option value="" disabled>Seleccione estado</option>
-                                <option value="Disponivel">Disponível</option>
+                                <option value="Disponível">Disponível</option>
                                 <option value="Em Manutenção">Em Manutenção</option>
                                 <option value="Avariado">Avariado</option>
                                 <option value="Alugado">Alugado</option>

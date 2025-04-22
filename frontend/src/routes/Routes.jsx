@@ -1,8 +1,8 @@
 // srcFrontend/routes/Routes.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from '../pages/loginpageUserPrestador';
+import Login from '../pages/LoggedOut/loginpageUserPrestador.jsx';
 import AdminLogin from '../pages/Admin/loginpageAdmin.jsx';
-import RegisterUser from '../pages/RegisterPageUser';
+import RegisterUser from '../pages/LoggedOut/RegisterPageUser.jsx';
 import PrivateRoute from './PrivateRoute'; // Certifique-se que a importação está correta
 
 // Admin Pages

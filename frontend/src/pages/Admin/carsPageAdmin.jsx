@@ -40,13 +40,15 @@ const CarsPageAdmin = () => {
 
     /* -------------------- FILTRO DE PESQUISA -------------------- */
     const filtered = !isLoading && !error
-        ? carros.filter(c =>
-            (c.idveiculo?.toString()                    || "").toLowerCase().includes(search.toLowerCase()) ||
-            (c.matriculaVeiculo                         || "").toLowerCase().includes(search.toLowerCase()) ||
-            (c.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation?.descMarca || "")
-                .toLowerCase().includes(search.toLowerCase()) ||
-            (c.modeloVeiculoIdmodeloNavigation?.descModelo || "")
-                .toLowerCase().includes(search.toLowerCase()))
+        ? carros.filter(c => {
+            const idMatch       = (c.idveiculo?.toString() || "").toLowerCase().includes(search.toLowerCase());
+            const matMatch      = (c.matriculaVeiculo       || "").toLowerCase().includes(search.toLowerCase());
+            const marcaMatch    = (c.descMarca              || "").toLowerCase().includes(search.toLowerCase());
+            const modeloMatch   = (c.descModelo             || "").toLowerCase().includes(search.toLowerCase());
+            const combinedMatch = `${c.descMarca || ""} ${c.descModelo || ""}`.toLowerCase().includes(search.toLowerCase());
+
+            return idMatch || matMatch || marcaMatch || modeloMatch || combinedMatch;
+        })
         : [];
 
     /* ------------------------ MODAIS ------------------------ */

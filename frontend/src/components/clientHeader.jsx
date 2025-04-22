@@ -1,12 +1,14 @@
+// src/components/clientHeader.jsx
 import logo from "../assets/logo.svg";
 import profilePic from "../assets/react.svg";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import Button from "./button.jsx"; // 1. Importar o componente Button
 
 const ClientHeader = ({ userImage = profilePic }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, logout } = useAuth(); // 2. Obter o estado 'user' do contexto
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -26,6 +28,7 @@ const ClientHeader = ({ userImage = profilePic }) => {
             </div>
 
             <div className="flex items-center gap-6">
+                {/* Navegação principal - mantém-se */}
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-800">
                     <button className="hover:text-black">Pesquisa</button>
                     <button className="hover:text-black">Contacte-nos</button>
@@ -33,25 +36,45 @@ const ClientHeader = ({ userImage = profilePic }) => {
                     <button className="hover:text-black">É uma Empresa de Manutenção?</button>
                 </nav>
 
-                <div className="relative">
-                    <img
-                        src={userImage}
-                        alt="Avatar"
-                        className="h-9 w-9 rounded-full object-cover border cursor-pointer"
-                        onClick={toggleDropdown}
-                    />
-
-                    {isDropdownOpen && user && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
-                            <button 
-                                onClick={handleLogout}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                                Terminar Sessão
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* 3. Lógica Condicional: Avatar ou Botões */}
+                {user ? (
+                    // Se user existe (logado), mostra o avatar e dropdown
+                    <div className="relative">
+                        <img
+                            src={userImage} // Considerar usar user.profileImageUrl se vier do contexto/API
+                            alt="Avatar"
+                            className="h-9 w-9 rounded-full object-cover border cursor-pointer"
+                            onClick={toggleDropdown}
+                        />
+                        {/* Dropdown de logout */}
+                        {isDropdownOpen && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                                <button
+                                    onClick={handleLogout}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                    Terminar Sessão
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    // Se user não existe (logout), mostra os botões de Login e Registar
+                    <div className="flex items-center gap-3">
+                        <Button
+                            text="Login"
+                            variant="secondary" // Ou 'text' se preferires
+                            onClick={() => navigate('/login')}
+                            className="!py-1.5 px-4 text-sm" // Ajusta o padding e tamanho
+                        />
+                        <Button
+                            text="Registar"
+                            variant="primary"
+                            onClick={() => navigate('/registerUser')}
+                            className="!py-1.5 px-4 text-sm" // Ajusta o padding e tamanho
+                        />
+                    </div>
+                )}
             </div>
         </header>
     );
