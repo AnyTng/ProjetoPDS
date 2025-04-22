@@ -18,7 +18,7 @@ namespace RESTful_API.Controllers
         // --- campos obrigatórios ---
         public string MatriculaVeiculo { get; set; } = null!;
         public int ModeloVeiculoIdmodelo { get; set; }
-        public int? MarcaVeiculoIdmarca { get; set; }   // chega via navegação do modelo, mas podes receber
+        public int? MarcaVeiculoIdmarca { get; set; } // chega via navegação do modelo, mas podes receber
 
         // --- opcionais ---
         public int? LotacaoVeiculo { get; set; }
@@ -34,6 +34,7 @@ namespace RESTful_API.Controllers
         // --- ficheiro ---
         public IFormFile? ImagemVeiculo { get; set; }
     }
+
     public class VeiculoEditDTO
     {
         public int Idveiculo { get; set; }
@@ -58,6 +59,7 @@ namespace RESTful_API.Controllers
         public string? EstadoVeiculo { get; set; }
         public IFormFile? ImagemVeiculo { get; set; }
     }
+
     public class ClienteVeiculoDTO
     {
         public int Idveiculo { get; set; }
@@ -102,7 +104,7 @@ namespace RESTful_API.Controllers
         {
             var veiculos = await _context.Veiculos
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .ToListAsync();
 
             var listaDTO = new List<VeiculoEditDTO>();
@@ -112,7 +114,7 @@ namespace RESTful_API.Controllers
                 if (!string.IsNullOrEmpty(v.CaminhoFotoVeiculo))
                 {
                     var abs = Path.Combine(Directory.GetCurrentDirectory(),
-                                           v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                        v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
                     if (System.IO.File.Exists(abs))
                     {
                         var bytes = await System.IO.File.ReadAllBytesAsync(abs);
@@ -154,7 +156,7 @@ namespace RESTful_API.Controllers
         {
             var v = await _context.Veiculos
                 .Include(x => x.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .FirstOrDefaultAsync(x => x.Idveiculo == id);
 
             if (v == null) return NotFound();
@@ -163,7 +165,7 @@ namespace RESTful_API.Controllers
             if (!string.IsNullOrEmpty(v.CaminhoFotoVeiculo))
             {
                 var abs = Path.Combine(Directory.GetCurrentDirectory(),
-                                       v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                    v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
                 if (System.IO.File.Exists(abs))
                 {
                     var b = await System.IO.File.ReadAllBytesAsync(abs);
@@ -200,7 +202,8 @@ namespace RESTful_API.Controllers
 
         // PUT: api/Veiculos/edit
         [HttpPut("edit")]
-        public async Task<IActionResult> PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
+        public async Task<IActionResult>
+            PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
         {
 
             var veiculo = await _context.Veiculos.FindAsync(veiculoDTO.Idveiculo);
@@ -222,8 +225,8 @@ namespace RESTful_API.Controllers
 
                 // Garante que a matrícula a usar no caminho existe
                 var matriculaParaPasta = !string.IsNullOrWhiteSpace(veiculoDTO.MatriculaVeiculo)
-                   ? veiculoDTO.MatriculaVeiculo
-                   : veiculo.MatriculaVeiculo;
+                    ? veiculoDTO.MatriculaVeiculo
+                    : veiculo.MatriculaVeiculo;
 
                 if (string.IsNullOrWhiteSpace(matriculaParaPasta))
                 {
@@ -252,18 +255,23 @@ namespace RESTful_API.Controllers
                     {
                         await veiculoDTO.ImagemVeiculo.CopyToAsync(stream);
                     }
+
                     // Guarda o caminho relativo para a base de dados
-                    newImageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/'); // Normalizar para URL
+                    newImageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName)
+                        .Replace(Path.DirectorySeparatorChar, '/'); // Normalizar para URL
                 }
                 catch (Exception ex)
                 {
                     // Log do erro seria útil aqui
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao guardar a imagem: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        $"Erro ao guardar a imagem: {ex.Message}");
                 }
             }
 
             // Atualizar propriedades do veículo a partir do DTO
-            veiculo.MatriculaVeiculo = veiculoDTO.MatriculaVeiculo ?? veiculo.MatriculaVeiculo; // Usa o valor do DTO se não for nulo, senão mantém o existente
+            veiculo.MatriculaVeiculo =
+                veiculoDTO.MatriculaVeiculo ??
+                veiculo.MatriculaVeiculo; // Usa o valor do DTO se não for nulo, senão mantém o existente
             veiculo.LotacaoVeiculo = veiculoDTO.LotacaoVeiculo ?? veiculo.LotacaoVeiculo;
             veiculo.TaraVeiculo = veiculoDTO.TaraVeiculo ?? veiculo.TaraVeiculo;
             veiculo.DescCor = veiculoDTO.DescCor ?? veiculo.DescCor;
@@ -271,7 +279,9 @@ namespace RESTful_API.Controllers
             veiculo.DataFabricacao = veiculoDTO.DataFabricacao ?? veiculo.DataFabricacao;
             veiculo.DataAquisicao = veiculoDTO.DataAquisicao ?? veiculo.DataAquisicao;
             veiculo.ValorDiarioVeiculo = veiculoDTO.ValorDiarioVeiculo ?? veiculo.ValorDiarioVeiculo;
-            veiculo.ModeloVeiculoIdmodelo = veiculoDTO.ModeloVeiculoIdmodelo; // Assume que o ID do modelo é sempre fornecido na edição se for alterado
+            veiculo.ModeloVeiculoIdmodelo =
+                veiculoDTO
+                    .ModeloVeiculoIdmodelo; // Assume que o ID do modelo é sempre fornecido na edição se for alterado
             veiculo.DescVeiculo = veiculoDTO.DescVeiculo ?? veiculo.DescVeiculo;
             veiculo.EstadoVeiculo = veiculoDTO.EstadoVeiculo ?? veiculo.EstadoVeiculo;
 
@@ -288,9 +298,11 @@ namespace RESTful_API.Controllers
                 await _context.SaveChangesAsync();
 
                 // Apagar a imagem antiga APENAS se uma nova imagem foi carregada e guardada com sucesso
-                if (!string.IsNullOrEmpty(newImageRelativePath) && !string.IsNullOrEmpty(oldImagePath) && oldImagePath != newImageRelativePath)
+                if (!string.IsNullOrEmpty(newImageRelativePath) && !string.IsNullOrEmpty(oldImagePath) &&
+                    oldImagePath != newImageRelativePath)
                 {
-                    var oldAbsoluteFilePath = Path.Combine(Directory.GetCurrentDirectory(), oldImagePath.Replace('/', Path.DirectorySeparatorChar));
+                    var oldAbsoluteFilePath = Path.Combine(Directory.GetCurrentDirectory(),
+                        oldImagePath.Replace('/', Path.DirectorySeparatorChar));
                     if (System.IO.File.Exists(oldAbsoluteFilePath))
                     {
                         try
@@ -316,13 +328,15 @@ namespace RESTful_API.Controllers
                 else
                 {
                     // Log do erro de concorrência
-                    return Conflict("Ocorreu um conflito de concorrência. Os dados podem ter sido modificados por outro utilizador.");
+                    return Conflict(
+                        "Ocorreu um conflito de concorrência. Os dados podem ter sido modificados por outro utilizador.");
                 }
             }
             catch (Exception ex) // Captura outras exceções potenciais do SaveChanges
             {
                 // Log do erro geral
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao atualizar o veículo: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Erro ao atualizar o veículo: {ex.Message}");
             }
 
 
@@ -380,11 +394,14 @@ namespace RESTful_API.Controllers
                     {
                         await veiculoDTO.ImagemVeiculo.CopyToAsync(stream);
                     }
-                    imageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/');
+
+                    imageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName)
+                        .Replace(Path.DirectorySeparatorChar, '/');
                 }
                 catch (Exception ex)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao guardar a imagem: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        $"Erro ao guardar a imagem: {ex.Message}");
                 }
             }
 
@@ -419,7 +436,8 @@ namespace RESTful_API.Controllers
                 }
                 else
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao criar o veículo: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        $"Erro ao criar o veículo: {ex.Message}");
                 }
             }
             catch (Exception ex)
@@ -473,26 +491,14 @@ namespace RESTful_API.Controllers
         [HttpGet("clientePesquisaVeiculo")]
         public async Task<ActionResult<IEnumerable<ClienteVeiculoDTO>>> GetVeiculosCliente()
         {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
 
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
-                !int.TryParse(roleIdClaim, out int userTipoLogin))
-            {
-                return Unauthorized("Token inválido.");
-            }
 
-            // Verifica se é cliente (TipoLogin ID = 1)
-            if (userTipoLogin != 1)
-            {
-                return Forbid("Acesso restrito a Clientes.");
-            }
 
             // FILTRAR VEÍCULOS COM ESTADO "Disponível" e incluir Aluguers
             var veiculos = await _context.Veiculos
                 .Where(v => v.EstadoVeiculo == "Disponivel")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
                 .ToListAsync();
 
@@ -503,7 +509,7 @@ namespace RESTful_API.Controllers
                 if (!string.IsNullOrEmpty(v.CaminhoFotoVeiculo))
                 {
                     var abs = Path.Combine(Directory.GetCurrentDirectory(),
-                                           v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                        v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
                     if (System.IO.File.Exists(abs))
                     {
                         var bytes = await System.IO.File.ReadAllBytesAsync(abs);
@@ -549,26 +555,12 @@ namespace RESTful_API.Controllers
         [HttpGet("clienteVeiculo")]
         public async Task<ActionResult<ClienteVeiculoDTO>> GetVeiculoClienteID(int id)
         {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
-                !int.TryParse(roleIdClaim, out int userTipoLogin))
-            {
-                return Unauthorized("Token inválido.");
-            }
-
-            // Verifica se é cliente (TipoLogin ID = 1)
-            if (userTipoLogin != 1)
-            {
-                return Forbid("Acesso restrito a Clientes.");
-            }
 
             // Busca apenas o veículo com o ID fornecido e estado "Disponivel"
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == id)
+                .Where(v => v.Idveiculo == id && v.EstadoVeiculo == "Disponivel")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
                 .FirstOrDefaultAsync();
 
@@ -582,7 +574,7 @@ namespace RESTful_API.Controllers
             if (!string.IsNullOrEmpty(veiculo.CaminhoFotoVeiculo))
             {
                 var abs = Path.Combine(Directory.GetCurrentDirectory(),
-                                       veiculo.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                    veiculo.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
                 if (System.IO.File.Exists(abs))
                 {
                     var bytes = await System.IO.File.ReadAllBytesAsync(abs);
