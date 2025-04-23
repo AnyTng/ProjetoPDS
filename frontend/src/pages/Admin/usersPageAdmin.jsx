@@ -4,6 +4,7 @@ import UserCard from "../../components/Cards/userCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import UserDetailEditModal from "../../components/Overlays/UserDetailEditModal.jsx"; // Nome sugerido
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 // Remover props 'users' e 'email'
 const UsersPageAdmin = () => {
@@ -28,10 +29,8 @@ const UsersPageAdmin = () => {
 
             console.log("/api/Clientes/listAdmin Fetching users list...");
             await new Promise(resolve => setTimeout(resolve, 500)); // Simulação
-             const response = await fetch('/api/Clientes/listAdmin', { headers: { /* Auth Token */ } });
-             if (!response.ok) throw new Error('Falha ao buscar lista de utilizadores');
-            const data = await response.json();
-            // // API deve retornar array com pelo menos: id, nome, estado, contacto, imageUrl para o UserCard
+            const data = await fetchWithAuth("/api/Clientes/listAdmin");
+            // API deve retornar array com pelo menos: id, nome, estado, contacto, imageUrl para o UserCard
             // setUsers(data);
 
             // Dados Exemplo - REMOVER/SUBSTITUIR
@@ -75,10 +74,8 @@ const UsersPageAdmin = () => {
             // SUBSTITUIR '/api/admin/users/{userId}' PELO ENDPOINT REAL DE DETALHES
             console.log(`[API Placeholder] Fetching details for user ID: ${userId}`);
             await new Promise(resolve => setTimeout(resolve, 800)); // Simulação fetch detalhes
-            // const response = await fetch(`/api/admin/users/${userId}`, { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar detalhes do utilizador');
-            // const fullUserData = await response.json();
-            // // API deve retornar todos os campos: nome, dataNasc, rua, codPostal, contacto1, contacto2, cartaConducaoNum, cartaConducaoValida (boolean?)
+            // const fullUserData = await fetchWithAuth(`/api/admin/users/${userId}`);
+            // API deve retornar todos os campos: nome, dataNasc, rua, codPostal, contacto1, contacto2, cartaConducaoNum, cartaConducaoValida (boolean?)
             // setSelectedUserData(fullUserData);
 
 
@@ -100,12 +97,10 @@ const UsersPageAdmin = () => {
         // try {
         //    // Mapear 'valida'/'invalida' de volta para boolean ou o que API esperar, se necessário
         //    const dataToSend = { ...formData, cartaConducaoValida: formData.cartaConducaoValida === 'valida' };
-        //    const response = await fetch(`/api/admin/users/${userId}`, {
+        //    await fetchWithAuth(`/api/admin/users/${userId}`, {
         //         method: 'PUT',
-        //         headers: { 'Content-Type': 'application/json', /* Auth Token */ },
-        //         body: JSON.stringify(dataToSend)
+        //         body: dataToSend
         //     });
-        //    if (!response.ok) throw new Error('Falha ao atualizar utilizador');
         //    await fetchUsersList(); // Re-fetch lista para ver mudanças no card
         //    handleCloseUserModal();
         //    alert('Utilizador atualizado com sucesso!');

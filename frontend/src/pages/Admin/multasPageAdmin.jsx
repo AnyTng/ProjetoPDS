@@ -8,6 +8,7 @@ import { useAuth } from "../../hooks/useAuth.js";
 import CreateMultaModal from "../../components/Overlays/CreateMultaModal.jsx";
 import EditMultaModal from "../../components/Overlays/EditMultaModal.jsx";
 import ViewContestationModal from "../../components/Overlays/ViewContestationModal.jsx";
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 const MultasPageAdmin = () => {
     const [multas, setMultas] = useState([]);
@@ -32,9 +33,7 @@ const MultasPageAdmin = () => {
             console.log("[API Placeholder] Fetching multas...");
             // SUBSTITUIR PELA CHAMADA API REAL
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const response = await fetch('/api/admin/multas', { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error(`Falha ao buscar multas: ${response.statusText}`);
-            // const data = await response.json();
+            // const data = await fetchWithAuth('/api/admin/multas');
             // setMultas(data);
 
             // Dados de exemplo REMOVER QUANDO TIVER API-
@@ -112,9 +111,7 @@ const MultasPageAdmin = () => {
             console.log(`[API Placeholder] Fetching contestation details for ID: ${multa.ContestacaoId}`);
             // SUBSTITUIR PELA CHAMADA API REAL (/api/admin/contestacoes/{ContestacaoId})
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const response = await fetch(`/api/admin/contestacoes/${multa.ContestacaoId}`, { headers: { /* Auth */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar contestação');
-            // const data = await response.json();
+            // const data = await fetchWithAuth(`/api/admin/contestacoes/${multa.ContestacaoId}`);
             // setContestationText(data.texto); // Assumindo que API retorna { texto: "..." }
 
             setContestationText(`Texto simulado para contestação ${multa.ContestacaoId}. Detalhes...`); // Dados exemplo

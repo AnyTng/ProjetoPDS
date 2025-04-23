@@ -5,6 +5,7 @@ import FilterInput from "../../components/filterInput.jsx";
 import FloatingButton from "../../components/floatingButton.jsx";
 import CreateConcursoModal from "../../components/Overlays/CreateConcursoModal.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 const ConcursosManAdmin = () => {
     const [search, setSearch] = useState("");
@@ -18,16 +19,8 @@ const ConcursosManAdmin = () => {
     useEffect(() => {
         setIsLoading(true);
         setError(null);
-        // SUBSTITUI '/api/admin/concursos' PELO TEU ENDPOINT REAL
-        fetch('/api/admin/concursos')
-            .then(response => {
-                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    throw new TypeError("A resposta recebida não é JSON!");
-                }
-                return response.json();
-            })
+        // Usar fetchWithAuth para chamadas autenticadas
+        fetchWithAuth("/api/admin/concursos")
             .then(data => {
                 // Assumindo que a API retorna um array de 'pedidos' (concursos)
                 setPedidos(data);
@@ -49,8 +42,10 @@ const ConcursosManAdmin = () => {
         console.log("--- Criar Novo Concurso (Placeholder) ---");
         console.log("Dados recebidos:", concursoData);
         // Lógica API (POST) aqui...
-        // Exemplo: fetch('/api/admin/concursos', { method: 'POST', body: JSON.stringify(concursoData), headers: {'Content-Type': 'application/json'} })
-        //           .then(response => response.json())
+        // Exemplo: fetchWithAuth("/api/admin/concursos", { 
+        //           method: 'POST', 
+        //           body: concursoData 
+        //         })
         //           .then(newConcurso => {
         //               setPedidos(prev => [newConcurso, ...prev]); // Adiciona à lista se API retornar o objeto criado
         //           })

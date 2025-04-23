@@ -8,7 +8,7 @@ const formatCurrency = (value) => {
     if (value === null || value === undefined || value === '') return '€0.00'; // Default para €0.00 se vazio
     const numericValue = Number(String(value).replace(/[^0-9.,]/g, '').replace(',', '.'));
     if (isNaN(numericValue)) return 'N/A';
-    return `€${numericValue.toFixed(2)}`;
+    return `${numericValue.toFixed(2)}`;
 };
 
 // Componente Car Frame Simplificado
@@ -72,8 +72,8 @@ const CarPesquisaFrame = ({
     const vehicleName = `${DescMarca || ''} ${DescModelo || 'Veículo'}`.trim();
 
     // Classes CSS para a animação
-    const animationClasses = isVisible 
-        ? "opacity-100 transform translate-y-0" 
+    const animationClasses = isVisible
+        ? "opacity-100 transform translate-y-0"
         : "opacity-0 transform translate-y-8";
 
     return (
@@ -103,7 +103,7 @@ const CarPesquisaFrame = ({
                     {vehicleName}
                 </p>
                 <p className="text-sm text-gray-600">
-                    {formatCurrency(ValorDiarioVeiculo)} / dia
+                    {formatCurrency(ValorDiarioVeiculo)}€ / dia
                 </p>
             </div>
         </div>

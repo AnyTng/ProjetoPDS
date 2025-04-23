@@ -5,6 +5,7 @@ import PropostaCardAdmin from "../../components/Cards/propostaCardAdmin.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import FloatingButton from "../../components/floatingButton.jsx";
 import { useAuth } from "../../hooks/useAuth.js"; // Adicionar useAuth
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 // Remover props 'pedidos' e 'email'
 const PropostasPageAdmin = () => {
@@ -31,9 +32,8 @@ const PropostasPageAdmin = () => {
             console.log(`[API Placeholder] Fetching propostas para concurso ID: ${concursoId}`);
             // Simulação - REMOVER/SUBSTITUIR
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const response = await fetch(`/api/admin/concursos/${concursoId}/propostas`, { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar propostas');
-            // const data = await response.json(); // API deve retornar array de propostas
+            // const data = await fetchWithAuth(`/api/admin/concursos/${concursoId}/propostas`);
+            // API deve retornar array de propostas
             // // Assumir que cada 'proposta' em 'data' tem: propostaId, CarroId, CarroNome, EmpresaNome, Data, Valor, TipoManutencao
             // setPropostas(data);
 
@@ -67,8 +67,7 @@ const PropostasPageAdmin = () => {
         console.log(`[API Placeholder] Aceitar proposta ID: ${propostaId} para concurso ID: ${concursoId}`);
         // LÓGICA DA API (POST /api/admin/propostas/{propostaId}/aceitar ou similar) AQUI...
         // try {
-        //    const response = await fetch(`/api/admin/propostas/${propostaId}/aceitar`, { method: 'POST', headers: {...} });
-        //    if (!response.ok) throw new Error('Falha ao aceitar proposta');
+        //    await fetchWithAuth(`/api/admin/propostas/${propostaId}/aceitar`, { method: 'POST' });
         //    // Talvez navegar de volta para concursos ou mostrar estado 'aceite'
         //    await fetchPropostas(); // Ou atualizar estado local
         // } catch (err) { console.error("Erro ao aceitar proposta:", err); /* Show error */ }
@@ -78,8 +77,7 @@ const PropostasPageAdmin = () => {
         console.log(`[API Placeholder] Rejeitar proposta ID: ${propostaId} para concurso ID: ${concursoId}`);
         // LÓGICA DA API (POST ou DELETE /api/admin/propostas/{propostaId}) AQUI...
         // try {
-        //    const response = await fetch(`/api/admin/propostas/${propostaId}/reject`, { method: 'POST', headers: {...} }); // ou DELETE
-        //    if (!response.ok) throw new Error('Falha ao rejeitar proposta');
+        //    await fetchWithAuth(`/api/admin/propostas/${propostaId}/reject`, { method: 'POST' }); // ou DELETE
         //    await fetchPropostas(); // Re-fetch para remover da lista
         // } catch (err) { console.error("Erro ao rejeitar proposta:", err); /* Show error */ }
     };
@@ -90,8 +88,7 @@ const PropostasPageAdmin = () => {
             console.log(`[API Placeholder] Terminar e cancelar concurso ID: ${concursoId}`);
             // LÓGICA DA API (DELETE /api/admin/concursos/{concursoId} ou PUT para mudar estado) AQUI...
             // try {
-            //    const response = await fetch(`/api/admin/concursos/${concursoId}`, { method: 'DELETE', headers: {...} }); // ou PUT
-            //    if (!response.ok) throw new Error('Falha ao cancelar concurso');
+            //    await fetchWithAuth(`/api/admin/concursos/${concursoId}`, { method: 'DELETE' }); // ou PUT
             //    // Navegar de volta para a lista de concursos ou mostrar mensagem
             //    // navigate('/admin/concursos');
             //    alert('Concurso cancelado com sucesso.');

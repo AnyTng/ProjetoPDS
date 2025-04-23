@@ -4,15 +4,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
 import Footer from '../../components/footer';
 import Button from '../../components/button';
-
-const API_BASE_URL = "http://localhost:5159"; // Same as in eShopPage.jsx
+import { API_BASE_URL } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const CarShop = () => {
     const { carID } = useParams(); // Get carID from URL parameter
     const navigate = useNavigate();
+    const { user } = useAuth(); // Get user from auth context
     const [car, setCar] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
+    // Update isLoggedIn state when user changes
+    useEffect(() => {
+        setIsLoggedIn(!!user);
+    }, [user]);
 
     // Fetch car details when component mounts or carID changes
     useEffect(() => {
@@ -44,6 +52,17 @@ const CarShop = () => {
     const handleBackToEShop = () => {
         navigate('/eShop');
     };
+
+    const handleCarRental = () => {
+        if (!isLoggedIn) {
+            // If user is not logged in, navigate to login page
+            navigate('/login');
+        } else {
+            // If user is logged in, navigate to rent page
+            navigate(`/eShop/rent/${carID}`);
+        }
+    }
+
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -117,7 +136,7 @@ const CarShop = () => {
                                     </div>
                                     <div>
                                         <p className="text-gray-600">Taxa Diária:</p>
-                                        <p className="font-medium text-green-600">€{car.veiculo.valorDiarioVeiculo}</p>
+                                        <p className="font-medium text-green-600">{car.veiculo.valorDiarioVeiculo}€</p>
                                     </div>
                                 </div>
 
@@ -133,26 +152,52 @@ const CarShop = () => {
                             </p>
                         </div>
 
+
+                        {/* Rental Button */}
                         <div className="mt-8">
-                            <Button
-                                text="Alugar Este Carro"
-                                variant="primary"
-                                onClick={() => alert('Funcionalidade de aluguer a ser implementada')}
-                                className="!w-full"
-                            />
+                            {!isLoggedIn ? (
+                                <Button
+                                    text="Por favor, faça login para alugar este carro"
+                                    variant="secondary"
+                                    onClick={handleCarRental}
+                                    className="!w-full"
+                                />
+                            ) : car.veiculo.estadoVeiculo !== "Disponível" ? (
+                                <Button
+                                    text="Este carro está temporariamente indisponível"
+                                    variant="secondary"
+                                    disabled={true}
+                                    className="!w-full opacity-70 cursor-not-allowed"
+                                />
+                            ) : (
+                                <Button
+                                    text="Alugar Este Carro"
+                                    variant="primary"
+                                    onClick={handleCarRental}
+                                    className="!w-full"
+                                />
+                            )}
                         </div>
+
+
+                        {/* Car Rating */}
 
 
                         <div className="mt-8 text-center">
                             <h1 className="text-3xl font-semibold text-gray-800 mb-4">
                                 Avaliação deste carro
                             </h1>
-                            <div className="flex justify-center items-center gap-2">
-                                <span className="text-8xl font-bold">
-                                    {car.veiculo.avaliacao}
-                                </span>
-                                <span className="text-4xl text-gray-600">/ 5</span>
-                            </div>
+
+                            {car.veiculo.avaliacao != null ? (
+                                <div className="flex justify-center items-center gap-2">
+                                    <span className="text-8xl font-bold">{car.veiculo.avaliacao}</span>
+                                    <span className="text-4xl text-gray-600">/ 5</span>
+                                </div>
+                            ) : (
+                                <p className="text-4xl text-gray-500 italic">*
+                                    <span className="text-4xl text-gray-600"> / 5</span></p>
+                            )}
+
                             <p className="text-gray-500 mt-2">
                                 Baseado na experiência de outros utilizadores.
                             </p>
