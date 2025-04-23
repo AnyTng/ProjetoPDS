@@ -492,8 +492,6 @@ namespace RESTful_API.Controllers
         public async Task<ActionResult<IEnumerable<ClienteVeiculoDTO>>> GetVeiculosCliente()
         {
 
-
-
             // FILTRAR VEÍCULOS COM ESTADO "Disponível" e incluir Aluguers
             var veiculos = await _context.Veiculos
                 .Where(v => v.EstadoVeiculo == "Disponivel")
@@ -614,7 +612,17 @@ namespace RESTful_API.Controllers
                 Avaliacao = avaliacaoMedia
             };
 
-            return Ok(dto);
+            bool existeAluguer = false;
+            //Verifica o id do cliente a partir do token, e a partir do id do cliente verifica se existe aluguer, se existir retorna true
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
+            {
+                int idCliente = Convert.ToInt32(userId);
+                existeAluguer = await _context.Aluguers.AnyAsync(a => a.ClienteIdcliente == idCliente && a.EstadoAluguer!="Ativo" && a.EstadoAluguer != "Pendente");
+            }
+
+            //retorna o dto, e se existe aluguer
+            return Ok(new { Veiculo = dto, ExisteAluguer = existeAluguer });
         }
     }
 }
