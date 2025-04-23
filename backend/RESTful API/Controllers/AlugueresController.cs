@@ -203,7 +203,7 @@ namespace RESTful_API.Controllers
             }
 
             var aluguerAtivo = await _context.Aluguers
-                .Where(a => a.ClienteIdcliente == idCliente && a.EstadoAluguer == "Ativo")
+                .Where(a => a.ClienteIdcliente == idCliente && (a.EstadoAluguer == "Alugado" || a.EstadoAluguer == "Pendente"))
                 .FirstOrDefaultAsync();
             if (aluguerAtivo != null)
             {
@@ -226,7 +226,7 @@ namespace RESTful_API.Controllers
                 ClienteIdcliente = idCliente,
                 DataLevantamento = dataLevantamento,
                 DataEntregaPrevista = dataEntrega,
-                EstadoAluguer = "Esperando Levantamento",
+                EstadoAluguer = "Pendente",
                 ValorReserva = valorR,
                 ValorQuitacao = valorQ,
                 DataDevolucao = null,
@@ -299,10 +299,189 @@ namespace RESTful_API.Controllers
                 a.ValorReserva,
                 a.ValorQuitacao
             }));
-
         }
 
-        
+        [HttpPut("atualizaestado")]
+        public async Task<IActionResult> PutAtualizaEstadoAluguer(int id, string estadoAluguer)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+
+            var aluguer = await _context.Aluguers.FindAsync(id);
+            if (aluguer == null)
+            {
+                return NotFound("Aluguer não encontrado.");
+            }
+
+            if (estadoAluguer == "Alugado" || estadoAluguer == "Cancelado")
+            {
+                aluguer.EstadoAluguer = estadoAluguer;
+            }
+            else
+            {
+                return NotFound("Estado de aluguer falho.");
+            }
+
+            _context.Entry(aluguer).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+
+
+
+        [HttpPut("entrega")]//atualiza o valor do aluguer
+        public async Task<IActionResult> PutEntregaAluguer(int idAluguer, DateTime dataDevolucao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+            var aluguer = await _context.Aluguers.FindAsync(idAluguer);
+            if (aluguer == null)
+            {
+                return NotFound("Aluguer não encontrado.");
+            }
+            if(aluguer.EstadoAluguer!="Alugado")
+            {
+                return NotFound("Aluguer não se encontra ativo.");
+            }
+
+            aluguer.DataDevolucao = dataDevolucao;
+            aluguer.EstadoAluguer = "Concluido";
+            aluguer.DataFatura = dataDevolucao;
+            
+            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponivel";
+
+            _context.Entry(aluguer).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        //--------------------//
+        //cliente avalia historico aluguer
+        //--------------------//
+        [HttpGet("historico")]
+        public async Task<IActionResult> historicoAluguer()
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 1)//verifica se é cliente
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
+
+            int idCliente = 0;
+            idCliente = await _context.Clientes
+                .Where(c => c.LoginIdlogin == userIdLogin)
+                .Select(c => c.Idcliente)
+                .FirstOrDefaultAsync();
+
+            if (idCliente == 0)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+
+            //todos os alugueres associados ao idcliente
+
+            var alugueres = await _context.Aluguers
+                .Where(a=>a.ClienteIdcliente== idCliente)
+                .Include(a => a.ClienteIdclienteNavigation)
+                .Include(a => a.VeiculoIdveiculoNavigation)
+                    .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                        .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ToListAsync();
+
+            if (alugueres == null || alugueres.Count == 0)
+            {
+                return NotFound("Nenhum aluguer encontrado.");
+            }
+            // Retornar a lista de alugueres
+            return Ok(alugueres.Select(a => new
+            {
+                a.Idaluguer,
+                Cliente = new
+                {
+                    a.ClienteIdclienteNavigation.NomeCliente,
+                    a.ClienteIdclienteNavigation.ContactoC1,
+                    a.ClienteIdclienteNavigation.Nifcliente
+                },
+                Veiculo = new
+                {
+                    a.VeiculoIdveiculoNavigation.MatriculaVeiculo,
+                    Marca = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    Modelo = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo
+                },
+                a.DataLevantamento,
+                a.DataEntregaPrevista,
+                a.EstadoAluguer,
+                a.ValorReserva,
+                a.ValorQuitacao,
+                a.DataDevolucao,
+                a.DataFatura,
+                a.Classificacao
+            }));
+        }
+
+        [HttpPut("avaliacao")]
+        public async Task<IActionResult> PutAvaliaAluguer(int idAluguer, float classificacao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 1)//verifica se é cliente
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
+
+            var aluguer = await _context.Aluguers.FindAsync(idAluguer);
+            if (aluguer == null)
+            {
+                return NotFound("Aluguer não encontrado.");
+            }
+
+            if (aluguer.Classificacao != null)
+            {
+                return NotFound("Já foi avaliado com nota: " + aluguer.Classificacao);
+            }
+
+            if (aluguer.EstadoAluguer!="Concluido")
+            {
+                return NotFound("Aluguer não concluido, apenas sera permitida a sua avaliação apos a entrega do veiculo.");
+            }
+
+            if (classificacao > 5 || classificacao < 0)
+            {
+                return NotFound("Classificação deve estar entre 0 e 5");
+            }
+
+
+            aluguer.Classificacao = classificacao;
+            _context.Entry(aluguer).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
     }
 }

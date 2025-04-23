@@ -618,7 +618,7 @@ namespace RESTful_API.Controllers
             if (userId != null)
             {
                 int idCliente = Convert.ToInt32(userId);
-                existeAluguer = await _context.Aluguers.AnyAsync(a => a.ClienteIdcliente == idCliente && a.EstadoAluguer!="Ativo" && a.EstadoAluguer != "Pendente");
+                existeAluguer = await _context.Aluguers.AnyAsync(a => a.ClienteIdcliente == idCliente && a.EstadoAluguer!="Alugado" && a.EstadoAluguer != "Pendente");
             }
 
             //retorna o dto, e se existe aluguer
