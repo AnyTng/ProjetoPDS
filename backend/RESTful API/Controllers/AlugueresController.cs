@@ -547,41 +547,130 @@ namespace RESTful_API.Controllers
                     page.Content().Column(col =>
                     {
                         col.Spacing(10);
-                        col.Item().Text($"\nDados Empresa:").AlignCenter();
-                        col.Item().Text($"Empresa: CarExpress, Lda");
-                        col.Item().Text($"Contacto: 963 183 446");
-                        col.Item().Text($"E-mail: geral@carexpress.pt");
-                        col.Item().Text($"Morada: Rua das Ameixas, Nº54");
-                        col.Item().Text($"Código Postal: 1234-567, Frossos, Braga");
-                        col.Item().Text($"Capital Social: 20 000€");
-                        col.Item().Text($"Cont.: 500400300");
+
+                        col.Item().Text("\nDados Empresa:").AlignCenter().Bold();
+
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Empresa:").SemiBold();
+                            row.RelativeColumn(3).Text("CarExpress, Lda").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Contacto:").SemiBold();
+                            row.RelativeColumn(3).Text("963 183 446").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("E-mail:").SemiBold();
+                            row.RelativeColumn(3).Text("geral@carexpress.pt").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Morada:").SemiBold();
+                            row.RelativeColumn(3).Text("Rua das Ameixas, Nº54").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Código Postal:").SemiBold();
+                            row.RelativeColumn(3).Text("1234-567, Frossos, Braga").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Capital Social:").SemiBold();
+                            row.RelativeColumn(3).Text("20 000€").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Cont.:").SemiBold();
+                            row.RelativeColumn(3).Text("500400300").FontColor(Colors.Grey.Darken2);
+                        });
 
                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
 
-                        col.Item().Text($"\nDados Cliente:").AlignCenter();
-                        col.Item().Text($"Data: {aluguer.DataFatura:d}");
-                        col.Item().Text($"Cliente: {aluguer.ClienteIdclienteNavigation.NomeCliente}");
-                        col.Item().Text($"Contacto: {aluguer.ClienteIdclienteNavigation.ContactoC1}");
-                        col.Item().Text($"NIF: {aluguer.ClienteIdclienteNavigation.Nifcliente}");
+                        col.Item().Text("\nDados Cliente:").AlignCenter().Bold();
+
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Data:").SemiBold();
+                            row.RelativeColumn(3).Text($"{aluguer.DataFatura:d}").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Cliente:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.ClienteIdclienteNavigation.NomeCliente).FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Contacto:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.ClienteIdclienteNavigation.ContactoC1).FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("NIF:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.ClienteIdclienteNavigation.Nifcliente).FontColor(Colors.Grey.Darken2);
+                        });
 
                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
 
-                        col.Item().Text($"\nDados Veiculo:").AlignCenter();
-                        col.Item().Text($"Veículo: {aluguer.VeiculoIdveiculoNavigation.MatriculaVeiculo}");
-                        col.Item().Text($"Marca: {aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca}");
-                        col.Item().Text($"Modelo: {aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo}");
+                        col.Item().Text("\nDados Veículo:").AlignCenter().Bold();
+
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Veículo:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.VeiculoIdveiculoNavigation.MatriculaVeiculo).FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Marca:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca).FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Modelo:").SemiBold();
+                            row.RelativeColumn(3).Text(aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo);
+                        });
 
                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
-                        col.Item().Text($"\nDados Pagamento:").AlignCenter();
-                        col.Item().Text($"IVA incluido nos Valores: 23%");
-                        col.Item().Text($"Valor Reserva: {aluguer.ValorReserva:C}");
-                        col.Item().Text($"Valor Quitação: {aluguer.ValorQuitacao:C}");
-                        col.Item().Text($"Total: {(aluguer.ValorReserva + aluguer.ValorQuitacao):C}").Bold();
+
+                        col.Item().Text("\nDados Pagamento:").AlignCenter().Bold();
+
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("IVA (23%):").SemiBold();
+                            row.RelativeColumn(3).Text("Incluído nos valores");
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Valor Reserva:").SemiBold();
+                            row.RelativeColumn(3).Text($"{aluguer.ValorReserva:C}").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Valor Quitação:").SemiBold();
+                            row.RelativeColumn(3).Text($"{aluguer.ValorQuitacao:C}").FontColor(Colors.Grey.Darken2);
+                        });
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeColumn(1).Text("Total:").Bold();
+                            row.RelativeColumn(3).Text($"{(aluguer.ValorReserva + aluguer.ValorQuitacao):C}").Bold();
+                        });
                     });
 
-                    page.Footer().AlignCenter().Text(txt =>
+                    page.Footer().Column(column =>
                     {
-                        txt.Span("Obrigado por utilizar nossos serviços.");
+                        column.Item().AlignCenter().Text("Obrigado por utilizar nossos serviços.").Bold();
+
+                        column.Item().AlignRight().Text(txt =>
+                        {
+                            txt.DefaultTextStyle(x => x.FontSize(8));
+
+                            txt.Span("Página ");
+                            txt.CurrentPageNumber();
+                            txt.Span(" de ");
+                            txt.TotalPages();
+                        });
+
                     });
                 });
             })
