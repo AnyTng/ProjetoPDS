@@ -501,7 +501,7 @@ namespace RESTful_API.Controllers
                 return Unauthorized("Token inválido.");
             }
 
-            if (userTipoLogin != 1)
+            if (userTipoLogin != 1 || userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a cliente.");
             }
