@@ -23,6 +23,7 @@ import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
 //User Pages
 import ClientProfile from "../pages/Cliente/clientProfile.jsx";
+import CarRent from "../pages/Cliente/carRentForm.jsx";
 // Adicionar outras páginas de cliente/empresa aqui...
 // import EmpresaDashboard from '../pages/Empresa/EmpresaDashboard.jsx'; // Exemplo
 
@@ -49,6 +50,16 @@ const AppRoutes = () => (
                 // ****** ATUALIZADO PARA 'cliente' ******
                 <PrivateRoute allowedRoles={['cliente']}>
                     <ClientProfile />
+                </PrivateRoute>
+            }
+        />
+
+
+        <Route
+            path="/eShop/rent/:carID"
+            element={
+                <PrivateRoute allowedRoles={['cliente']}>
+                   <CarRent />
                 </PrivateRoute>
             }
         />
