@@ -5,6 +5,9 @@ using Microsoft.OpenApi.Models;
 using RESTful_API.Models;
 using System.Text;
 using System.Text.Json.Serialization; // Adicionar este using
+using QuestPDF.Infrastructure; // importante!
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,10 @@ var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ??
 
 // Get ConnectionString from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+
+// Configure a licença QuestPDF antes de qualquer uso
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Add DbContext to the service container
 builder.Services.AddDbContext<PdsContext>(options =>

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using RESTful_API.Models;
 
 namespace RESTful_API.Controllers
@@ -463,10 +466,10 @@ namespace RESTful_API.Controllers
                 return NotFound("Aluguer não encontrado.");
             }
 
-            if (aluguer.Classificacao != null)
+            /*if (aluguer.Classificacao != null)
             {
                 return NotFound("Já foi avaliado com nota: " + aluguer.Classificacao);
-            }
+            }*/
 
             if (aluguer.EstadoAluguer!="Concluido")
             {
@@ -484,6 +487,109 @@ namespace RESTful_API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+
+
+        //--------------------//
+        [HttpGet("fatura")]
+        public async Task<IActionResult> GetFaturaAluguer(int idAluguer)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+
+            if (userTipoLogin != 1)
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
+
+            var aluguer = await _context.Aluguers
+                .Where(a => a.Idaluguer == idAluguer)
+                .Include(a => a.ClienteIdclienteNavigation)
+                .Include(a => a.VeiculoIdveiculoNavigation)
+                    .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                        .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .FirstOrDefaultAsync();
+
+            if (aluguer == null || aluguer.EstadoAluguer!="Concluido")
+            {
+                return NotFound("Aluguer não encontrado.");
+            }
+
+            var pdfBytes = GeneratePdfFatura(aluguer);
+            return File(pdfBytes, "application/pdf", $"fatura_{idAluguer}.pdf");
+        }
+
+        private byte[] GeneratePdfFatura(Aluguer aluguer)
+        {
+            using var stream = new MemoryStream();
+
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.MarginTop(1, Unit.Centimetre);
+                    page.MarginBottom(2, Unit.Centimetre);
+                    page.MarginLeft(2, Unit.Centimetre);
+                    page.MarginRight(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(12));
+
+                    page.Header().Column(header =>
+                    {
+                        header.Item().AlignRight().Width(70).Image("assets/logo.png", ImageScaling.FitWidth);
+                        header.Item().Text("Fatura de Aluguer").FontSize(20).Bold().AlignCenter();
+                    });
+
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(10);
+                        col.Item().Text($"\nDados Empresa:").AlignCenter();
+                        col.Item().Text($"Empresa: CarExpress, Lda");
+                        col.Item().Text($"Contacto: 963 183 446");
+                        col.Item().Text($"E-mail: geral@carexpress.pt");
+                        col.Item().Text($"Morada: Rua das Ameixas, Nº54");
+                        col.Item().Text($"Código Postal: 1234-567, Frossos, Braga");
+                        col.Item().Text($"Capital Social: 20 000€");
+                        col.Item().Text($"Cont.: 500400300");
+
+                        col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+
+                        col.Item().Text($"\nDados Cliente:").AlignCenter();
+                        col.Item().Text($"Data: {aluguer.DataFatura:d}");
+                        col.Item().Text($"Cliente: {aluguer.ClienteIdclienteNavigation.NomeCliente}");
+                        col.Item().Text($"Contacto: {aluguer.ClienteIdclienteNavigation.ContactoC1}");
+                        col.Item().Text($"NIF: {aluguer.ClienteIdclienteNavigation.Nifcliente}");
+
+                        col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+
+                        col.Item().Text($"\nDados Veiculo:").AlignCenter();
+                        col.Item().Text($"Veículo: {aluguer.VeiculoIdveiculoNavigation.MatriculaVeiculo}");
+                        col.Item().Text($"Marca: {aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca}");
+                        col.Item().Text($"Modelo: {aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo}");
+
+                        col.Item().LineHorizontal(1).LineColor(Colors.Grey.Darken2);
+                        col.Item().Text($"\nDados Pagamento:").AlignCenter();
+                        col.Item().Text($"IVA incluido nos Valores: 23%");
+                        col.Item().Text($"Valor Reserva: {aluguer.ValorReserva:C}");
+                        col.Item().Text($"Valor Quitação: {aluguer.ValorQuitacao:C}");
+                        col.Item().Text($"Total: {(aluguer.ValorReserva + aluguer.ValorQuitacao):C}").Bold();
+                    });
+
+                    page.Footer().AlignCenter().Text(txt =>
+                    {
+                        txt.Span("Obrigado por utilizar nossos serviços.");
+                    });
+                });
+            })
+            .GeneratePdf(stream);
+
+            return stream.ToArray();
+        }
+
 
     }
 }
