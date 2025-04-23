@@ -556,7 +556,7 @@ namespace RESTful_API.Controllers
 
             // Busca apenas o veículo com o ID fornecido e estado "Disponível"
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == id && v.EstadoVeiculo == "Disponível")
+                .Where(v => v.Idveiculo == id && v.EstadoVeiculo != "Eliminado")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                 .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)

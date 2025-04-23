@@ -101,7 +101,7 @@ namespace RESTful_API.Controllers
         }
 
         // GET: api/clientes/me (For the logged-in user)
-        [Authorize]
+
         [HttpGet("me")]
         public async Task<ActionResult<ClienteResponseDto>> GetMe()
         {
