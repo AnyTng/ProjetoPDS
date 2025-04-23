@@ -332,15 +332,17 @@ namespace RESTful_API.Controllers
 
             _context.Entry(aluguer).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok();
         }
 
 
 
 
-        [HttpPut("entrega")]//atualiza o valor do aluguer
-        public async Task<IActionResult> PutEntregaAluguer(int idAluguer, DateTime dataDevolucao)
+        [HttpPut("entrega")]
+        public async Task<IActionResult> PutEntregaAluguer(int idAluguer)
         {
+            DateTime dataDevolucao = DateTime.Now;
+
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
             if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
@@ -369,7 +371,7 @@ namespace RESTful_API.Controllers
 
             _context.Entry(aluguer).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok();
         }
 
         //--------------------//
