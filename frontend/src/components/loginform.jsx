@@ -6,8 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/global.css";
 import { useAuth } from "../hooks/useAuth";
 import { jwtDecode } from 'jwt-decode';
-
-const API_BASE_URL = "http://localhost:5159";
+import { API_BASE_URL } from "../utils/api";
 
 // ****** FUNÇÃO AUXILIAR ATUALIZADA (pode ser removida se confiares 100% na roleName do AuthContext após o login) ******
 const getRoleNameFromId = (roleId) => {

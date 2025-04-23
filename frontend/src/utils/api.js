@@ -1,7 +1,7 @@
 // srcFrontend/utils/api.js
 
 // Define a URL base da tua API. Podes movê-la para um ficheiro .env mais tarde.
-const API_BASE_URL = "http://localhost:5159";
+export const API_BASE_URL = "http://localhost:5159";
 const AUTH_TOKEN_KEY = 'authToken'; // Mesma chave usada no AuthContext
 
 // Função para obter o token atual do localStorage

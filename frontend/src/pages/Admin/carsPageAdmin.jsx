@@ -91,19 +91,7 @@ const CarsPageAdmin = () => {
         }
     };
 
-    /** APAGAR **/
-    const handleDeleteVehicle = async (id) => {
-        if (!window.confirm("Tem a certeza que quer eliminar este veículo?")) return;
-        try {
-            await fetchWithAuth(`/api/Veiculos/${id}`, { method: "DELETE" });
-            await fetchVehicles();
-            handleCloseModals();
-            alert("Veículo apagado com sucesso.");
-        } catch (err) {
-            console.error(err);
-            alert(`Erro ao apagar veículo: ${err.message}`);
-        }
-    };
+
 
     /* -------------------- RENDERIZAÇÃO -------------------- */
     let content;
@@ -168,7 +156,6 @@ const CarsPageAdmin = () => {
                     onClose   ={handleCloseModals}
                     vehicleData={selectedVehicle}
                     onUpdate  ={handleUpdateVehicle}
-                    onDelete  ={handleDeleteVehicle}
                 />
             )}
         </>

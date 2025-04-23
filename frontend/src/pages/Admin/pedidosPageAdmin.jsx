@@ -5,6 +5,7 @@ import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js"; // Importar useAuth
 // Importar o novo modal (será criado a seguir)
 import PedidoDetailModal from "../../components/Overlays/PedidoDetailModal.jsx";
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 // Remover a prop 'pedidos'
 const PedidosPageAdmin = () => {
@@ -28,9 +29,8 @@ const PedidosPageAdmin = () => {
             console.log("[API Placeholder] Fetching pedidos...");
             // Simulação - REMOVER/SUBSTITUIR
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const response = await fetch('/api/admin/pedidos', { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar pedidos');
-            // const data = await response.json(); // API deve retornar array de pedidos
+            // const data = await fetchWithAuth('/api/admin/pedidos');
+            // API deve retornar array de pedidos
             // // Garantir que os dados da API têm os campos necessários (id, userId, carroId, nome, status, startDate, endDate, value, imageUrl, etc.)
             // setPedidos(data);
 
@@ -77,8 +77,7 @@ const PedidosPageAdmin = () => {
         console.log(`[API Placeholder] Aprovar Pedido ID: ${pedidoId}`);
         // LÓGICA DA API (PUT/POST /api/admin/pedidos/{pedidoId}/approve) AQUI...
         // try {
-        //    const response = await fetch(`/api/admin/pedidos/${pedidoId}/approve`, { method: 'POST', headers: {...} });
-        //    if (!response.ok) throw new Error('Falha ao aprovar pedido');
+        //    await fetchWithAuth(`/api/admin/pedidos/${pedidoId}/approve`, { method: 'POST' });
         //    await fetchPedidos(); // Re-fetch list on success
         //    handleCloseDetailModal();
         // } catch (err) { console.error("Erro ao aprovar pedido:", err); /* Show error */ }
@@ -89,8 +88,7 @@ const PedidosPageAdmin = () => {
         console.log(`[API Placeholder] Rejeitar Pedido ID: ${pedidoId}`);
         // LÓGICA DA API (PUT/POST /api/admin/pedidos/{pedidoId}/reject) AQUI...
         // try {
-        //    const response = await fetch(`/api/admin/pedidos/${pedidoId}/reject`, { method: 'POST', headers: {...} });
-        //    if (!response.ok) throw new Error('Falha ao rejeitar pedido');
+        //    await fetchWithAuth(`/api/admin/pedidos/${pedidoId}/reject`, { method: 'POST' });
         //    await fetchPedidos(); // Re-fetch list on success
         //    handleCloseDetailModal();
         // } catch (err) { console.error("Erro ao rejeitar pedido:", err); /* Show error */ }

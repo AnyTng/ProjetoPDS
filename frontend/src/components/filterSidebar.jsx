@@ -186,15 +186,15 @@ const FilterSidebar = ({ carsData = [], filters = {}, onFilterChange = () => {} 
 
     // Inicializa o filtro de preço com os valores min e max dos carros quando o componente monta ou quando filterOptions muda
     useEffect(() => {
-        // Verifica se já existe um filtro de preço definido
-        if (!filters.price && filterOptions.minPrice !== undefined && filterOptions.maxPrice !== undefined) {
+        // Sempre define o filtro de preço com os valores min e max dos carros disponíveis
+        if (filterOptions.minPrice !== undefined && filterOptions.maxPrice !== undefined) {
             // Inicializa o filtro de preço com os valores min e max dos carros
             onFilterChange('price', {
                 min: filterOptions.minPrice,
                 max: filterOptions.maxPrice
             });
         }
-    }, [filterOptions.minPrice, filterOptions.maxPrice, filters.price, onFilterChange]);
+    }, [filterOptions.minPrice, filterOptions.maxPrice, onFilterChange]);
 
 
     return (

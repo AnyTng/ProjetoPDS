@@ -6,8 +6,7 @@ import Button from "./button.jsx";
 import "../css/global.css";
 import { useAuth } from "../hooks/useAuth";
 import { jwtDecode } from 'jwt-decode';
-
-const API_BASE_URL = "http://localhost:5159";
+import { API_BASE_URL } from "../utils/api";
 
 const validateCodigoPostal = (cp) => {
     if (!cp) return false;

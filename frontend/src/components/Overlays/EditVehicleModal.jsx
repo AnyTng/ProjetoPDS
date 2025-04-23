@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Button         from "../button.jsx";
 import InputFieldLong from "../inputFieldLong.jsx";
 import XIcon          from "../../assets/XIconBlack.svg";
+import { API_BASE_URL } from "../../utils/api";
 
 const initialFormData = {
     // dropdowns
@@ -22,8 +23,7 @@ const initialFormData = {
 };
 
 
-// Ajusta para a porta/host do teu backend ou use proxy em package.json
-const BACKEND_URL = "http://localhost:5159";
+// Usando a URL base centralizada da API
 
 const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate }) => {
     const [formData, setFormData]       = useState(initialFormData);
@@ -37,7 +37,7 @@ const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate }) => {
     // 1) Busca marcas+modelos ao abrir
     useEffect(() => {
         if (!isOpen) return;
-        fetch(`${BACKEND_URL}/api/MarcaVeiculos`)
+        fetch(`${API_BASE_URL}/api/MarcaVeiculos`)
             .then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 const ct = r.headers.get("content-type") || "";
@@ -366,7 +366,7 @@ const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate }) => {
 
                     {/* Botões */}
                     <div className="flex justify-between items-center gap-4 pt-6">
-                        
+
                         <div className="flex gap-4">
                             <Button text="Cancelar"  variant="secondary" onClick={onClose} />
                             <Button text="Guardar"   variant="primary"  type="submit" />

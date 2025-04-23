@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Button from "../button.jsx";
 import InputFieldLong from "../inputFieldLong.jsx";
 import XIcon from "../../assets/XIconBlack.svg";
+import { API_BASE_URL } from "../../utils/api";
 
 // mantém estado em camelCase, mas depois mapeamos para PascalCase ao enviar
 const initialFormData = {
@@ -19,8 +20,7 @@ const initialFormData = {
     estadoVeiculo:        ""
 };
 
-// Ajusta para a porta/host do teu backend ou configura proxy no package.json
-const BACKEND_URL = "http://localhost:5159";
+// Usando a URL base centralizada da API
 
 const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
     const [formData, setFormData] = useState(initialFormData);
@@ -32,7 +32,7 @@ const AddVehicleModal = ({ isOpen, onClose, onSubmit }) => {
     // 1) carrega marcas+modelos ao abrir
     useEffect(() => {
         if (!isOpen) return;
-        fetch(`${BACKEND_URL}/api/MarcaVeiculos`)
+        fetch(`${API_BASE_URL}/api/MarcaVeiculos`)
             .then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 const ct = r.headers.get("content-type") || "";

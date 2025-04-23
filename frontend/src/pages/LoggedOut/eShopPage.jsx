@@ -8,9 +8,7 @@ import PesquisaCarFrame from '../../components/Cards/CarPesquisaFrame';
 import FilterInput from '../../components/filterInput'; // Input de pesquisa geral
 import Button from '../../components/button';
 import { useNavigate } from 'react-router-dom';
-
-
-const API_BASE_URL = "http://localhost:5159"; // Ajusta se necessário
+import { API_BASE_URL } from '../../utils/api';
 
 const EShopPage = () => {
     const [allCars, setAllCars] = useState([]); // Lista completa de carros da API
@@ -172,7 +170,7 @@ const EShopPage = () => {
                             <Button text="Novos" variant={sortOption === 'new' ? 'primary' : 'text'} onClick={() => {setSortOption('new'); setFilterChangeKey(prev => prev + 1);}} className="!py-1 !px-2 !text-xs"/>
                             <Button text="Preço Asc" variant={sortOption === 'priceAscending' ? 'primary' : 'text'} onClick={() => {setSortOption('priceAscending'); setFilterChangeKey(prev => prev + 1);}} className="!py-1 !px-2 !text-xs"/>
                             <Button text="Preço Desc" variant={sortOption === 'priceDescending' ? 'primary' : 'text'} onClick={() => {setSortOption('priceDescending'); setFilterChangeKey(prev => prev + 1);}} className="!py-1 !px-2 !text-xs"/>
-                            <Button text="Rating" variant={sortOption === 'rating' ? 'primary' : 'text'} onClick={() => {setSortOption('rating'); setFilterChangeKey(prev => prev + 1);}} className="!py-1 !px-2 !text-xs"/>
+                            <Button text="Classificação" variant={sortOption === 'rating' ? 'primary' : 'text'} onClick={() => {setSortOption('rating'); setFilterChangeKey(prev => prev + 1);}} className="!py-1 !px-2 !text-xs"/>
                         </div>
                     </div>
 

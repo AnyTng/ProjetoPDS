@@ -6,6 +6,7 @@ import FloatingButton from "../../components/floatingButton.jsx";
 import { useAuth } from "../../hooks/useAuth.js"; // Adicionar useAuth
 // Importar o novo modal (será criado a seguir)
 import UploadFaturaModal from "../../components/Overlays/UploadFaturaModal.jsx";
+import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 // Remover props 'faturas' e 'email'
 const FaturasPageAdmin = () => {
@@ -28,9 +29,7 @@ const FaturasPageAdmin = () => {
             console.log("[API Placeholder] Fetching faturas...");
             // Simulação - REMOVER/SUBSTITUIR
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const response = await fetch('/api/admin/faturas', { headers: { /* Auth Token */ } });
-            // if (!response.ok) throw new Error('Falha ao buscar faturas');
-            // const data = await response.json();
+            // const data = await fetchWithAuth('/api/admin/faturas');
             // // Garantir que a API retorna os campos necessários para FaturaCard
             // setFaturas(data);
 
@@ -88,12 +87,10 @@ const FaturasPageAdmin = () => {
         //    Enviar 'dataToSend' no body do fetch.
         //    Não definir 'Content-Type' manualmente, o browser fará isso para multipart/form-data.
         // try {
-        //    const response = await fetch('/api/admin/faturas/upload', {
+        //    await fetchWithAuth('/api/admin/faturas/upload', {
         //        method: 'POST',
-        //        headers: { /* Apenas Auth Token se necessário, NÂO Content-Type */ },
         //        body: dataToSend,
         //    });
-        //    if (!response.ok) throw new Error('Falha ao fazer upload da fatura');
         //    await fetchFaturas(); // Re-fetch list on success
         //    handleCloseUploadModal();
         //    alert('Fatura enviada com sucesso!');
