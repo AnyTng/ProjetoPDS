@@ -25,7 +25,7 @@ const initialFormData = {
 // Ajusta para a porta/host do teu backend ou use proxy em package.json
 const BACKEND_URL = "http://localhost:5159";
 
-const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate, onDelete }) => {
+const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate }) => {
     const [formData, setFormData]       = useState(initialFormData);
     const [brands, setBrands]           = useState([]);
     const [models, setModels]           = useState([]);

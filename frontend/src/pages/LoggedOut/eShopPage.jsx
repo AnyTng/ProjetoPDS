@@ -7,6 +7,7 @@ import FilterSidebar from '../../components/FilterSidebar';
 import PesquisaCarFrame from '../../components/Cards/CarPesquisaFrame';
 import FilterInput from '../../components/filterInput'; // Input de pesquisa geral
 import Button from '../../components/button';
+import { useNavigate } from 'react-router-dom';
 
 
 const API_BASE_URL = "http://localhost:5159"; // Ajusta se necessário
@@ -22,6 +23,10 @@ const EShopPage = () => {
     const [filterChangeKey, setFilterChangeKey] = useState(0); // Estado para controlar a animação dos cards
 
     // Função para buscar os carros (pode ser chamada na montagem e para refresh)
+
+    const navigate = useNavigate();
+
+
     const fetchCars = useCallback(async () => {
         setIsLoading(true);
         setError(null);
@@ -131,8 +136,8 @@ const EShopPage = () => {
 
     // Handler para clique no cartão (pode navegar para detalhes do carro)
     const handleCarClick = (carId) => {
-        console.log("Clicou no carro ID:", carId);
-        // navigate(`/car/${carId}`); // Exemplo de navegação
+
+         navigate(`/eShop/${carId}`); // Exemplo de navegação
     };
 
     return (

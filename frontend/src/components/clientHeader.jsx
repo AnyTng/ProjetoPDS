@@ -30,7 +30,7 @@ const ClientHeader = ({ userImage = profilePic }) => {
             <div className="flex items-center gap-6">
                 {/* Navegação principal - mantém-se */}
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-800">
-                    <button className="hover:text-black">Pesquisa</button>
+                    <button className="hover:text-black" onClick={() => navigate('/eShop')}>Pesquisa</button>
                     <button className="hover:text-black">Contacte-nos</button>
                     <button className="hover:text-black">Sobre Nós</button>
                     <button className="hover:text-black">É uma Empresa de Manutenção?</button>
@@ -49,6 +49,12 @@ const ClientHeader = ({ userImage = profilePic }) => {
                         {/* Dropdown de logout */}
                         {isDropdownOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                                <button
+                                    onClick={() => navigate('/user/profile')}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                    Perfil
+                                </button>
                                 <button
                                     onClick={handleLogout}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
