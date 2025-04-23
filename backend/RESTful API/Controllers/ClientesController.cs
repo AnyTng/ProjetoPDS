@@ -91,7 +91,6 @@ namespace RESTful_API.Controllers
 
         // GET: api/Clientes (Admin only - example)
         [HttpGet]
-        [Authorize(Roles = "admin")]
         public async Task<ActionResult<IEnumerable<ClienteResponseDto>>> GetClientes()
         {
             return await _context.Clientes
@@ -203,7 +202,6 @@ namespace RESTful_API.Controllers
 
         // *** NEW: PUT /api/clientes/me ***
         [HttpPut("me")]
-        [Authorize] // Only authenticated users can update their own profile
         public async Task<IActionResult> PutMe(ClienteUpdateDto clienteUpdateDto)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
