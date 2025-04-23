@@ -494,7 +494,7 @@ namespace RESTful_API.Controllers
 
             // FILTRAR VEÍCULOS COM ESTADO "Disponível" e incluir Aluguers
             var veiculos = await _context.Veiculos
-                .Where(v => v.EstadoVeiculo == "Disponivel")
+                .Where(v => v.EstadoVeiculo == "Disponível")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                 .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
@@ -554,9 +554,9 @@ namespace RESTful_API.Controllers
         public async Task<ActionResult<ClienteVeiculoDTO>> GetVeiculoClienteID(int id)
         {
 
-            // Busca apenas o veículo com o ID fornecido e estado "Disponivel"
+            // Busca apenas o veículo com o ID fornecido e estado "Disponível"
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == id && v.EstadoVeiculo == "Disponivel")
+                .Where(v => v.Idveiculo == id && v.EstadoVeiculo == "Disponível")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                 .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)

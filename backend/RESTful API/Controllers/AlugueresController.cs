@@ -134,7 +134,7 @@ namespace RESTful_API.Controllers
                 return NotFound("Cliente não encontrado.");
             }
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == idVeiculo && v.EstadoVeiculo == "Disponivel")
+                .Where(v => v.Idveiculo == idVeiculo && v.EstadoVeiculo == "Disponível")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                     .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
@@ -192,7 +192,7 @@ namespace RESTful_API.Controllers
 
             // Verifica se o veículo está disponível
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == idVeiculo && v.EstadoVeiculo == "Disponivel")
+                .Where(v => v.Idveiculo == idVeiculo && v.EstadoVeiculo == "Disponível")
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                     .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
@@ -237,7 +237,7 @@ namespace RESTful_API.Controllers
             _context.Aluguers.Add(novoAluguer);
             await _context.SaveChangesAsync();
             // Atualiza o estado do veículo para "Indisponível"
-            veiculo.EstadoVeiculo = "Indisponivel";
+            veiculo.EstadoVeiculo = "Alugado";
             _context.Entry(veiculo).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
@@ -367,7 +367,7 @@ namespace RESTful_API.Controllers
             aluguer.EstadoAluguer = "Concluido";
             aluguer.DataFatura = dataDevolucao;
             
-            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponivel";
+            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
 
             _context.Entry(aluguer).State = EntityState.Modified;
             await _context.SaveChangesAsync();
