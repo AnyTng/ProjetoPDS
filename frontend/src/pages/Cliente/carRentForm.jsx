@@ -1,10 +1,10 @@
-// src/pages/LoggedOut/carShop.jsx
+// src/pages/Cliente/carRentForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
 import Footer from '../../components/footer';
 import Button from '../../components/button';
-import { API_BASE_URL } from '../../utils/api';
+import { API_BASE_URL, fetchWithAuth } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const CarRentForm = () => {
@@ -14,13 +14,14 @@ const CarRentForm = () => {
     const [car, setCar] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [pickupDate, setPickupDate] = useState('');
+    const [returnDate, setReturnDate] = useState('');
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [submitting, setSubmitting] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
 
-    // Update isLoggedIn state when user changes
-    useEffect(() => {
-        setIsLoggedIn(!!user);
-    }, [user]);
+
 
     // Fetch car details when component mounts or carID changes
     useEffect(() => {
@@ -53,15 +54,70 @@ const CarRentForm = () => {
         navigate('/eShop');
     };
 
-    const handleCarRental = () => {
-        if (!isLoggedIn) {
-            // If user is not logged in, navigate to login page
-            navigate('/login');
+    // Calculate the number of days between two dates
+    const calculateDays = (start, end) => {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        return daysDiff > 0 ? daysDiff : 0;
+    };
+
+    // Calculate total price when dates change
+    useEffect(() => {
+        if (pickupDate && returnDate && car) {
+            const days = calculateDays(pickupDate, returnDate);
+            setTotalPrice(days * car.veiculo.valorDiarioVeiculo);
         } else {
-            // If user is logged in, navigate to rent page
-            navigate(`/eShop/rent/${carID}`);
+            setTotalPrice(0);
         }
-    }
+    }, [pickupDate, returnDate, car]);
+
+    // Handle form submission
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!pickupDate || !returnDate) {
+            setError('Por favor, selecione as datas de levantamento e entrega.');
+            return;
+        }
+
+        if (new Date(pickupDate) >= new Date(returnDate)) {
+            setError('A data de entrega deve ser posterior à data de levantamento.');
+            return;
+        }
+
+        // Create dates at midnight for fair comparison
+        const pickupDateTime = new Date(pickupDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (pickupDateTime < today) {
+            setError('A data de levantamento não pode ser no passado.');
+            return;
+        }
+
+        setSubmitting(true);
+        setError(null);
+
+        try {
+            const queryParams = `?idVeiculo=${carID}&dataLevantamento=${pickupDate}&dataEntrega=${returnDate}`;
+            const response = await fetchWithAuth(`/api/Alugueres/fazaluguer${queryParams}`, {
+                method: 'POST'
+            });
+
+            setSuccessMessage('Aluguer realizado com sucesso!');
+            setTimeout(() => {
+                navigate('/user/profile');
+            }, 2000);
+
+        } catch (err) {
+            setError(err.message || 'Ocorreu um erro ao processar o seu pedido.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
 
 
     return (
@@ -86,7 +142,7 @@ const CarRentForm = () => {
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <div className="flex justify-between items-start mb-6">
                             <h1 className="text-2xl font-bold text-gray-800">
-                                {car.veiculo.descMarca} {car.veiculo.descModelo}
+                                Alugar {car.veiculo.descMarca} {car.veiculo.descModelo}
                             </h1>
                             <Button
                                 text="Voltar atrás"
@@ -95,6 +151,12 @@ const CarRentForm = () => {
                                 className="!py-1.5 px-4 text-sm"
                             />
                         </div>
+
+                        {successMessage && (
+                            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+                                {successMessage}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Car Image */}
@@ -110,10 +172,9 @@ const CarRentForm = () => {
                                 )}
                             </div>
 
-                            {/* Car Details */}
+                            {/* Car Details and Rental Form */}
                             <div>
-                                <h2 className="text-xl font-semibold mb-4">Mais sobre este carro</h2>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div>
                                         <p className="text-gray-600">Marca:</p>
                                         <p className="font-medium">{car.veiculo.descMarca}</p>
@@ -123,84 +184,60 @@ const CarRentForm = () => {
                                         <p className="font-medium">{car.veiculo.descModelo}</p>
                                     </div>
                                     <div>
-                                        <p className="text-gray-600">Ano:</p>
-                                        <p className="font-medium">{new Date(car.veiculo.dataFabricacao).getFullYear()}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-600">Cor:</p>
-                                        <p className="font-medium">{car.veiculo.descCor}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-600">Lugares:</p>
-                                        <p className="font-medium">{car.veiculo.lotacaoVeiculo}</p>
-                                    </div>
-                                    <div>
                                         <p className="text-gray-600">Taxa Diária:</p>
                                         <p className="font-medium text-green-600">{car.veiculo.valorDiarioVeiculo}€</p>
                                     </div>
                                 </div>
 
+                                <form onSubmit={handleSubmit} className="mt-6">
+                                    <div className="mb-4">
+                                        <label htmlFor="pickupDate" className="block text-gray-700 font-medium mb-2">
+                                            Data de Levantamento
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="pickupDate"
+                                            value={pickupDate}
+                                            onChange={(e) => setPickupDate(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            min={new Date().toISOString().split('T')[0]}
+                                            required
+                                        />
+                                    </div>
 
+                                    <div className="mb-4">
+                                        <label htmlFor="returnDate" className="block text-gray-700 font-medium mb-2">
+                                            Data de Entrega
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="returnDate"
+                                            value={returnDate}
+                                            onChange={(e) => setReturnDate(e.target.value)}
+                                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            min={pickupDate || new Date().toISOString().split('T')[0]}
+                                            required
+                                        />
+                                    </div>
+
+                                    {pickupDate && returnDate && totalPrice > 0 && (
+                                        <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                                            <p className="text-gray-700">Duração: {calculateDays(pickupDate, returnDate)} dias</p>
+                                            <p className="text-gray-700">Quitação (10%): {(totalPrice * 0.1).toFixed(2)}€</p>
+                                            <p className="text-gray-700">Aluguer (restante 90%): {(totalPrice * 0.9).toFixed(2)}€</p>
+                                            <p className="text-xl font-bold text-green-600">Preço Total: {totalPrice.toFixed(2)}€</p>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        text={submitting ? "A processar..." : "Pagar a Taxa de Quitação"}
+                                        variant="primary"
+                                        type="submit"
+                                        disabled={submitting || !pickupDate || !returnDate}
+                                        className="!w-full mt-4"
+                                    />
+                                </form>
                             </div>
-                        </div>
-
-                        {/* Additional Car Information */}
-                        <div className="mt-8">
-                            <h2 className="text-xl font-semibold mb-4">Informação Adicional</h2>
-                            <p className="text-gray-700">
-                                {car.veiculo.descVeiculo || 'Não há informação adicional disponível para este veículo.'}
-                            </p>
-                        </div>
-
-
-                        {/* Rental Button */}
-                        <div className="mt-8">
-                            {!isLoggedIn ? (
-                                <Button
-                                    text="Por favor, faça login para alugar este carro"
-                                    variant="secondary"
-                                    onClick={handleCarRental}
-                                    className="!w-full"
-                                />
-                            ) : car.veiculo.estadoVeiculo !== "Disponível" ? (
-                                <Button
-                                    text="Este carro está temporariamente indisponível"
-                                    variant="secondary"
-                                    disabled={true}
-                                    className="!w-full opacity-70 cursor-not-allowed"
-                                />
-                            ) : (
-                                <Button
-                                    text="Alugar Este Carro"
-                                    variant="primary"
-                                    onClick={handleCarRental}
-                                    className="!w-full"
-                                />
-                            )}
-                        </div>
-
-
-                        {/* Car Rating */}
-
-
-                        <div className="mt-8 text-center">
-                            <h1 className="text-3xl font-semibold text-gray-800 mb-4">
-                                Avaliação deste carro
-                            </h1>
-
-                            {car.veiculo.avaliacao != null ? (
-                                <div className="flex justify-center items-center gap-2">
-                                    <span className="text-8xl font-bold">{car.veiculo.avaliacao}</span>
-                                    <span className="text-4xl text-gray-600">/ 5</span>
-                                </div>
-                            ) : (
-                                <p className="text-4xl text-gray-500 italic">*
-                                    <span className="text-4xl text-gray-600"> / 5</span></p>
-                            )}
-
-                            <p className="text-gray-500 mt-2">
-                                Baseado na experiência de outros utilizadores.
-                            </p>
                         </div>
                     </div>
                 ) : (
