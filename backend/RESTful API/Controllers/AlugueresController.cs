@@ -251,7 +251,10 @@ namespace RESTful_API.Controllers
             }
             catch
             {
+
+
                 return BadRequest("Evento inválido.");
+
             }
 
             if (stripeEvent.Type == "checkout.session.completed")
@@ -271,6 +274,17 @@ namespace RESTful_API.Controllers
                     }
                     _context.Entry(aluguer).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                var session = stripeEvent.Data.Object as Session;
+                int aluguerId = int.Parse(session.Metadata["aluguerId"]);
+
+                var aluguer = await _context.Aluguers.FindAsync(aluguerId);
+                if (aluguer != null)
+                {
+                    aluguer.EstadoAluguer = "Cancelado";
                 }
             }
 
