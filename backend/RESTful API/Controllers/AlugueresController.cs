@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using RESTful_API.Models;
 using Stripe;
-using Stripe.BillingPortal;
 using Stripe.Checkout;
-using static System.Collections.Specialized.BitVector32;
 
 namespace RESTful_API.Controllers
 {
@@ -22,12 +22,18 @@ namespace RESTful_API.Controllers
     public class AlugueresController : ControllerBase
     {
         private readonly PdsContext _context;
+        private readonly IConfiguration _config;
 
-        public AlugueresController(PdsContext context)
+        public AlugueresController(PdsContext context, IConfiguration config)
         {
             _context = context;
+            _config  = config;
+
+            // Carrega a chave secreta Stripe (uma única vez)
+            StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
 
+        //------------------------------------------------------------------------
         // GET: api/Alugueres
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Aluguer>>> GetAluguers()
@@ -50,7 +56,6 @@ namespace RESTful_API.Controllers
         }
 
         // PUT: api/Alugueres/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAluguer(int id, Aluguer aluguer)
         {
@@ -81,7 +86,6 @@ namespace RESTful_API.Controllers
         }
 
         // POST: api/Alugueres
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Aluguer>> PostAluguer(Aluguer aluguer)
         {
@@ -115,60 +119,7 @@ namespace RESTful_API.Controllers
         //-------------------//
         //Cliente Aluguer
         //-------------------//
-        /*[HttpGet("apresentaValor")]
-        public async Task<ActionResult<Aluguer>> GetApresentaValorAluguer(int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega)
-        {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
-            {
-                return Unauthorized("Token inválido.");
-            }
-            if (userTipoLogin != 1)//verifica se é cliente
-            {
-                return Forbid("Acesso restrito a cliente.");
-            }
 
-            // Encontra cliente associado ao idLogin do token
-            int idCliente = 0;
-            idCliente = await _context.Clientes
-                .Where(c => c.LoginIdlogin == userIdLogin)
-                .Select(c => c.Idcliente)
-                .FirstOrDefaultAsync();
-
-            if (idCliente == 0)
-            {
-                return NotFound("Cliente não encontrado.");
-            }
-            var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == idVeiculo && v.EstadoVeiculo == "Disponível")
-                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
-                .Include(v => v.Aluguers)
-                .FirstOrDefaultAsync();
-
-            if (veiculo == null)
-            {
-                return NotFound("Veículo não disponível ou não encontrado.");
-            }
-            float valorDiario = veiculo.ValorDiarioVeiculo ?? 0;
-            int numeroDias = (dataEntrega - dataLevantamento).Days;
-            if (numeroDias <= 0)
-            {
-                return BadRequest("A data de entrega deve ser posterior à data de levantamento.");
-            }
-            float valorR = valorDiario * numeroDias / 10;
-            float valorQ = valorDiario * numeroDias - valorR;
-
-            //retorna o valor total do aluguer, o valor de reserva e o valor de quitação
-            return Ok(new
-            {
-                ValorTotal = valorR + valorQ,
-                ValorReserva = valorR,
-                ValorQuitacao = valorQ
-            });
-        }*/
-        
         // POST: api/Alugueres/fazaluguer
         [HttpPost("fazaluguer")]
         public async Task<ActionResult<Aluguer>> PostFazAluguer(int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega)
@@ -246,10 +197,10 @@ namespace RESTful_API.Controllers
             _context.Aluguers.Add(novoAluguer);
             await _context.SaveChangesAsync(); // Salva para obter o ID
 
-            // Configura Stripe para criar a sessão de pagamento
-            StripeConfiguration.ApiKey = "sk_test_xxxxxx"; // Substitua com sua chave secreta
+            // URL base do frontend a partir do appsettings
+            string frontendBase = _config["Frontend:BaseUrl"];
 
-            var options = new Stripe.Checkout.SessionCreateOptions
+            var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>
@@ -269,12 +220,16 @@ namespace RESTful_API.Controllers
                     },
                 },
                 Mode = "payment",
-                SuccessUrl = $"https://teusite.com/aluguer/sucesso?id={novoAluguer.Idaluguer}",
-                CancelUrl = $"https://teusite.com/aluguer/cancelado?id={novoAluguer.Idaluguer}",
+                Metadata = new Dictionary<string, string>
+                {
+                    { "aluguerId", novoAluguer.Idaluguer.ToString() }
+                },
+                SuccessUrl = $"{frontendBase}/payment/success?aluguerId={novoAluguer.Idaluguer}",
+                CancelUrl = $"{frontendBase}/payment/failure?aluguerId={novoAluguer.Idaluguer}",
             };
 
-            var service = new Stripe.Checkout.SessionService();
-            Stripe.Checkout.Session session = service.Create(options);
+            var service = new SessionService();
+            Session session = service.Create(options);
 
             return Ok(new
             {
@@ -283,33 +238,27 @@ namespace RESTful_API.Controllers
             });
         }
 
-
         [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
         {
             var json = await new StreamReader(Request.Body).ReadToEndAsync();
-
-            var webhookSecret = "whsec_...";  // A chave secreta do webhook
+            var webhookSecret = _config["Stripe:WebhookSecret"];  // Lido do appsettings
             Event stripeEvent;
 
             try
             {
                 stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], webhookSecret);
             }
-            catch (Exception e)
+            catch
             {
-                // Assinala erro de assinatura ou erro de evento inválido
                 return BadRequest("Evento inválido.");
             }
 
-            if (stripeEvent.Type == "payment_intent.succeeded")
+            if (stripeEvent.Type == "checkout.session.completed")
             {
-                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                var session = stripeEvent.Data.Object as Session;
+                int aluguerId = int.Parse(session.Metadata["aluguerId"]);
 
-                // Pega o ID do aluguer da URL (pode ser passado na URL de sucesso do Stripe)
-                int aluguerId = int.Parse(paymentIntent.Metadata["aluguerId"]);
-
-                // Atualiza o aluguer como "Confirmado" no banco de dados
                 var aluguer = await _context.Aluguers.FindAsync(aluguerId);
                 if (aluguer != null)
                 {
@@ -328,14 +277,12 @@ namespace RESTful_API.Controllers
             return Ok();
         }
 
-
         //-------------------//
         //Admin Aluguer
         //-------------------//
 
-
         [HttpGet("pesquisapedido")]
-        public async Task<IActionResult> GetPesquisaPedido()//filtragem feita no frontend
+        public async Task<IActionResult> GetPesquisaPedido() //filtragem feita no frontend
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
@@ -343,12 +290,11 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 3)//verifica se é admin
+            if (userTipoLogin != 3) //verifica se é admin
             {
                 return Forbid("Acesso restrito a admin.");
             }
 
-            // Obter todos os alugueres com os detalhes do cliente e veículo
             var alugueres = await _context.Aluguers
                 .Include(a => a.ClienteIdclienteNavigation)
                 .Include(a => a.VeiculoIdveiculoNavigation)
@@ -359,7 +305,6 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Nenhum aluguer encontrado.");
             }
-            // Retornar a lista de alugueres
             return Ok(alugueres.Select(a => new
             {
                 a.Idaluguer,
@@ -392,7 +337,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 3)//verifica se é admin
+            if (userTipoLogin != 3) //verifica se é admin
             {
                 return Forbid("Acesso restrito a admin.");
             }
@@ -417,9 +362,6 @@ namespace RESTful_API.Controllers
             return Ok();
         }
 
-
-
-
         [HttpPut("entrega")]
         public async Task<IActionResult> PutEntregaAluguer(int idAluguer)
         {
@@ -431,7 +373,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 3)//verifica se é admin
+            if (userTipoLogin != 3) //verifica se é admin
             {
                 return Forbid("Acesso restrito a admin.");
             }
@@ -440,7 +382,7 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Aluguer não encontrado.");
             }
-            if(aluguer.EstadoAluguer!="Alugado")
+            if (aluguer.EstadoAluguer != "Alugado")
             {
                 return NotFound("Aluguer não se encontra ativo.");
             }
@@ -448,7 +390,7 @@ namespace RESTful_API.Controllers
             aluguer.DataDevolucao = dataDevolucao;
             aluguer.EstadoAluguer = "Concluido";
             aluguer.DataFatura = dataDevolucao;
-            
+
             aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
 
             _context.Entry(aluguer).State = EntityState.Modified;
@@ -468,13 +410,12 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 1)//verifica se é cliente
+            if (userTipoLogin != 1) //verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
             }
 
-            int idCliente = 0;
-            idCliente = await _context.Clientes
+            int idCliente = await _context.Clientes
                 .Where(c => c.LoginIdlogin == userIdLogin)
                 .Select(c => c.Idcliente)
                 .FirstOrDefaultAsync();
@@ -484,10 +425,8 @@ namespace RESTful_API.Controllers
                 return NotFound("Cliente não encontrado.");
             }
 
-            //todos os alugueres associados ao idcliente
-
             var alugueres = await _context.Aluguers
-                .Where(a=>a.ClienteIdcliente== idCliente)
+                .Where(a => a.ClienteIdcliente == idCliente)
                 .Include(a => a.ClienteIdclienteNavigation)
                 .Include(a => a.VeiculoIdveiculoNavigation)
                     .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
@@ -498,7 +437,6 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Nenhum aluguer encontrado.");
             }
-            // Retornar a lista de alugueres
             return Ok(alugueres.Select(a => new
             {
                 a.Idaluguer,
@@ -534,7 +472,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 1)//verifica se é cliente
+            if (userTipoLogin != 1) //verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
             }
@@ -545,7 +483,7 @@ namespace RESTful_API.Controllers
                 return NotFound("Aluguer não encontrado.");
             }
 
-            if (aluguer.EstadoAluguer!="Concluido")
+            if (aluguer.EstadoAluguer != "Concluido")
             {
                 return NotFound("Aluguer não concluido, apenas sera permitida a sua avaliação apos a entrega do veiculo.");
             }
@@ -555,17 +493,15 @@ namespace RESTful_API.Controllers
                 return NotFound("Classificação deve estar entre 0 e 5");
             }
 
-
             aluguer.Classificacao = classificacao;
             _context.Entry(aluguer).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
-
-
         //--------------------//
-
+        //Fatura (PDF)
+        //--------------------//
         [HttpGet("fatura")]
         public async Task<IActionResult> GetFaturaAluguer(int idAluguer)
         {
@@ -576,9 +512,9 @@ namespace RESTful_API.Controllers
                 return Unauthorized("Token inválido.");
             }
 
-            if (userTipoLogin != 1 || userTipoLogin != 3)
+            if (userTipoLogin != 1 && userTipoLogin != 3)
             {
-                return Forbid("Acesso restrito a cliente.");
+                return Forbid("Acesso restrito.");
             }
 
             var aluguer = await _context.Aluguers
@@ -589,7 +525,7 @@ namespace RESTful_API.Controllers
                         .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .FirstOrDefaultAsync();
 
-            if (aluguer == null || aluguer.EstadoAluguer!="Concluido")
+            if (aluguer == null || aluguer.EstadoAluguer != "Concluido")
             {
                 return NotFound("Aluguer não encontrado.");
             }
@@ -753,7 +689,5 @@ namespace RESTful_API.Controllers
 
             return stream.ToArray();
         }
-
-
     }
 }
