@@ -9,6 +9,8 @@ CREATE TABLE Cliente (
   ContactoC1      int NULL, 
   ContactoC2      int NULL, 
   EstadoValCC     bit NULL, 
+  CaminhoImagemCliente varchar(8000)NULL,
+
   PRIMARY KEY (IDCliente));
 
 CREATE TABLE CodigoPostal (
