@@ -5,8 +5,8 @@ import icon from '../assets/carXPressIcon.svg'
 const Footer = () => {
     // Informações hardcoded (podes alterar estes valores)
     const morada = "Escritório Central CarXpress";
-    const rua = "Avenida da Liberdade, 123";
-    const codigoPostal = "1250-140 Lisboa";
+    const rua = "Rua das Ameixas";
+    const codigoPostal = "1234-467, Frossos, Braga";
     const horario = "Seg-Sex: 9:00 - 18:00";
     const email = "geral@carxpress.pt";
 
@@ -16,7 +16,7 @@ const Footer = () => {
 
                 {/* Lado Esquerdo: Logo */}
                 <div className="flex-shrink-0">
-                    <img src={icon} alt="Logo CarXpress" className="h-8 w-auto" />
+                    <img src={icon} alt="Logo CarXpress" className="h-8 w-auto"/>
                     {/* Espaço para Copyright ou outros links se quiseres adicionar no futuro */}
                     {/* <p className="text-xs text-gray-500 mt-4">&copy; 2025 CarXpress. Todos os direitos reservados.</p> */}
                 </div>
@@ -29,12 +29,26 @@ const Footer = () => {
                         <p><span className="font-medium">Rua:</span> {rua}</p>
                         <p><span className="font-medium">Código Postal:</span> {codigoPostal}</p>
                         <p><span className="font-medium">Horário:</span> {horario}</p>
-                        <p><span className="font-medium">Email:</span> <a href={`mailto:${email}`} className="text-blue-600 hover:underline">{email}</a></p>
+                        <p><span className="font-medium">Email:</span> <a href={`mailto:${email}`}
+                                                                          className="text-blue-600 hover:underline">{email}</a>
+                        </p>
                     </div>
                 </div>
 
 
-
+                <iframe
+                    allow="autoplay *; encrypted-media *;"
+                    frameBorder="0"
+                    height="150"
+                    style={{
+                        width: "100%",
+                        maxWidth: "660px",
+                        overflow: "hidden",
+                        background: "transparent"
+                    }}
+                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+                    src="https://embed.music.apple.com/pt/album/cuntissimo/1807308262?i=1807308322"
+                ></iframe>
             </div>
         </footer>
     );
