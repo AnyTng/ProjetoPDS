@@ -12,3 +12,4 @@ backend/RESTful API/obj
 *.zip
 .vscode/settings.json
 .vs/
+backend/RESTful API/appsettings.json
