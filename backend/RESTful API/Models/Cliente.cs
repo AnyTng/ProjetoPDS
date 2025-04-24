@@ -25,6 +25,8 @@ public partial class Cliente
 
     public bool? EstadoValCc { get; set; }
 
+    public string? CaminhoImagemCliente { get; set; }
+
     public virtual ICollection<Aluguer> Aluguers { get; set; } = new List<Aluguer>();
 
     public virtual CodigoPostal CodigoPostalCpNavigation { get; set; } = null!;

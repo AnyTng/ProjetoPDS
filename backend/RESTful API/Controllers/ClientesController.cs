@@ -42,6 +42,7 @@ namespace RESTful_API.Controllers
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }
         public bool? EstadoValCc { get; set; }
+        public string? ImagemBase64 { get; set; }
     }
 
     // DTO for PUT /me request body
@@ -54,6 +55,10 @@ namespace RESTful_API.Controllers
         public string Localidade { get; set; }
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }
+        public string? CaminhoImagemCliente { get; set; }
+
+        public IFormFile? ImagemCliente { get; set; }
+
     }
 
 
@@ -123,8 +128,20 @@ namespace RESTful_API.Controllers
             }
 
             string formattedCp = cliente.CodigoPostalCp.ToString("0000000");
-            // formattedCp = $"{formattedCp.Substring(0, 4)}-{formattedCp.Substring(4, 3)}";
-
+            formattedCp = $"{formattedCp.Substring(0, 4)}-{formattedCp.Substring(4, 3)}";
+            
+            string? img64 = null;
+            if (!string.IsNullOrEmpty(cliente.CaminhoImagemCliente))
+            {
+                var abs = Path.Combine(Directory.GetCurrentDirectory(),
+                    cliente.CaminhoImagemCliente.Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(abs))
+                {
+                    var b = await System.IO.File.ReadAllBytesAsync(abs);
+                    var ext = Path.GetExtension(abs).TrimStart('.');
+                    img64 = $"data:image/{ext};base64,{Convert.ToBase64String(b)}";
+                }
+            }
             var clienteResponse = new ClienteResponseDto
             {
                 Idcliente = cliente.Idcliente,
@@ -137,7 +154,8 @@ namespace RESTful_API.Controllers
                 Email = email,
                 ContactoC1 = cliente.ContactoC1,
                 ContactoC2 = cliente.ContactoC2,
-                EstadoValCc = cliente.EstadoValCc
+                EstadoValCc = cliente.EstadoValCc,
+                ImagemBase64 = img64
             };
 
             return Ok(clienteResponse);
