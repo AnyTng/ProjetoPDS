@@ -76,6 +76,10 @@ namespace RESTful_API.Controllers
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }
         public bool? EstadoValCc { get; set; }
+
+        public string? CaminhoImagem { get; set; }
+        public string? ImagemBase64 { get; set; }
+
     }
     #endregion
 
@@ -194,10 +198,28 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a administradores.");
             }
 
+
             var clientes = await _context.Clientes
                 .Include(c => c.CodigoPostalCpNavigation)
                 .Include(c => c.LoginIdloginNavigation)
-                .Select(c => new ClienteResponseDtoAdmin
+                .ToListAsync();
+
+            var listaDTO = new List<ClienteResponseDtoAdmin>();
+            foreach (var c in clientes)
+            {
+                string? imagemBase64 = null;
+                if (!string.IsNullOrEmpty(c.CaminhoImagemCliente))
+                {
+                    var abs = Path.Combine(Directory.GetCurrentDirectory(),
+                        c.CaminhoImagemCliente.Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(abs))
+                    {
+                        var bytes = await System.IO.File.ReadAllBytesAsync(abs);
+                        var ext = Path.GetExtension(abs).TrimStart('.');
+                        imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
+                    }
+                }
+                listaDTO.Add(new ClienteResponseDtoAdmin
                 {
                     Idcliente = c.Idcliente,
                     NomeCliente = c.NomeCliente,
@@ -210,12 +232,56 @@ namespace RESTful_API.Controllers
                     Password = "********", // Password is not exposed
                     ContactoC1 = c.ContactoC1,
                     ContactoC2 = c.ContactoC2,
-                    EstadoValCc = c.EstadoValCc
-                })
+                    EstadoValCc = c.EstadoValCc,
+                    CaminhoImagem = c.CaminhoImagemCliente,
+                    ImagemBase64 = imagemBase64
+                });
+            }
+            return listaDTO;
+        }
+        /*var veiculos = await _context.Veiculos
+                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
+                .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .ToListAsync();
 
-            return clientes;
-        }
+            var listaDTO = new List<VeiculoEditDTO>();
+            foreach (var v in veiculos)
+            {
+                string? imagemBase64 = null;
+                if (!string.IsNullOrEmpty(v.CaminhoFotoVeiculo))
+                {
+                    var abs = Path.Combine(Directory.GetCurrentDirectory(),
+                        v.CaminhoFotoVeiculo.Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(abs))
+                    {
+                        var bytes = await System.IO.File.ReadAllBytesAsync(abs);
+                        var ext = Path.GetExtension(abs).TrimStart('.');
+                        imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
+                    }
+                }
+
+
+
+                listaDTO.Add(new VeiculoEditDTO
+                {
+                    Idveiculo = v.Idveiculo,
+                    MatriculaVeiculo = v.MatriculaVeiculo,
+                    LotacaoVeiculo = v.LotacaoVeiculo,
+                    TaraVeiculo = v.TaraVeiculo,
+                    DescCor = v.DescCor,
+                    DataLegal = v.DataLegal,
+                    DataFabricacao = v.DataFabricacao,
+                    DataAquisicao = v.DataAquisicao,
+                    ValorDiarioVeiculo = v.ValorDiarioVeiculo,
+                    CaminhoFotoVeiculo = v.CaminhoFotoVeiculo,
+                    ImagemBase64 = imagemBase64,
+                    ModeloVeiculoIdmodelo = v.ModeloVeiculoIdmodelo,
+                    MarcaVeiculoIdmarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarca,
+                    DescModelo = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                    DescMarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    DescVeiculo = v.DescVeiculo,
+                    EstadoVeiculo = v.EstadoVeiculo
+                });*/
 
         // *** NEW: PUT /api/clientes/me ***
         [HttpPut("me")]
