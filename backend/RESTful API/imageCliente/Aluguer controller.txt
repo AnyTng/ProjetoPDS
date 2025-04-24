@@ -1,0 +1,127 @@
+Aluguer controller
+
+        //-------------------//
+        //Cliente Aluguer
+        //-------------------//
+
+
+        [HttpGet("apresentaValor")]    Serve para o cliente pode ver quanto dica o valor do aluguer antes de aceitar 
+	
+	
+	envia>    int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega
+
+
+	devolve>
+                ValorTotal = valorR + valorQ,
+                ValorReserva = valorR,
+                ValorQuitacao = valor
+
+	
+
+	[HttpPost("fazaluguer")]      Serve para Submeter o aluguer
+
+			Faz verificações do token, encontra o idcliente pelo token, volta a verificar se o veiculo esta disponível, verifica se o cliente não tem nenhum aluguer ativo
+	
+	envia>    int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega
+
+	devolve> NADA
+
+
+
+
+
+        //-------------------//
+        //Admin Aluguer
+        //-------------------//
+	
+	
+        [HttpGet("pesquisapedido")]      Devolve todos os alugueres, sem diferenciar o Estado, aqui é melhor colocares filtros e pesquisa(pelo nome e nif do cliente) 
+
+	envia> NADA
+
+	devolve>             
+	    return Ok(alugueres.Select(a => new
+            {
+                a.Idaluguer,
+                Cliente = new
+                {
+                    a.ClienteIdclienteNavigation.NomeCliente,
+                    a.ClienteIdclienteNavigation.ContactoC1,
+                    a.ClienteIdclienteNavigation.Nifcliente
+                },
+                Veiculo = new
+                {
+                    a.VeiculoIdveiculoNavigation.MatriculaVeiculo,
+                    Marca = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    Modelo = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo
+                },
+                a.DataLevantamento,
+                a.DataEntregaPrevista,
+                a.EstadoAluguer,
+                a.ValorReserva,
+                a.ValorQuitacao
+            }));
+
+
+
+	[HttpPut("atualizaestado")]     Serve para atualizar o estado do veiculo, IMPORTANTE!!!! o estado do veiculo deve ser "Alugado" || "Cancelado"
+
+	envia> idAluguer e estadoAluguer
+	devolve> NADA
+
+		****Todos as info devem estar bloqueadas, exceto o estado aluguer, que deve dar as opções de selecionar Alugado/Cancelado e ao selecionar o botão atualizar estado (chama a função [HttpPut("atualizaestado")]) este campo fica também bloqueado e o botão desaparece
+
+		****O botão Devolver Veiculo so deve aparecer se estadoAluguer for igual a Alugado, ao clicar nesse botão deve chamar [HttpPut("entrega")] 
+
+
+
+        [HttpPut("entrega")]      é a devolução do veiculo
+	Envia> idAluguer
+	Devolve> Nada
+
+
+
+        //--------------------//
+        //cliente avalia historico aluguer
+        //--------------------//
+
+	[HttpGet("historico")]       vai buscar todos os alugueres relacionados ao cliente
+	Envia> NADA
+	Devolve> 
+	    return Ok(alugueres.Select(a => new
+            {
+                a.Idaluguer,
+                Cliente = new
+                {
+                    a.ClienteIdclienteNavigation.NomeCliente,
+                    a.ClienteIdclienteNavigation.ContactoC1,
+                    a.ClienteIdclienteNavigation.Nifcliente
+                },
+                Veiculo = new
+                {
+                    a.VeiculoIdveiculoNavigation.MatriculaVeiculo,
+                    Marca = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                    Modelo = a.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo
+                },
+                a.DataLevantamento,
+                a.DataEntregaPrevista,
+                a.EstadoAluguer,
+                a.ValorReserva,
+                a.ValorQuitacao,
+                a.DataDevolucao,
+                a.DataFatura,
+                a.Classificacao
+            }));
+
+
+	HttpPut("avaliacao")]     
+	Envia>int idAluguer, float classificacao
+	Devolve> Nada
+	
+
+//--------------------//
+[HttpGet("fatura")]          
+   	envia> idAluguer
+	Devolve> Download pdf
+	
+
