@@ -106,10 +106,13 @@ const CarRentForm = () => {
                 method: 'POST'
             });
 
-            setSuccessMessage('Aluguer realizado com sucesso!');
-            setTimeout(() => {
-                navigate('/user/profile');
-            }, 2000);
+            // Check if response contains checkoutUrl
+            if (response && response.checkoutUrl) {
+                // Redirect to Stripe checkout
+                window.location.href = response.checkoutUrl;
+            } else {
+                setError('Não foi possível obter o link de pagamento. Por favor, tente novamente.');
+            }
 
         } catch (err) {
             setError(err.message || 'Ocorreu um erro ao processar o seu pedido.');
@@ -223,14 +226,15 @@ const CarRentForm = () => {
                                     {pickupDate && returnDate && totalPrice > 0 && (
                                         <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                                             <p className="text-gray-700">Duração: {calculateDays(pickupDate, returnDate)} dias</p>
-                                            <p className="text-gray-700">Quitação (10%): {(totalPrice * 0.1).toFixed(2)}€</p>
+                                            <p className="text-gray-700">Reserva (10%): {(totalPrice * 0.1).toFixed(2)}€</p>
                                             <p className="text-gray-700">Aluguer (restante 90%): {(totalPrice * 0.9).toFixed(2)}€</p>
                                             <p className="text-xl font-bold text-green-600">Preço Total: {totalPrice.toFixed(2)}€</p>
+                                            <p className="text-gray-700">IVA Incluído a 23%</p>
                                         </div>
                                     )}
 
                                     <Button
-                                        text={submitting ? "A processar..." : "Pagar a Taxa de Quitação"}
+                                        text={submitting ? "A processar..." : "Pagar a Taxa de Reserva"}
                                         variant="primary"
                                         type="submit"
                                         disabled={submitting || !pickupDate || !returnDate}

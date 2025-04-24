@@ -11,6 +11,10 @@ import PrivateRoute from './PrivateRoute';
 import EShopPage from "../pages/LoggedOut/eShopPage.jsx";
 import CarShop from "../pages/LoggedOut/carShop.jsx";
 
+// Payment Pages
+import PaymentSuccess from "../pages/Cliente/PaymentSuccess.jsx";
+import PaymentFailure from "../pages/Cliente/PaymentFailure.jsx";
+
 // Admin Pages
 import CarsPageAdmin from '../pages/Admin/carsPageAdmin.jsx';
 import ConcursosManAdmin from '../pages/Admin/concursosManAdmin.jsx';
@@ -152,6 +156,10 @@ const AppRoutes = () => (
         />
         {/* --- Fim Rotas Admin --- */}
 
+
+        {/* --- Rotas de Pagamento --- */}
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failure" element={<PaymentFailure />} />
 
         {/* --- Rotas de Feedback --- */}
         <Route path="/unauthorized" element={<div>Acesso Não Autorizado</div>} />
