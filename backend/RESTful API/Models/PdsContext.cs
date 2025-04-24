@@ -171,16 +171,31 @@ public partial class PdsContext : DbContext
 
         modelBuilder.Entity<Despesa>(entity =>
         {
-            entity.HasKey(e => e.Iddespesa).HasName("PK__Despesa__973F313F5B32D50F");
+            entity.HasKey(e => e.Iddespesa).HasName("PKDespesa973F313F5B32D50F");
 
             entity.ToTable("Despesa");
 
             entity.Property(e => e.Iddespesa).HasColumnName("IDDespesa");
-            entity.Property(e => e.DataPagDes).HasColumnType("datetime");
-            entity.Property(e => e.DescTdespesa)
+
+            entity.Property(e => e.DataInicio).HasColumnType("datetime");
+            entity.Property(e => e.DataFim).HasColumnType("datetime");
+
+            entity.Property(e => e.DescConcurso)
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasColumnName("DescTDespesa");
+                .HasColumnName("DescConcurso");
+
+            entity.Property(e => e.CaminhoFaturaPDF)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("CaminhoFaturaPDF");
+
+            entity.Property(e => e.EstadoConcurso)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("EstadoConcurso");
+
+
             entity.Property(e => e.VeiculoIdveiculo).HasColumnName("VeiculoIDVeiculo");
 
             entity.HasOne(d => d.VeiculoIdveiculoNavigation).WithMany(p => p.Despesas)
@@ -260,19 +275,28 @@ public partial class PdsContext : DbContext
 
         modelBuilder.Entity<Manutencao>(entity =>
         {
-            entity.HasKey(e => e.Idmanutencao).HasName("PK__Manutenc__CC5FA919BFC3264A");
+            entity.HasKey(e => e.Idmanutencao).HasName("PKManutencCC5FA919BFC3264A");
 
             entity.ToTable("Manutencao");
 
             entity.Property(e => e.Idmanutencao).HasColumnName("IDManutencao");
-            entity.Property(e => e.CaminhoPdf)
+
+            entity.Property(e => e.DescProposta)
                 .HasMaxLength(8000)
                 .IsUnicode(false)
-                .HasColumnName("CaminhoPDF");
-            entity.Property(e => e.DataManutencao).HasColumnType("datetime");
-            entity.Property(e => e.DescManutencao)
-                .HasMaxLength(255)
-                .IsUnicode(false);
+                .HasColumnName("DescProposta");
+
+            entity.Property(e => e.EstadoProposta)
+                .HasMaxLength(8000)
+                .IsUnicode(false)
+                .HasColumnName("EstadoProposta");
+
+            entity.Property(e => e.ValorProposta).HasColumnType("ValorProposta");
+
+            entity.Property(e => e.DataInicioMan).HasColumnType("datetime");
+
+            entity.Property(e => e.DataFimMan).HasColumnType("datetime");
+
             entity.Property(e => e.DespesaIddespesa).HasColumnName("DespesaIDDespesa");
             entity.Property(e => e.EmpresaIdempresa).HasColumnName("EmpresaIDEmpresa");
 

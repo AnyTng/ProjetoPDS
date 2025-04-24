@@ -49,17 +49,41 @@ namespace RESTful_API.Controllers
         }
 
         // GET: api/Infracoes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Infracao>> GetInfracao(int id)
+        [HttpGet("MultasCliente")]
+        public async Task<ActionResult<Infracao>> GetInfracao()
         {
-            var infracao = await _context.Infracoes
-                .FirstOrDefaultAsync(i => i.Idinfracao == id);
-
-            if (infracao == null)
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
-                return NotFound();
+                return Unauthorized("Token inválido.");
             }
-            return infracao;
+            if (userTipoLogin != 1)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+
+            var cliente = await _context.Clientes
+                                        .Include(c => c.CodigoPostalCpNavigation)
+                                        .FirstOrDefaultAsync(c => c.LoginIdlogin == userIdLogin);
+
+            var infracoes = await _context.Infracoes
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.ClienteIdclienteNavigation)
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.VeiculoIdveiculoNavigation)
+                        .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                            .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .Where(i => i.AluguerIdaluguerNavigation.ClienteIdcliente == cliente.Idcliente)
+                .ToListAsync();
+
+
+            if (infracoes == null)
+            {
+                return NotFound("Sem Infrações");
+            }
+
+            return Ok(infracoes);
         }
 
         // PUT: api/Infracoes/5
