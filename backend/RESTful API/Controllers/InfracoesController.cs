@@ -163,7 +163,8 @@ namespace RESTful_API.Controllers
                 AluguerIdaluguer = aluguer.Idaluguer,
                 DataInfracao = dataInfracao,
                 ValorInfracao = valorInfracao,
-                DescInfracao = descInfracao
+                DescInfracao = descInfracao,
+                EstadoInfracao = "Submetida"
             };
 
             var cliente = await _context.Clientes

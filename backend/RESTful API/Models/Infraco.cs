@@ -15,6 +15,8 @@ public partial class Infracao
 
     public string? DescInfracao { get; set; }
 
+    public string? EstadoInfracao { get; set; }
+
     public virtual Aluguer AluguerIdaluguerNavigation { get; set; } = null!;
 
     public virtual ICollection<Contestacao> Contestacaos { get; set; } = new List<Contestacao>();

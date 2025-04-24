@@ -221,11 +221,12 @@ public partial class PdsContext : DbContext
 
         modelBuilder.Entity<Infracao>(entity =>
         {
-            entity.HasKey(e => e.Idinfracao).HasName("PK__Infracoe__06C23E04392EB879");
+            entity.HasKey(e => e.Idinfracao).HasName("PKInfracoe06C23E04392EB879");
 
             entity.Property(e => e.Idinfracao).HasColumnName("IDInfracao");
             entity.Property(e => e.AluguerIdaluguer).HasColumnName("AluguerIDAluguer");
             entity.Property(e => e.DataInfracao).HasColumnType("datetime");
+            entity.Property(e => e.EstadoInfracao).HasColumnType("string");
             entity.Property(e => e.DescInfracao)
                 .HasMaxLength(8000)
                 .IsUnicode(false);
