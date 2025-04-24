@@ -1,4 +1,6 @@
 import Button from "../button.jsx";
+import { useState } from "react";
+import ClassificacaoOverlay from "../ClassificacaoOverlay.jsx";
 
 const AluguerCard = ({
     idaluguer,
@@ -14,6 +16,15 @@ const AluguerCard = ({
     classificacao,
     onDownloadFatura
 }) => {
+    const [isRatingOpen, setIsRatingOpen] = useState(false);
+    const [currentRating, setCurrentRating] = useState(classificacao || 0);
+
+    const handleRatingClose = (newRating) => {
+        setIsRatingOpen(false);
+        if (newRating && newRating !== currentRating) {
+            setCurrentRating(newRating);
+        }
+    };
     // Format dates for display
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
@@ -77,6 +88,9 @@ const AluguerCard = ({
 
     // Determine if invoice can be downloaded
     const canDownloadFatura = estadoAluguer?.toLowerCase() === "concluido" && dataFatura;
+
+    // Determine if rental can be rated
+    const canRateAluguer = estadoAluguer?.toLowerCase() === "concluido";
 
     return (
         <div className={`w-full border rounded-2xl px-6 py-5 flex flex-col gap-4 shadow-sm ${getStateColor(estadoAluguer)}`}>
@@ -144,7 +158,20 @@ const AluguerCard = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end mt-2 gap-3">
+                {canRateAluguer && (
+                    <Button
+                        text={currentRating > 0 ? `Classificação: ${currentRating}/5` : "Avaliar Aluguer"}
+                        variant="secondary"
+                        onClick={() => setIsRatingOpen(true)}
+                        className="px-6 !py-1 text-base flex items-center gap-2"
+                        icon={
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        }
+                    />
+                )}
                 {canDownloadFatura && (
                     <Button
                         text="Transferir Fatura"
@@ -158,6 +185,14 @@ const AluguerCard = ({
                         }
                     />
                 )}
+
+                {/* Rating Overlay */}
+                <ClassificacaoOverlay
+                    isOpen={isRatingOpen}
+                    onClose={handleRatingClose}
+                    idAluguer={idaluguer}
+                    initialRating={currentRating}
+                />
             </div>
         </div>
     );

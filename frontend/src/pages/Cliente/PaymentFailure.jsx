@@ -24,10 +24,25 @@ const PaymentFailure = () => {
                 console.error("Error fetching user profile:", err);
             }
         };
+        const handleCancellation = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('aluguerId');
+
+            if (id) {
+                try {
+                    await fetchWithAuth(`/api/Alugueres/cancelar?idAluguer=${id}`, { method: 'PUT' });
+                } catch (err) {
+                    console.error("Error canceling rental:", err);
+                }
+            }
+        };
+
 
         if (user?.id) {
             fetchUserProfile();
         }
+        handleCancellation();
+
     }, [user?.id]);
 
     const handleTryAgain = () => {
@@ -38,7 +53,10 @@ const PaymentFailure = () => {
         navigate('/user/profile');
     };
 
+
+
     return (
+
         <div className="flex flex-col min-h-screen bg-gray-50">
             <ClientHeader userImage={userImage} />
 
