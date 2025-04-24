@@ -19,6 +19,26 @@ const ClienteReservas = () => {
     const [error, setError] = useState(null); // Stores error messages
     const [userName, setUserName] = useState(""); // Stores user name for display
 
+    // Effect Hook to fetch user profile data when the component mounts
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (!user?.id) return;
+
+            try {
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.nomeCliente) {
+                    setUserName(profileData.nomeCliente);
+                }
+                // Set user image from base64 data if available
+                setUserImage(profileData?.imagemBase64 || null);
+            } catch (err) {
+                console.error("Erro ao buscar dados do perfil:", err);
+            }
+        };
+
+        fetchUserProfile();
+    }, [user?.id]);
+
     // Effect Hook to fetch rental history when the component mounts or user context changes
     useEffect(() => {
         const fetchRentalHistory = async () => {
@@ -52,16 +72,6 @@ const ClienteReservas = () => {
                 // If we have rental data with client info, set the user name
                 if (data.length > 0 && data[0].cliente?.nomeCliente) {
                     setUserName(data[0].cliente.nomeCliente);
-                } else {
-                    // Fetch user profile to get the name if not available in rental data
-                    try {
-                        const profileData = await fetchWithAuth(`/api/clientes/me`);
-                        if (profileData?.nomeCliente) {
-                            setUserName(profileData.nomeCliente);
-                        }
-                    } catch (profileErr) {
-                        console.error("Erro ao buscar nome do utilizador:", profileErr);
-                    }
                 }
 
             } catch (err) {

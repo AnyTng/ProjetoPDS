@@ -96,7 +96,6 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
         }
 
         // Para outros tipos de conteúdo (ex: ficheiros, texto puro)
-        // Poderias adicionar mais lógica aqui, por agora retorna a resposta crua
         console.warn(`WorkspaceWithAuth: Resposta não-JSON recebida de ${endpoint}. Retornando objeto Response.`);
         return response; // Ou response.text(), response.blob(), etc., conforme necessário
 
@@ -107,43 +106,3 @@ export const fetchWithAuth = async (endpoint, options = {}) => {
     }
 };
 
-// --- Exemplos de Uso (manter comentado ou remover) ---
-/*
-// GET (Simples)
-fetchWithAuth('/api/some/data')
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-
-// POST com JSON
-fetchWithAuth('/api/some/resource', {
-  method: 'POST',
-  body: { name: 'Teste', value: 123 }
-})
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-
-// PUT com JSON
-fetchWithAuth('/api/some/resource/1', {
-  method: 'PUT',
-  body: { name: 'Atualizado' }
-})
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-
-// DELETE
-fetchWithAuth('/api/some/resource/1', { method: 'DELETE' })
-  .then(() => console.log('Recurso apagado'))
-  .catch(error => console.error(error));
-
-// POST com FormData (Upload)
-const myFormData = new FormData();
-myFormData.append('description', 'Meu Ficheiro');
-myFormData.append('file', fileInputElement.files[0]);
-
-fetchWithAuth('/api/upload', {
-  method: 'POST',
-  body: myFormData // Passa o FormData diretamente
-})
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-*/

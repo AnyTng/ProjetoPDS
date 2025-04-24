@@ -19,9 +19,29 @@ const AlugarCarroForm = () => {
     const [totalPrice, setTotalPrice] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [userImage, setUserImage] = useState(null); // State for user profile image
 
 
 
+
+    // Fetch user profile data when component mounts
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                // Fetch user profile data
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.imagemBase64) {
+                    setUserImage(profileData.imagemBase64);
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        if (user?.id) {
+            fetchUserProfile();
+        }
+    }, [user?.id]);
 
     // Fetch car details when component mounts or carID changes
     useEffect(() => {
@@ -125,7 +145,7 @@ const AlugarCarroForm = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <ClientHeader />
+            <ClientHeader userImage={userImage} />
 
             <main className="flex-grow container mx-auto px-4 py-8">
                 {isLoading ? (

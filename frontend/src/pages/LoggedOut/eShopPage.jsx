@@ -1,6 +1,6 @@
 // src/pages/LoggedOut/eShopPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-// import { fetchWithAuth } from '../../utils/api'; // Usar fetch normal se não precisar de auth
+import { fetchWithAuth, API_BASE_URL } from '../../utils/api';
 import ClientHeader from '../../components/clientHeader';
 import Footer from '../../components/footer';
 import FilterSidebar from '../../components/FilterSidebar';
@@ -8,7 +8,7 @@ import PesquisaCarFrame from '../../components/Cards/CarPesquisaFrame';
 import FilterInput from '../../components/filterInput'; // Input de pesquisa geral
 import Button from '../../components/button';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const EShopPage = () => {
     const [allCars, setAllCars] = useState([]); // Lista completa de carros da API
@@ -19,10 +19,12 @@ const EShopPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterChangeKey, setFilterChangeKey] = useState(0); // Estado para controlar a animação dos cards
+    const [userImage, setUserImage] = useState(null); // State for user profile image
 
     // Função para buscar os carros (pode ser chamada na montagem e para refresh)
 
     const navigate = useNavigate();
+    const { user } = useAuth(); // Get user from auth context
 
 
     const fetchCars = useCallback(async () => {
@@ -51,6 +53,25 @@ const EShopPage = () => {
     useEffect(() => {
         fetchCars();
     }, [fetchCars]);
+
+    // Fetch user profile data when component mounts and user is logged in
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                // Fetch user profile data
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.imagemBase64) {
+                    setUserImage(profileData.imagemBase64);
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        if (user?.id) {
+            fetchUserProfile();
+        }
+    }, [user?.id]);
 
     // Função para atualizar o estado dos filtros vindo da Sidebar
     const handleFilterChange = useCallback((filterKey, value) => {
@@ -140,7 +161,7 @@ const EShopPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <ClientHeader />
+            <ClientHeader userImage={userImage} />
 
             <main className="flex-grow container mx-auto px-4 py-6 flex gap-6">
                 {/* Sidebar de Filtros */}

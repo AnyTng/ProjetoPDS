@@ -6,7 +6,10 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Button from "./button.jsx"; // 1. Importar o componente Button
 
-const ClientHeader = ({ userImage = profilePic }) => {
+// Placeholder for user image
+const PlaceholderUserIcon = () => ( <svg className="w-full h-full text-gray-300" fill="currentColor" viewBox="0 0 24 24"> <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /> </svg> );
+
+const ClientHeader = ({ userImage }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { user, logout } = useAuth(); // 2. Obter o estado 'user' do contexto
     const navigate = useNavigate();
@@ -40,12 +43,20 @@ const ClientHeader = ({ userImage = profilePic }) => {
                 {user ? (
                     // Se user existe (logado), mostra o avatar e dropdown
                     <div className="relative">
-                        <img
-                            src={userImage} // Considerar usar user.profileImageUrl se vier do contexto/API
-                            alt="Avatar"
-                            className="h-9 w-9 rounded-full object-cover border cursor-pointer"
+                        <div 
+                            className="h-9 w-9 rounded-full overflow-hidden border cursor-pointer bg-gray-100 flex items-center justify-center"
                             onClick={toggleDropdown}
-                        />
+                        >
+                            {userImage ? (
+                                <img
+                                    src={userImage}
+                                    alt="Avatar"
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <PlaceholderUserIcon />
+                            )}
+                        </div>
                         {/* Dropdown de logout */}
                         {isDropdownOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">

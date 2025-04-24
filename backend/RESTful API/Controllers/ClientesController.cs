@@ -1,4 +1,4 @@
-﻿// GeminiTakeThis/Backend/RESTful API/Controllers/ClientesController.cs
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -218,9 +218,11 @@ namespace RESTful_API.Controllers
             return clientes;
         }
 
-        // *** NEW: PUT /api/clientes/me ***
+
+        // PUT: api/clientes/me
         [HttpPut("me")]
-        public async Task<IActionResult> PutMe(ClienteUpdateDto clienteUpdateDto)
+        //[Authorize] // Ensure authorization is active
+        public async Task<IActionResult> PutMe([FromForm] ClienteUpdateDto clienteUpdateDto) // Keep FromForm
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(idLoginClaim, out int userLoginId))
@@ -228,7 +230,6 @@ namespace RESTful_API.Controllers
                 return Unauthorized("Token inválido ou ID do utilizador não encontrado.");
             }
 
-            // Find the existing client record based on the Login ID from the token
             var clienteToUpdate = await _context.Clientes
                                                 .Include(c => c.CodigoPostalCpNavigation)
                                                 .FirstOrDefaultAsync(c => c.LoginIdlogin == userLoginId);
@@ -238,7 +239,7 @@ namespace RESTful_API.Controllers
                 return NotFound("Perfil de cliente não encontrado para atualizar.");
             }
 
-            // --- Input Validation (same as before) ---
+            // --- Input Validation (Keep as is) ---
              if (string.IsNullOrWhiteSpace(clienteUpdateDto.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
              if (clienteUpdateDto.ContactoC1.HasValue && clienteUpdateDto.ContactoC1.Value.ToString().Length != 9) return BadRequest("Contacto principal deve ter 9 dígitos.");
              if (clienteUpdateDto.ContactoC2.HasValue && clienteUpdateDto.ContactoC2.Value.ToString().Length != 9) return BadRequest("Contacto secundário deve ter 9 dígitos.");
@@ -246,7 +247,7 @@ namespace RESTful_API.Controllers
              string cpDigits = new string(clienteUpdateDto.CodigoPostal.Where(char.IsDigit).ToArray());
              if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int newCpNumeric)) return BadRequest("Formato inválido para Código Postal.");
 
-            // --- Handle CodigoPostal Update (same as before) ---
+            // --- Handle CodigoPostal Update (Keep as is) ---
             if (clienteToUpdate.CodigoPostalCp != newCpNumeric)
             {
                 var newCodigoPostal = await _context.CodigoPostals.FindAsync(newCpNumeric);
@@ -259,31 +260,87 @@ namespace RESTful_API.Controllers
                  else if (!string.IsNullOrWhiteSpace(clienteUpdateDto.Localidade) && !newCodigoPostal.Localidade.Equals(clienteUpdateDto.Localidade, StringComparison.OrdinalIgnoreCase))
                  {
                      Console.WriteLine($"Aviso: Localidade fornecida '{clienteUpdateDto.Localidade}' difere da existente '{newCodigoPostal.Localidade}' para o CP {newCpNumeric}. Usando a existente.");
-                     // Optionally update the existing CP's locality here if desired
                  }
                 clienteToUpdate.CodigoPostalCp = newCpNumeric; // Update FK
             }
 
-            // --- Update Allowed Fields (same as before) ---
+            // --- Update Text Fields (Keep as is) ---
             clienteToUpdate.NomeCliente = clienteUpdateDto.NomeCliente;
             clienteToUpdate.DataNascCliente = clienteUpdateDto.DataNascCliente;
             clienteToUpdate.RuaCliente = clienteUpdateDto.RuaCliente;
             clienteToUpdate.ContactoC1 = clienteUpdateDto.ContactoC1;
             clienteToUpdate.ContactoC2 = clienteUpdateDto.ContactoC2;
 
+            // ****** START: NEW IMAGE HANDLING LOGIC ******
+            string? relativeImagePath = null; // Variable to store the relative path for the DB
+
+            if (clienteUpdateDto.ImagemCliente != null && clienteUpdateDto.ImagemCliente.Length > 0)
+            {
+                // 1. Define a target directory (relative to the web root, e.g., wwwroot)
+                //    Make sure this directory exists on your server!
+                var uploadsFolderName = "uploads/profile_images";
+                var webRootPath = Directory.GetCurrentDirectory(); // Or inject IWebHostEnvironment
+                var uploadsFolderPath = Path.Combine(webRootPath, "wwwroot", uploadsFolderName); // Example path
+
+                // Create directory if it doesn't exist
+                if (!Directory.Exists(uploadsFolderPath))
+                {
+                    Directory.CreateDirectory(uploadsFolderPath);
+                }
+
+                // 2. Generate a unique filename to avoid conflicts
+                var fileExtension = Path.GetExtension(clienteUpdateDto.ImagemCliente.FileName);
+                // Example: user_4003_timestamp.jpg
+                var uniqueFileName = $"user_{clienteToUpdate.Idcliente}_{DateTime.UtcNow.Ticks}{fileExtension}";
+                var fullSavePath = Path.Combine(uploadsFolderPath, uniqueFileName);
+
+                // 3. Save the file stream
+                try
+                {
+                    await using (var stream = new FileStream(fullSavePath, FileMode.Create))
+                    {
+                        await clienteUpdateDto.ImagemCliente.CopyToAsync(stream);
+                    }
+                    Console.WriteLine($"Imagem guardada com sucesso em: {fullSavePath}");
+
+                    // 4. Store the *relative* path for the database
+                    relativeImagePath = Path.Combine(uploadsFolderName, uniqueFileName).Replace(Path.DirectorySeparatorChar, '/'); // Use forward slashes for web paths
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao guardar a imagem: {ex.Message}");
+                    // Decide if this error should prevent the whole update or just skip the image update
+                    // return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao guardar a imagem."); // Option 1: Fail the request
+                     relativeImagePath = null; // Option 2: Continue without saving image path
+                }
+            }
+             else
+             {
+                 Console.WriteLine("Nenhuma nova imagem fornecida no pedido.");
+                 // Decide if you want to keep the existing image path or clear it if no file is sent
+                 // To keep existing: do nothing here.
+                 // To clear if no file sent: relativeImagePath = null; (but might not be desired)
+             }
+
+             // 5. Update the database field *only if* a new image was successfully saved
+             if (relativeImagePath != null)
+             {
+                 clienteToUpdate.CaminhoImagemCliente = relativeImagePath;
+                 Console.WriteLine($"CaminhoImagemCliente atualizado para: {relativeImagePath}");
+             }
+            // ****** END: NEW IMAGE HANDLING LOGIC ******
+
+
+            // Mark entity as modified (only necessary if not using change tracking proxies, but good practice)
             _context.Entry(clienteToUpdate).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Save all changes (text fields + potentially image path)
             }
             catch (DbUpdateConcurrencyException)
             {
-                 // Check if the entity still exists based on the ID found earlier
-                 if (!ClienteExists(clienteToUpdate.Idcliente)) // Use the client's actual ID
-                 {
-                      return NotFound("Cliente não encontrado durante a gravação (concorrência).");
-                 }
+                 if (!ClienteExists(clienteToUpdate.Idcliente)) return NotFound("Cliente não encontrado durante a gravação (concorrência).");
                  else { throw; }
             }
             catch (DbUpdateException ex)

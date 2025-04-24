@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
 import Footer from '../../components/footer';
 import Button from '../../components/button';
-import { API_BASE_URL } from '../../utils/api';
+import { API_BASE_URL, fetchWithAuth } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 
 const CarShop = () => {
@@ -15,12 +15,32 @@ const CarShop = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userImage, setUserImage] = useState(null);
 
 
     // Update isLoggedIn state when user changes
     useEffect(() => {
         setIsLoggedIn(!!user);
     }, [user]);
+
+    // Fetch user profile data when component mounts and user is logged in
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                // Fetch user profile data
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.imagemBase64) {
+                    setUserImage(profileData.imagemBase64);
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        if (user?.id) {
+            fetchUserProfile();
+        }
+    }, [user?.id]);
 
     // Fetch car details when component mounts or carID changes
     useEffect(() => {
@@ -66,7 +86,7 @@ const CarShop = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <ClientHeader />
+            <ClientHeader userImage={userImage} />
 
             <main className="flex-grow container mx-auto px-4 py-8">
                 {isLoading ? (

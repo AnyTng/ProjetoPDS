@@ -1,11 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
 import Footer from '../../components/footer';
 import Button from '../../components/button';
+import { fetchWithAuth } from '../../utils/api';
+import { useAuth } from '../../hooks/useAuth';
 
 const PaymentFailure = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [userImage, setUserImage] = useState(null);
+
+    // Fetch user profile data when component mounts
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                // Fetch user profile data
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.imagemBase64) {
+                    setUserImage(profileData.imagemBase64);
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        if (user?.id) {
+            fetchUserProfile();
+        }
+    }, [user?.id]);
 
     const handleTryAgain = () => {
         navigate('/eShop');
@@ -17,8 +40,8 @@ const PaymentFailure = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <ClientHeader />
-            
+            <ClientHeader userImage={userImage} />
+
             <main className="flex-grow container mx-auto px-4 py-8">
                 <div className="bg-white rounded-lg shadow-md p-8 max-w-2xl mx-auto text-center">
                     <div className="mb-6">
@@ -35,7 +58,7 @@ const PaymentFailure = () => {
                             Pode tentar novamente ou contactar o nosso suporte se precisar de ajuda.
                         </p>
                     </div>
-                    
+
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button
                             text="Tentar Novamente"
@@ -52,7 +75,7 @@ const PaymentFailure = () => {
                     </div>
                 </div>
             </main>
-            
+
             <Footer />
         </div>
     );
