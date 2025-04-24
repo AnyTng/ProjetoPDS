@@ -40,7 +40,7 @@ const PaymentSuccess = () => {
                         </div>
                         <h1 className="text-2xl font-bold text-gray-800 mb-2">Pagamento Bem-Sucedido!</h1>
                         <p className="text-gray-600">
-                            O seu pagamento foi processado com sucesso. A taxa de quitação foi paga e o seu aluguer está confirmado.
+                            O pagamento foi processado com sucesso. A taxa de reserva foi paga e o seu aluguer está confirmado.
                         </p>
                         {aluguerId && (
                             <p className="mt-2 text-gray-700">
@@ -51,7 +51,7 @@ const PaymentSuccess = () => {
                     
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button
-                            text="Ver Meu Perfil"
+                            text="Ver o meu Perfil"
                             variant="primary"
                             onClick={handleViewProfile}
                             className="w-full sm:w-auto"

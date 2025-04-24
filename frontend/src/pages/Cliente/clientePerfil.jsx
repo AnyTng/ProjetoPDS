@@ -1,9 +1,10 @@
-// srcFrontend/pages/Cliente/clientProfile.jsx
+// srcFrontend/pages/Cliente/clientePerfil.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../../hooks/useAuth";
 import { fetchWithAuth } from "../../utils/api"; // Ensure this utility handles errors and JSON correctly
 import ClientHeader from "../../components/clientHeader.jsx";
+import Footer from "../../components/footer.jsx";
 import InputFieldLong from "../../components/inputFieldLong.jsx";
 import Button from "../../components/button.jsx";
 
@@ -125,7 +126,7 @@ const transformFormDataToApiData = (formDataArray) => {
 const PlaceholderUserIcon = () => ( <svg className="w-full h-full text-gray-300" fill="currentColor" viewBox="0 0 24 24"> <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /> </svg> );
 
 // Main component for the client profile page
-const ClientProfile = () => {
+const ClientePerfil = () => {
     const { user, logout } = useAuth(); // Get user context and logout function
     const navigate = useNavigate();
     const [originalData, setOriginalData] = useState(null); // Stores raw data from GET /me
@@ -302,9 +303,9 @@ const ClientProfile = () => {
 
     // ---- JSX Rendering ----
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900">
+        <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
             <ClientHeader userImage={userImage} /> {/* Client specific header */}
-            <main className="max-w-7xl mx-auto p-6">
+            <main className="max-w-7xl mx-auto p-6 flex-grow">
                 <h2 className="text-gray-400 text-sm mb-4">Informação do Perfil</h2>
                 <div className="bg-white rounded-xl shadow p-6 md:p-10 grid md:grid-cols-3 gap-8 min-h-[400px]">
 
@@ -320,7 +321,7 @@ const ClientProfile = () => {
                     </div>
 
                     {/* Right Panel: Form */}
-                    <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto max-h-[600px] pr-2">
                         {/* Loading Indicator */}
                         {isLoading && <div className="col-span-full text-center text-gray-500 py-10">A carregar dados do perfil...</div>}
 
@@ -408,6 +409,7 @@ const ClientProfile = () => {
                     </div>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 };
@@ -420,4 +422,4 @@ const validateCodigoPostal = (cp) => {
 };
 
 
-export default ClientProfile;
+export default ClientePerfil;

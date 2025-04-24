@@ -26,8 +26,9 @@ import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
 //User Pages
-import ClientProfile from "../pages/Cliente/clientProfile.jsx";
-import CarRent from "../pages/Cliente/carRentForm.jsx";
+import ClientePerfil from "../pages/Cliente/clientePerfil.jsx";
+import CarRent from "../pages/Cliente/AlugarCarroForm.jsx";
+import ClienteReservas from "../pages/Cliente/ClienteReservas.jsx";
 // Adicionar outras páginas de cliente/empresa aqui...
 // import EmpresaDashboard from '../pages/Empresa/EmpresaDashboard.jsx'; // Exemplo
 
@@ -53,7 +54,7 @@ const AppRoutes = () => (
             element={
                 // ****** ATUALIZADO PARA 'cliente' ******
                 <PrivateRoute allowedRoles={['cliente']}>
-                    <ClientProfile />
+                    <ClientePerfil />
                 </PrivateRoute>
             }
         />
@@ -64,6 +65,15 @@ const AppRoutes = () => (
             element={
                 <PrivateRoute allowedRoles={['cliente']}>
                    <CarRent />
+                </PrivateRoute>
+            }
+        />
+
+        <Route
+            path="/user/alugueres"
+            element={
+                <PrivateRoute allowedRoles={['cliente']}>
+                   <ClienteReservas />
                 </PrivateRoute>
             }
         />

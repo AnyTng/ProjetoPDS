@@ -1,16 +1,16 @@
-import ClientProfile from "../pages/Cliente/clientProfile.jsx";
+import ClientePerfil from "../pages/Cliente/clientePerfil.jsx";
 import profilePic from "../assets/react.svg"; // substitui pela imagem real
 
 export default {
-    title: "Pages/ClientProfile",
-    component: ClientProfile,
+    title: "Pages/ClientePerfil",
+    component: ClientePerfil,
     argTypes: {
         userImage: { control: "text" },
         userData: { control: "object" },
     },
 };
 
-const Template = (args) => <ClientProfile {...args} />;
+const Template = (args) => <ClientePerfil {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

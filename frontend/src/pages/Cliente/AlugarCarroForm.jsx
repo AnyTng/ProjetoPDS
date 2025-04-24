@@ -1,4 +1,4 @@
-// src/pages/Cliente/carRentForm.jsx
+// src/pages/Cliente/AlugarCarroForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
@@ -7,7 +7,7 @@ import Button from '../../components/button';
 import { API_BASE_URL, fetchWithAuth } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 
-const CarRentForm = () => {
+const AlugarCarroForm = () => {
     const { carID } = useParams(); // Get carID from URL parameter
     const navigate = useNavigate();
     const { user } = useAuth(); // Get user from auth context
@@ -226,10 +226,10 @@ const CarRentForm = () => {
                                     {pickupDate && returnDate && totalPrice > 0 && (
                                         <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                                             <p className="text-gray-700">Duração: {calculateDays(pickupDate, returnDate)} dias</p>
-                                            <p className="text-gray-700">Reserva (10%): {(totalPrice * 0.1).toFixed(2)}€</p>
-                                            <p className="text-gray-700">Aluguer (restante 90%): {(totalPrice * 0.9).toFixed(2)}€</p>
-                                            <p className="text-xl font-bold text-green-600">Preço Total: {totalPrice.toFixed(2)}€</p>
-                                            <p className="text-gray-700">IVA Incluído a 23%</p>
+                                            <p className="text-gray-700">Reserva: {(totalPrice * 0.1).toFixed(2)}€</p>
+                                            <p className="text-gray-700">Aluguer: {(totalPrice * 0.9).toFixed(2)}€</p>
+                                            <p className="text-xl font-bold text-green-600">Preço Total: {totalPrice.toFixed(2)}€ </p>
+                                            <p className="text-gray-700 font-ligh text-sm">(IVA Incluído a 23%€) </p>
                                         </div>
                                     )}
 
@@ -261,4 +261,4 @@ const CarRentForm = () => {
     );
 };
 
-export default CarRentForm;
+export default AlugarCarroForm;
