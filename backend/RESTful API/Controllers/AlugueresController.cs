@@ -262,7 +262,7 @@ namespace RESTful_API.Controllers
                 var aluguer = await _context.Aluguers.FindAsync(aluguerId);
                 if (aluguer != null)
                 {
-                    aluguer.EstadoAluguer = "Confirmado";
+                    aluguer.EstadoAluguer = "Aguardar levantamento";
                     var veiculo = await _context.Veiculos.FindAsync(aluguer.VeiculoIdveiculo);
                     if (veiculo != null)
                     {

@@ -27,20 +27,38 @@ namespace RESTful_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Infracao>>> GetInfracoes()
         {
-            return await _context.Infracoes.ToListAsync();
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+
+            return await _context.Infracoes
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.ClienteIdclienteNavigation)
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.VeiculoIdveiculoNavigation)
+                        .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                            .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .ToListAsync();
         }
 
         // GET: api/Infracoes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Infracao>> GetInfracao(int id)
         {
-            var infracao = await _context.Infracoes.FindAsync(id);
+            var infracao = await _context.Infracoes
+                .FirstOrDefaultAsync(i => i.Idinfracao == id);
 
             if (infracao == null)
             {
                 return NotFound();
             }
-
             return infracao;
         }
 
@@ -145,7 +163,8 @@ namespace RESTful_API.Controllers
                 AluguerIdaluguer = aluguer.Idaluguer,
                 DataInfracao = dataInfracao,
                 ValorInfracao = valorInfracao,
-                DescInfracao = descInfracao
+                DescInfracao = descInfracao,
+                EstadoInfracao = "Submetida"
             };
 
             var cliente = await _context.Clientes
@@ -170,6 +189,7 @@ namespace RESTful_API.Controllers
                         },
                         Multa = new
                         {
+                            infracao.Idinfracao,
                             infracao.DataInfracao,
                             infracao.ValorInfracao,
                             infracao.DescInfracao
@@ -194,6 +214,7 @@ namespace RESTful_API.Controllers
                     };
 
                     _context.Notificacaos.Add(notificacao);
+
                 }
                 else
                 {

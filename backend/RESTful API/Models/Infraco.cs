@@ -11,9 +11,11 @@ public partial class Infracao
 
     public DateTime? DataInfracao { get; set; }
 
-    public float? ValorInfracao { get; set; }
+    public double ValorInfracao { get; set; }
 
     public string? DescInfracao { get; set; }
+
+    public string? EstadoInfracao { get; set; }
 
     public virtual Aluguer AluguerIdaluguerNavigation { get; set; } = null!;
 
