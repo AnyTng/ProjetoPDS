@@ -36,8 +36,9 @@ CREATE TABLE Infracoes (
   IDInfracao       int IDENTITY NOT NULL, 
   AluguerIDAluguer int NOT NULL, 
   DataInfracao     datetime NULL, 
-  ValorInfracao    int NULL, 
-  DescInfracao     varchar(8000) NULL, 
+  ValorInfracao    float NULL, 
+  DescInfracao     varchar(8000) NULL,
+  EstadoInfracao varchar(300) NULL,
   PRIMARY KEY (IDInfracao));
 CREATE TABLE ModeloVeiculo (
   IDModelo            int IDENTITY NOT NULL, 
@@ -57,11 +58,13 @@ CREATE TABLE Seguro (
   VeiculoIDVeiculo       int NOT NULL, 
   PRIMARY KEY (ApoliceSeguro));
 CREATE TABLE Despesa (
-  VeiculoIDVeiculo int NOT NULL, 
-  ValorDespesa     float(10) NULL, 
-  DataPagDes       datetime NULL, 
-  DescTDespesa     varchar(255) NULL, 
-  IDDespesa        int IDENTITY NOT NULL, 
+	VeiculoIDVeiculo	int NOT NULL, 
+	DescConcurso		varchar(8000) NULL,
+	CaminhoFaturaPDF	varchar(8000) NULL,
+	EstadoConcurso		varchar(300) NULL,
+	DataInicio			datetime null,
+	DataFim				datetime null,
+	IDDespesa			int IDENTITY NOT NULL, 
   PRIMARY KEY (IDDespesa));
 CREATE TABLE Seguradora (
   IDSeguradora   int IDENTITY NOT NULL, 
@@ -81,12 +84,14 @@ CREATE TABLE Aluguer (
   EstadoAluguer		  VARCHAR(50) NULL,
   PRIMARY KEY (IDAluguer));
 CREATE TABLE Manutencao (
-  IDManutencao     int IDENTITY NOT NULL, 
-  DataManutencao   datetime NULL, 
-  DescManutencao   varchar(255) NULL, 
-  EmpresaIDEmpresa int NOT NULL, 
-  DespesaIDDespesa int NOT NULL, 
-  CaminhoPDF       varchar(8000) NULL, 
+	IDManutencao     int IDENTITY NOT NULL, 
+	ValorProposta float NULL,
+	DescProposta varchar(8000) NULL,
+	EstadoProposta varchar(300) NULL,
+	DataFimMan datetime NULL,
+	DataInicioMan datetime NULL,
+	EmpresaIDEmpresa int NOT NULL, 
+	DespesaIDDespesa int NOT NULL, 
   PRIMARY KEY (IDManutencao));
 CREATE TABLE Empresa (
   IDEmpresa          int IDENTITY NOT NULL, 
@@ -13570,33 +13575,6 @@ INSERT INTO TipoLogin (TLogin) VALUES
 ('Admin');
 
 
-INSERT INTO Login (Email, HashPassword, TipoLoginIDTLogin) VALUES
-('cliente1@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente2@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente3@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente4@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente5@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente6@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente7@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente8@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente9@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1),
-('cliente10@example.com', 'AQAAAAEAACcQAAAAECta7o/h0YrQF2akR6grFhmnIa4ek/ve6jnfZ5JN3mG+T8keG4lRJNweaqlSo+G2eg==', 1);
-
-
-INSERT INTO Cliente (NomeCliente, DataNascCliente, NIFCliente, RuaCliente,  CodigoPostalCP, LoginIDLogin, ContactoC1, ContactoC2, EstadoValCC) VALUES
-('João Silva', '1980-01-01', 123456789, 'Rua da Liberdade', 4620548, 1, 912345678, NULL,0),
-('Maria Santos', '1985-02-02', 987654321, 'Avenida dos Aliados', 4620548, 2,  912345678, NULL,1),
-('Carlos Oliveira', '1990-03-03', 456789123, 'Rua do Carmo', 4620548, 3, 912345678, NULL,0),
-('Ana Costa', '1995-04-04', 321654987, 'Rua Augusta', 4620548, 4, 912345678, NULL,1),
-('Pedro Martins', '2000-05-05', 654321987, 'Rua de Santa Catarina', 4620548, 5,912345678, NULL,0),
-('Sofia Pereira', '2005-06-06', 789123456, 'Rua do Almada', 4620548, 6, 912345678, NULL,1),
-('Luís Fernandes', '2010-07-07', 159753486, 'Rua do Ouro', 4620548, 7, 912345678, NULL,1),
-('Inês Sousa', '2015-08-08', 357159486, 'Rua da Prata', 4620548, 8, 912345678, NULL,1),
-('Rui Gomes', '2020-09-09', 258369147, 'Rua do Comércio', 4620548, 9, 912345678, NULL,1),
-('Teresa Lopes', '2025-10-10', 147258369, 'Rua dos Clérigos', 4620548, 10, 912345678, NULL,1);
-
-
-
 INSERT INTO MarcaVeiculo (DescMarca) VALUES
 ('Toyota'),
 ('Ford'),
@@ -13659,119 +13637,3 @@ INSERT INTO Seguro (ApoliceSeguro, DataRenovacao, ValorInicial, DescSeguro, Segu
 ('H123456789', '2021-08-08', 850.00, 'Seguro Básico', 8, 8),
 ('I123456789', '2021-09-09', 900.00, 'Seguro Completo', 9, 9),
 ('J123456789', '2021-10-10', 950.00, 'Seguro Básico', 10, 10);
-
-
-
-
-INSERT INTO Despesa (VeiculoIDVeiculo, ValorDespesa, DataPagDes, DescTDespesa) VALUES
-(1, 50.00, '2021-01-01', NULL),
-(2, 100.00, '2021-02-02', NULL),
-(3, 150.00, '2021-03-03', NULL),
-(4, 200.00, '2021-04-04', NULL),
-(5, 250.00, '2021-05-05', NULL),
-(6, 300.00, '2021-06-06', NULL),
-(7, 350.00, '2021-07-07', NULL),
-(8, 400.00, '2021-08-08', NULL),
-(9, 450.00, '2021-09-09', NULL),
-(10, 500.00, '2021-10-10', NULL);
-
-
-INSERT INTO Aluguer (VeiculoIDVeiculo, ClienteIDCliente, DataLevantamento, DataEntregaPrevista, DataDevolucao, DataFatura, Classificacao, ValorReserva, ValorQuitacao) VALUES
-(1, 1, '2021-01-01', '2021-01-10', '2021-01-10','2021-01-10',1,400.90,300),
-(2, 2, '2021-02-02', '2021-02-12', '2021-02-12','2021-01-10',2,400.90,300),
-(3, 3, '2021-03-03', '2021-03-13', '2021-03-13','2021-01-10',3,400.90,300),
-(4, 4, '2021-04-04', '2021-04-14', '2021-04-14','2021-01-10',4,400.90,300),
-(5, 5, '2021-05-05', '2021-05-15', '2021-05-15','2021-01-10',5,400.90,300),
-(6, 6, '2021-06-06', '2021-06-16', '2021-06-16','2021-01-10',1,400.90,300),
-(7, 7, '2021-07-07', '2021-07-17', '2021-07-17','2021-01-10',2,400.90,300),
-(8, 8, '2021-08-08', '2021-08-18', '2021-08-18','2021-01-10',3,400.90,300),
-(9, 9, '2021-09-09', '2021-09-19', '2021-09-19','2021-01-10',4,400.90,300),
-(10, 10, '2021-10-10', '2021-10-20', '2021-10-20','2021-01-10',4.5,400.90,300);
-
-
-
-
-INSERT INTO Infracoes (AluguerIDAluguer, DataInfracao, ValorInfracao, DescInfracao) VALUES
-(1, '2021-01-05',100,NULL),
-(2, '2021-02-07',200,NULL),
-(3, '2021-03-09',300,NULL),
-(4, '2021-04-11',400,NULL),
-(5, '2021-05-13',500,NULL),
-(6, '2021-06-15',300,NULL),
-(7, '2021-07-17',1000,NULL),
-(8, '2021-08-19',10000,NULL),
-(9, '2021-09-21',50,NULL),
-(10, '2021-10-23',300,NULL);
-
-
-INSERT INTO Login (Email, HashPassword, TipoLoginIDTLogin) VALUES
-('empresa1@example.com', 'hash1', 2),
-('empresa2@example.com', 'hash2', 2),
-('empresa3@example.com', 'hash3', 2),
-('empresa4@example.com', 'hash4', 2),
-('empresa5@example.com', 'hash5', 2),
-('empresa6@example.com', 'hash6', 2),
-('empresa7@example.com', 'hash7', 2),
-('empresa8@example.com', 'hash8', 2),
-('empresa9@example.com', 'hash9', 2),
-('empresa10@example.com', 'hash10', 2);
-
-INSERT INTO Empresa (FuncionarioEmpresa, NomeEmpresa, NifEmpresa, RuaEmpresa, CodigoPostalCP, LoginIDLogin, ContactoE1, ContactoE2) VALUES
-('João Silva', 'Empresa A', 123456789, 'Rua da Liberdade', 4620548, 11, 912345678, NULL),
-('Maria Santos', 'Empresa B', 987654321, 'Avenida dos Aliados', 4620548, 12, 912345678, NULL),
-('Carlos Oliveira', 'Empresa C', 456789123, 'Rua do Carmo', 4620548, 13, 912345678, NULL),
-('Ana Costa', 'Empresa D', 321654987, 'Rua Augusta', 4620548, 14, 912345678, NULL),
-('Pedro Martins', 'Empresa E', 654321987, 'Rua de Santa Catarina', 4620548, 15, 912345678, NULL),
-('Sofia Pereira', 'Empresa F', 789123456, 'Rua do Almada', 4620548, 16, 912345678, NULL),
-('Luís Fernandes', 'Empresa G', 159753486, 'Rua do Ouro', 4620548, 17, 912345678, NULL),
-('Inês Sousa', 'Empresa H', 357159486, 'Rua da Prata', 4620548, 18, 912345678, NULL),
-('Rui Gomes', 'Empresa I', 258369147, 'Rua do Comércio', 4620548, 19, 912345678, NULL),
-('Teresa Lopes', 'Empresa J', 147258369, 'Rua dos Clérigos', 4620548, 20, 912345678, NULL);
-
-
-
-
-
-
-INSERT INTO Login (Email, HashPassword, TipoLoginIDTLogin) VALUES
-('admin1@example.com', 'hash1', 3),
-('admin2@example.com', 'hash2', 3);
-
-INSERT INTO Admin (NomeAdmin, NifAdmin, LoginIDLogin) VALUES
-('Admin 1', 123456789, 21),
-('Admin 2', 987654321, 22);
-
-INSERT INTO Manutencao (DataManutencao, DescManutencao, EmpresaIDEmpresa, DespesaIDDespesa, CaminhoPDF) VALUES
-('2021-01-01', 'Troca de Óleo', 1, 1,NULL),
-('2021-02-02', 'Substituição de Pneus',2, 2,NULL),
-('2021-03-03', 'Reparação de Motor', 3, 3,NULL),
-('2021-04-04', 'Substituição de Faróis', 4, 4,NULL),
-('2021-05-05', 'Reparação de Transmissão', 5, 5,NULL),
-('2021-06-06', 'Substituição de Bateria',6, 6,NULL),
-('2021-07-07', 'Reparação de Suspensão', 7, 7,NULL),
-('2021-08-08', 'Substituição de Travões',8, 8,NULL),
-('2021-09-09', 'Reparação de Escape', 9, 9,NULL),
-('2021-10-10', 'Substituição de Vidros', 10, 10,NULL);
-
-
-
-
-
-
-INSERT INTO Contestacao (InfracoesIDInfracao, ClienteIDCliente, DescContestacao, EstadoContestacao) VALUES
-(1, 1, 'Não concordo com a infração.', NULL),
-(2, 2, 'A infração foi cometida por engano.',NULL),
-(3, 3, 'Preciso de mais informações.', NULL),
-(4, 4, 'A infração não é válida.', NULL),
-(5, 5, 'Houve um erro no sistema.', NULL),
-(6, 6, 'Não estava ao volante.', NULL),
-(7, 7, 'A infração foi cometida por outra pessoa.', NULL),
-(8, 8, 'Preciso de provas adicionais.', NULL),
-(9, 9, 'A infração foi cometida em local proibido.', NULL),
-(10, 10, 'Não recebi a notificação.', NULL);
-
-
-INSERT INTO Recibo (DataRecibo, TipoPagamento, AluguerIDAluguer) VALUES
-('2021-10-10', 'Paypal', 10),
-('2021-10-10', 'MBWAY', 1);
-
