@@ -55,7 +55,6 @@ namespace RESTful_API.Controllers
         public string Localidade { get; set; }
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }
-        public string? CaminhoImagemCliente { get; set; }
 
         public IFormFile? ImagemCliente { get; set; }
 
@@ -238,8 +237,66 @@ namespace RESTful_API.Controllers
                 return NotFound("Perfil de cliente não encontrado para atualizar.");
             }
 
+            string? oldImagePath = clienteToUpdate.CaminhoImagemCliente;
+            string? newImageRelativePath = null;
+            string idC = clienteToUpdate.Idcliente.ToString();
+            // Processar nova imagem (se existir)
+            if (clienteUpdateDto.ImagemCliente != null)
+            {
+                if (clienteUpdateDto.ImagemCliente.Length > 5 * 1024 * 1024) // 5MB
+                {
+                    return BadRequest("A imagem excede o tamanho máximo de 5MB.");
+                }
+
+                // Garante que a matrícula a usar no caminho existe
+                var idClienteParaPasta = !string.IsNullOrWhiteSpace(idC)
+                    ? idC
+                    : clienteUpdateDto.NomeCliente;
+
+                if (string.IsNullOrWhiteSpace(idClienteParaPasta))
+                {
+                    return BadRequest("O ID do cliente é necessário para guardar a imagem.");
+                }
+
+
+                // Nome seguro do ficheiro
+                var fileName = Path.GetFileName(clienteUpdateDto.ImagemCliente.FileName);
+                // Cria um nome único para evitar conflitos e potenciais problemas de segurança
+                var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
+                var relativeFolderPath = Path.Combine("imageCliente", idClienteParaPasta);
+                var absoluteFolderPath = Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath);
+
+                if (!Directory.Exists(absoluteFolderPath))
+                {
+                    Directory.CreateDirectory(absoluteFolderPath);
+                }
+
+                var absoluteFilePath = Path.Combine(absoluteFolderPath, uniqueFileName);
+
+                try
+                {
+                    using (var stream = new FileStream(absoluteFilePath, FileMode.Create))
+                    {
+                        await clienteUpdateDto.ImagemCliente.CopyToAsync(stream);
+                    }
+
+                    // Guarda o caminho relativo para a base de dados
+                    newImageRelativePath = Path.Combine(relativeFolderPath, uniqueFileName)
+                        .Replace(Path.DirectorySeparatorChar, '/'); // Normalizar para URL
+                }
+                catch (Exception ex)
+                {
+                    // Log do erro seria útil aqui
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        $"Erro ao guardar a imagem: {ex.Message}");
+                }
+            }
+
+
+
             // --- Input Validation (same as before) ---
-             if (string.IsNullOrWhiteSpace(clienteUpdateDto.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
+            if (string.IsNullOrWhiteSpace(clienteUpdateDto.NomeCliente)) return BadRequest("Nome do cliente não pode ser vazio.");
              if (clienteUpdateDto.ContactoC1.HasValue && clienteUpdateDto.ContactoC1.Value.ToString().Length != 9) return BadRequest("Contacto principal deve ter 9 dígitos.");
              if (clienteUpdateDto.ContactoC2.HasValue && clienteUpdateDto.ContactoC2.Value.ToString().Length != 9) return BadRequest("Contacto secundário deve ter 9 dígitos.");
              if (string.IsNullOrWhiteSpace(clienteUpdateDto.CodigoPostal)) return BadRequest("Código Postal é obrigatório.");
@@ -270,6 +327,32 @@ namespace RESTful_API.Controllers
             clienteToUpdate.RuaCliente = clienteUpdateDto.RuaCliente;
             clienteToUpdate.ContactoC1 = clienteUpdateDto.ContactoC1;
             clienteToUpdate.ContactoC2 = clienteUpdateDto.ContactoC2;
+            
+            if (!string.IsNullOrEmpty(newImageRelativePath))
+            {
+                clienteToUpdate.CaminhoImagemCliente = newImageRelativePath;
+                // Apagar a imagem antiga APENAS se uma nova imagem foi carregada e guardada com sucesso
+                if (!string.IsNullOrEmpty(newImageRelativePath) && !string.IsNullOrEmpty(oldImagePath) &&
+                    oldImagePath != newImageRelativePath)
+                {
+                    var oldAbsoluteFilePath = Path.Combine(Directory.GetCurrentDirectory(),
+                        oldImagePath.Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(oldAbsoluteFilePath))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(oldAbsoluteFilePath);
+                            // Opcional: Poderia apagar a diretoria da matrícula se estiver vazia, mas requer mais lógica.
+                        }
+                        catch (IOException ex)
+                        {
+                            // Log do erro ao apagar o ficheiro antigo
+                            Console.WriteLine($"Erro ao apagar imagem antiga {oldAbsoluteFilePath}: {ex.Message}");
+                            // Não retorna erro para o cliente, pois a atualização principal foi bem-sucedida
+                        }
+                    }
+                }
+            }
 
             _context.Entry(clienteToUpdate).State = EntityState.Modified;
 
