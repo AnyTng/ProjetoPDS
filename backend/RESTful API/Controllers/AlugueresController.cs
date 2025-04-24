@@ -10,6 +10,10 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using RESTful_API.Models;
+using Stripe;
+using Stripe.BillingPortal;
+using Stripe.Checkout;
+using static System.Collections.Specialized.BitVector32;
 
 namespace RESTful_API.Controllers
 {
@@ -111,7 +115,7 @@ namespace RESTful_API.Controllers
         //-------------------//
         //Cliente Aluguer
         //-------------------//
-        [HttpGet("apresentaValor")]
+        /*[HttpGet("apresentaValor")]
         public async Task<ActionResult<Aluguer>> GetApresentaValorAluguer(int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -163,27 +167,25 @@ namespace RESTful_API.Controllers
                 ValorReserva = valorR,
                 ValorQuitacao = valorQ
             });
-        }
-
+        }*/
+        
         // POST: api/Alugueres/fazaluguer
         [HttpPost("fazaluguer")]
         public async Task<ActionResult<Aluguer>> PostFazAluguer(int idVeiculo, DateTime dataLevantamento, DateTime dataEntrega)
         {
-
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
             if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 1)//verifica se é cliente
+            if (userTipoLogin != 1) // Verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
             }
 
             // Encontra cliente associado ao idLogin do token
-            int idCliente = 0;
-            idCliente = await _context.Clientes
+            int idCliente = await _context.Clientes
                 .Where(c => c.LoginIdlogin == userIdLogin)
                 .Select(c => c.Idcliente)
                 .FirstOrDefaultAsync();
@@ -200,29 +202,33 @@ namespace RESTful_API.Controllers
                     .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
                 .FirstOrDefaultAsync();
+
             if (veiculo == null)
             {
                 return NotFound("Veículo não disponível ou não encontrado.");
             }
 
+            // Verifica se já existe um aluguer ativo
             var aluguerAtivo = await _context.Aluguers
                 .Where(a => a.ClienteIdcliente == idCliente && (a.EstadoAluguer == "Alugado" || a.EstadoAluguer == "Pendente"))
                 .FirstOrDefaultAsync();
+
             if (aluguerAtivo != null)
             {
                 return BadRequest("Já existe um aluguer ativo para este cliente.");
             }
 
+            // Calcula o valor do aluguer
             float valorDiario = veiculo.ValorDiarioVeiculo ?? 0;
             int numeroDias = (dataEntrega - dataLevantamento).Days;
             if (numeroDias <= 0)
             {
                 return BadRequest("A data de entrega deve ser posterior à data de levantamento.");
             }
+
             float valorR = valorDiario * numeroDias / 10;
             float valorQ = valorDiario * numeroDias - valorR;
 
-            // Cria novo aluguer
             var novoAluguer = new Aluguer
             {
                 VeiculoIdveiculo = idVeiculo,
@@ -236,17 +242,90 @@ namespace RESTful_API.Controllers
                 DataFatura = null,
                 Classificacao = null
             };
-            
+
             _context.Aluguers.Add(novoAluguer);
-            await _context.SaveChangesAsync();
-            // Atualiza o estado do veículo para "Indisponível"
-            veiculo.EstadoVeiculo = "Alugado";
-            _context.Entry(veiculo).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // Salva para obter o ID
 
-            // Retorna o aluguer criado
-            return CreatedAtAction("GetAluguer", new { id = novoAluguer.Idaluguer }, novoAluguer);
+            // Configura Stripe para criar a sessão de pagamento
+            StripeConfiguration.ApiKey = "sk_test_xxxxxx"; // Substitua com sua chave secreta
 
+            var options = new Stripe.Checkout.SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            Currency = "eur",
+                            UnitAmount = (long)(valorR * 100), // Stripe espera o valor em centavos
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = $"Reserva de aluguer: {veiculo.ModeloVeiculoIdmodeloNavigation.DescModelo}",
+                            },
+                        },
+                        Quantity = 1,
+                    },
+                },
+                Mode = "payment",
+                SuccessUrl = $"https://teusite.com/aluguer/sucesso?id={novoAluguer.Idaluguer}",
+                CancelUrl = $"https://teusite.com/aluguer/cancelado?id={novoAluguer.Idaluguer}",
+            };
+
+            var service = new Stripe.Checkout.SessionService();
+            Stripe.Checkout.Session session = service.Create(options);
+
+            return Ok(new
+            {
+                checkoutUrl = session.Url,
+                aluguerId = novoAluguer.Idaluguer
+            });
+        }
+
+
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            var json = await new StreamReader(Request.Body).ReadToEndAsync();
+
+            var webhookSecret = "whsec_...";  // A chave secreta do webhook
+            Event stripeEvent;
+
+            try
+            {
+                stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], webhookSecret);
+            }
+            catch (Exception e)
+            {
+                // Assinala erro de assinatura ou erro de evento inválido
+                return BadRequest("Evento inválido.");
+            }
+
+            if (stripeEvent.Type == "payment_intent.succeeded")
+            {
+                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+
+                // Pega o ID do aluguer da URL (pode ser passado na URL de sucesso do Stripe)
+                int aluguerId = int.Parse(paymentIntent.Metadata["aluguerId"]);
+
+                // Atualiza o aluguer como "Confirmado" no banco de dados
+                var aluguer = await _context.Aluguers.FindAsync(aluguerId);
+                if (aluguer != null)
+                {
+                    aluguer.EstadoAluguer = "Confirmado";
+                    var veiculo = await _context.Veiculos.FindAsync(aluguer.VeiculoIdveiculo);
+                    if (veiculo != null)
+                    {
+                        veiculo.EstadoVeiculo = "Alugado"; // Marca o veículo como alugado
+                        _context.Entry(veiculo).State = EntityState.Modified;
+                    }
+                    _context.Entry(aluguer).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return Ok();
         }
 
 
@@ -466,11 +545,6 @@ namespace RESTful_API.Controllers
                 return NotFound("Aluguer não encontrado.");
             }
 
-            /*if (aluguer.Classificacao != null)
-            {
-                return NotFound("Já foi avaliado com nota: " + aluguer.Classificacao);
-            }*/
-
             if (aluguer.EstadoAluguer!="Concluido")
             {
                 return NotFound("Aluguer não concluido, apenas sera permitida a sua avaliação apos a entrega do veiculo.");
@@ -491,6 +565,7 @@ namespace RESTful_API.Controllers
 
 
         //--------------------//
+
         [HttpGet("fatura")]
         public async Task<IActionResult> GetFaturaAluguer(int idAluguer)
         {

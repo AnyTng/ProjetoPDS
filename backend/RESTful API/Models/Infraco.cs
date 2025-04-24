@@ -11,7 +11,7 @@ public partial class Infracao
 
     public DateTime? DataInfracao { get; set; }
 
-    public int? ValorInfracao { get; set; }
+    public float? ValorInfracao { get; set; }
 
     public string? DescInfracao { get; set; }
 

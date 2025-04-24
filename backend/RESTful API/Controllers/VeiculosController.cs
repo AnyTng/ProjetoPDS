@@ -560,6 +560,7 @@ namespace RESTful_API.Controllers
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
                 .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .Include(v => v.Aluguers)
+
                 .FirstOrDefaultAsync();
 
             if (veiculo == null)

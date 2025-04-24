@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using RESTful_API.Models;
 
 namespace RESTful_API.Controllers
@@ -103,5 +106,107 @@ namespace RESTful_API.Controllers
         {
             return _context.Infracoes.Any(e => e.Idinfracao == id);
         }
+
+
+
+        //
+        //     Admin insere multa
+        //
+
+        [HttpPost("inserir-multa")]
+        public async Task<IActionResult> InserirMulta(DateTime dataInfracao, float valorInfracao, string matricula, string descInfracao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+
+            var aluguer = await _context.Aluguers
+                .Include(a => a.VeiculoIdveiculoNavigation)
+                    .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                        .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .Where(a => a.VeiculoIdveiculoNavigation.MatriculaVeiculo == matricula &&
+                            a.DataDevolucao >= dataInfracao &&
+                            a.DataLevantamento <= dataInfracao)
+                .FirstOrDefaultAsync();
+            if (aluguer == null) {
+                return NotFound("Aluguer não encontrado para a matrícula fornecida.");
+            }
+
+
+            var infracao = new Infracao
+            {
+                AluguerIdaluguer = aluguer.Idaluguer,
+                DataInfracao = dataInfracao,
+                ValorInfracao = valorInfracao,
+                DescInfracao = descInfracao
+            };
+
+            var cliente = await _context.Clientes
+                .Include(c => c.LoginIdloginNavigation)
+                .FirstOrDefaultAsync(c => c.Idcliente == aluguer.ClienteIdcliente);
+
+
+            if (infracao.DataInfracao != null)
+            {
+
+                if (cliente.LoginIdlogin != null)
+                {
+                    var notificacaoData = new
+                    {
+                        Cliente = new
+                        {
+                            cliente.NomeCliente,
+                            cliente.Nifcliente,
+                            cliente.ContactoC1,
+                            cliente.LoginIdloginNavigation.Email
+
+                        },
+                        Multa = new
+                        {
+                            infracao.DataInfracao,
+                            infracao.ValorInfracao,
+                            infracao.DescInfracao
+                        },
+                        Aluguer = new
+                        {
+                            aluguer.Idaluguer,
+                            aluguer.DataLevantamento,
+                            aluguer.DataDevolucao,
+                            aluguer.VeiculoIdveiculoNavigation.MatriculaVeiculo,
+                            aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
+                            aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo,
+                        }
+                    };
+
+                    var jsonData = JsonSerializer.Serialize(notificacaoData);
+
+                    var notificacao = new Notificacao
+                    {
+                        ConteudoNotif = jsonData,
+                        LoginIdlogin = cliente.LoginIdlogin,
+                    };
+
+                    _context.Notificacaos.Add(notificacao);
+                }
+                else
+                {
+                    return NotFound("Erro ao imitir notificação, processo cancelado");
+
+                }
+            }
+
+            _context.Infracoes.Add(infracao);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetInfracao), new { id = infracao.Idinfracao }, infracao);
+               
+        }
+
     }
 }
