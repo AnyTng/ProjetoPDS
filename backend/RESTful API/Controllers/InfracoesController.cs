@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
@@ -156,7 +157,7 @@ namespace RESTful_API.Controllers
         //
 
         [HttpPost("inserir-multa")]
-        public async Task<IActionResult> InserirMulta(DateTime dataInfracao, float valorInfracao, string matricula, string descInfracao)
+        public async Task<IActionResult> InserirMulta(DateTime dataInfracao, float valorInfracao, string matricula, string descInfracao, DateTime dataLimPagInfracoes)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
@@ -169,6 +170,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a admin.");
             }
 
+            var veiculo = await _context.Veiculos
+                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
+                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .FirstOrDefaultAsync(v => v.MatriculaVeiculo == matricula);
+            if (veiculo == null)
+            {
+                return NotFound("Veículo não encontrado para a matrícula fornecida.");
+            }
+
             var aluguer = await _context.Aluguers
                 .Include(a => a.VeiculoIdveiculoNavigation)
                     .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
@@ -177,9 +187,12 @@ namespace RESTful_API.Controllers
                             a.DataDevolucao >= dataInfracao &&
                             a.DataLevantamento <= dataInfracao)
                 .FirstOrDefaultAsync();
+
             if (aluguer == null) {
                 return NotFound("Aluguer não encontrado para a matrícula fornecida.");
             }
+
+
 
 
             var infracao = new Infracao
@@ -188,7 +201,8 @@ namespace RESTful_API.Controllers
                 DataInfracao = dataInfracao,
                 ValorInfracao = valorInfracao,
                 DescInfracao = descInfracao,
-                EstadoInfracao = "Submetida"
+                EstadoInfracao = "Submetida",
+                DataLimPagInfracoes = dataLimPagInfracoes
             };
 
             var cliente = await _context.Clientes
@@ -216,7 +230,9 @@ namespace RESTful_API.Controllers
                             infracao.Idinfracao,
                             infracao.DataInfracao,
                             infracao.ValorInfracao,
-                            infracao.DescInfracao
+                            infracao.DescInfracao,
+                            infracao.EstadoInfracao,
+                            infracao.DataLimPagInfracoes,
                         },
                         Aluguer = new
                         {

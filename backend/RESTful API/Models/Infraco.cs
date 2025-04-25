@@ -17,6 +17,8 @@ public partial class Infracao
 
     public string? EstadoInfracao { get; set; }
 
+    public DateTime? DataLimPagInfracoes { get; set; }
+
     public virtual Aluguer AluguerIdaluguerNavigation { get; set; } = null!;
 
     public virtual ICollection<Contestacao> Contestacaos { get; set; } = new List<Contestacao>();
