@@ -1,6 +1,7 @@
 import Button from "../button.jsx";
 import { useState } from "react";
 import ClassificacaoOverlay from "../ClassificacaoOverlay.jsx";
+import {fetchWithAuth} from "../../utils/api.js";
 
 const AluguerCard = ({
     idaluguer,
@@ -19,6 +20,20 @@ const AluguerCard = ({
     const [isRatingOpen, setIsRatingOpen] = useState(false);
     const [currentRating, setCurrentRating] = useState(classificacao || 0);
 
+
+    const handleCancellation = async () => {
+
+            try {
+                await fetchWithAuth(`/api/Alugueres/cancelar?idAluguer=${idaluguer}`, { method: 'PUT' });
+                //refresh the page or update the state to reflect the cancellation
+                window.location.reload();
+            } catch (err) {
+                console.error("ErrROOOO A CANCELARRRRR GRAHHH:", err);
+            }
+
+    };
+
+    const isActive = estadoAluguer?.toLowerCase() === "pendente" || estadoAluguer?.toLowerCase() === "aguarda levantamento";
     const handleRatingClose = (newRating) => {
         setIsRatingOpen(false);
         if (newRating && newRating !== currentRating) {
@@ -37,7 +52,7 @@ const AluguerCard = ({
         switch (state?.toLowerCase()) {
             case "pendente": return "bg-yellow-50 border-yellow-200";
             case "cancelado": return "bg-red-50 border-red-200";
-            case "aguardar levantamento": return "bg-blue-50 border-blue-200";
+            case "aguarda levantamento": return "bg-blue-50 border-blue-200";
             case "alugado": return "bg-green-50 border-green-200";
             case "concluido": return "bg-purple-50 border-purple-200";
             default: return "bg-gray-50 border-gray-200";
@@ -59,7 +74,7 @@ const AluguerCard = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 );
-            case "aguardar levantamento":
+            case "aguarda levantamento":
                 return (
                     <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -186,6 +201,20 @@ const AluguerCard = ({
                     />
                 )}
 
+                {isActive && (
+                    <Button
+                        text="Cancelar Aluguer"
+                        variant="danger"
+                        onClick={handleCancellation}
+                        className="px-6 !py-1 text-base flex items-center gap-2"
+                        icon={
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        }
+                    />
+
+                )}
                 {/* Rating Overlay */}
                 <ClassificacaoOverlay
                     isOpen={isRatingOpen}
@@ -193,6 +222,8 @@ const AluguerCard = ({
                     idAluguer={idaluguer}
                     initialRating={currentRating}
                 />
+
+
             </div>
         </div>
     );

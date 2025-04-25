@@ -284,7 +284,7 @@ public async Task<IActionResult> StripeWebhook()
 
                 if (aluguer != null)
                 {
-                    aluguer.EstadoAluguer = "Aguardar levantamento";
+                    aluguer.EstadoAluguer = "Aguarda levantamento";
                     aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Alugado";
                     await _context.SaveChangesAsync();
                 }
@@ -360,7 +360,7 @@ public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
 
     // 5) Only pending or “aguarda levantamento” rentals can be cancelled
     if (aluguer.EstadoAluguer != "Pendente"
-        && aluguer.EstadoAluguer != "Aguarda Levantamento")
+        && aluguer.EstadoAluguer != "Aguarda levantamento")
     {
         return BadRequest("Aluguer não se encontra ativo para cancelamento.");
     }
@@ -531,10 +531,10 @@ public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
                         .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .ToListAsync();
 
-            if (alugueres == null || alugueres.Count == 0)
-            {
-                return NotFound("Nenhum aluguer encontrado.");
-            }
+            // if (alugueres == null || alugueres.Count == 0)
+            // {
+            //     return NotFound("Nenhum aluguer encontrado.");
+            // }
             return Ok(alugueres.Select(a => new
             {
                 a.Idaluguer,
