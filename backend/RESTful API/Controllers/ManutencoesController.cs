@@ -105,10 +105,15 @@ namespace RESTful_API.Controllers
             return _context.Manutencaos.Any(e => e.Idmanutencao == id);
         }
 
-        /////////////////////
-        /// Administrador
-        [HttpPost("responderconcurso")]
-        public async Task<ActionResult<Manutencao>> ResponderConcurso(int idConcurso, string descProposta, float valorProposta, DateTime dataIn)
+
+
+
+
+        ////////////
+        ///EMP
+        ///
+        [HttpPost("FazerProposta")]
+        public async Task<ActionResult<Manutencao>> FazerProposta(int idConcurso, string descProposta, float valorProposta, DateTime dataIn, DateTime dataFim)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
@@ -140,7 +145,7 @@ namespace RESTful_API.Controllers
                 ValorProposta = valorProposta,
                 EstadoProposta = "Pendente",
                 DataInicioMan = dataIn,
-                DataFimMan = null,
+                DataFimMan = dataFim,
                 EmpresaIdempresa = empresa.Idempresa,
                 DespesaIddespesa = concurso.Iddespesa
 
@@ -154,12 +159,6 @@ namespace RESTful_API.Controllers
         }
 
 
-
-
-
-        ////////////
-        ///EMP
-        ///
         [HttpGet("PropostaEmp")]
         public async Task<ActionResult<IEnumerable<Manutencao>>> GetConcursosEmp()
         {
@@ -182,5 +181,122 @@ namespace RESTful_API.Controllers
 
             return manutencoes;
         }
+
+        /////////////////////
+        /// Administrador
+        /// 
+        [HttpGet("VerPropostaAdmin")]
+        public async Task<ActionResult<IEnumerable<Manutencao>>> GetEscolherP(int idConcurso)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            // Buscar todas as manutenções da empresa
+            var manutencoes = await _context.Manutencaos
+                .Where(m => m.DespesaIddespesa==idConcurso)
+                .ToListAsync();
+
+            return manutencoes;
+        }
+
+        [HttpPut("AceitarProposta")]
+        public async Task<IActionResult> AceitarProposta(int idProposta)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            var proposta = await _context.Manutencaos.FindAsync(idProposta);
+            if (proposta == null)
+            {
+                return NotFound();
+            }
+
+            proposta.EstadoProposta = "Aceite";
+            /*
+
+            //quero que envie um email para a em presa 
+            //enviar email para a empresa
+            var empresa = await _context.Empresas.FindAsync(proposta.EmpresaIdempresa);
+            if (empresa != null)
+            {
+                var email = empresa.LoginIdloginNavigation.Email;
+                var assunto = "Proposta Aceite";
+                var mensagem = $"A sua proposta com o ID {proposta.Idmanutencao} foi aceite.";
+                await _emailService.EnviarEmail(email, assunto, mensagem);
+            }
+            */
+
+
+
+
+
+
+
+
+            var manutencoes = await _context.Manutencaos
+                .Where(m => m.DespesaIddespesa == proposta.DespesaIddespesa && 
+                m.Idmanutencao!= idProposta)
+                .ToListAsync();
+
+            //MUDAR O EstadoProposta DE OUTRAS PROPOSTAS PARA REJEITADA
+            foreach (var m in manutencoes)
+            {
+                m.EstadoProposta = "Rejeitada";
+            }
+
+            // Atualizar o estado da despesa para "Em Andamento"
+            var despesa = await _context.Despesas.FindAsync(proposta.DespesaIddespesa);
+            if (despesa != null)
+            {
+                despesa.EstadoConcurso = "Encerrado";
+            }
+
+            //selecionar o veiculo associado ao ao concurso e modar a seu estado para "Em Manutencao"
+            var veiculo = await _context.Veiculos
+                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
+                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .FirstOrDefaultAsync(v => v.Idveiculo == proposta.DespesaIddespesaNavigation.VeiculoIdveiculo);
+            if (veiculo != null)
+            {
+                veiculo.EstadoVeiculo = "Em Manutencao";
+            }
+
+
+
+            _context.Entry(proposta).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ManutencaoExists(idProposta))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }   
+
     }
 }

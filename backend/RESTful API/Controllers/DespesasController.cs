@@ -162,6 +162,47 @@ namespace RESTful_API.Controllers
             return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
         }
 
+        //cancelar concurso e manutençoes associadas
+        [HttpPut("CancelarConcurso")]
+        public async Task<IActionResult> CancelarConcurso(int id)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3) // Verifica se é administrador
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            var despesa = await _context.Despesas.FindAsync(id);
+            if (despesa == null)
+            {
+                return NotFound();
+            }
+
+
+            despesa.EstadoConcurso = "Cancelado";
+            _context.Entry(despesa).State = EntityState.Modified;
+
+            // Cancelar todas manutenções associadas
+            var manutencoes = await _context.Manutencaos
+                .Where(m => m.DespesaIddespesa == despesa.Iddespesa)
+                .ToListAsync();
+            foreach (var manutencao in manutencoes)
+            {
+                manutencao.EstadoProposta = "Cancelada";
+                _context.Entry(manutencao).State = EntityState.Modified;
+            }
+
+
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
 
 
         //////////

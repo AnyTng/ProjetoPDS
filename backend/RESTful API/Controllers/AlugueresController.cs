@@ -489,7 +489,9 @@ public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
             aluguer.EstadoAluguer = "Concluido";
             aluguer.DataFatura = dataDevolucao;
 
-            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
+            var veiculo = await _context.Veiculos
+                .FirstOrDefaultAsync(v => v.Idveiculo == aluguer.VeiculoIdveiculo);
+            veiculo.EstadoVeiculo= "Disponível";
 
             _context.Entry(aluguer).State = EntityState.Modified;
             await _context.SaveChangesAsync();
