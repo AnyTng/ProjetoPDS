@@ -10,6 +10,7 @@ import PrivateRoute from './PrivateRoute';
 
 import EShopPage from "../pages/LoggedOut/eShopPage.jsx";
 import CarShop from "../pages/LoggedOut/carShop.jsx";
+import RegisterPagePrestador from "../pages/Prestador/registerPrestador.jsx";
 
 // Payment Pages
 import PaymentSuccess from "../pages/Cliente/PaymentSuccess.jsx";
@@ -42,6 +43,7 @@ const AppRoutes = () => (
         <Route path="/registerUser" element={<RegisterUser />} />
         <Route path="/eShop" element={<EShopPage />} />
         <Route path="/eShop/:carID" element={<CarShop />} />
+        <Route path="/registerPrestador" element={<RegisterPagePrestador />} />
         {/* Adicionar rota para /registerEmpresa se existir */}
         {/* <Route path="/registerEmpresa" element={<RegisterEmpresa />} /> */}
 

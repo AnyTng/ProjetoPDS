@@ -113,7 +113,7 @@ const LoginForm = () => {
                     <Button text={isLoading ? "A iniciar..." : "Iniciar Sessão"} variant="primary" type="submit" disabled={isLoading} className="flex-1 !py-1"/>
                 </div>
                 <div className="text-center mt-4">
-                    <Button text="É uma Empresa?" variant="text" type="button" disabled={isLoading} onClick={() => navigate('/registerEmpresa')} /> {/* Navega para registo empresa */}
+                    <Button text="É uma Empresa?" variant="text" type="button" disabled={isLoading} onClick={() => navigate('/registerPrestador')} /> {/* Navega para registo empresa */}
                 </div>
             </form>
         </div>
