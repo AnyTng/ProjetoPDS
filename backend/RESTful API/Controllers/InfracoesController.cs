@@ -192,7 +192,7 @@ namespace RESTful_API.Controllers
                 return NotFound("Aluguer não encontrado para a matrícula fornecida.");
             }
 
-
+            int saveIDA = aluguer.Idaluguer;
 
 
             var infracao = new Infracao
@@ -209,40 +209,23 @@ namespace RESTful_API.Controllers
                 .Include(c => c.LoginIdloginNavigation)
                 .FirstOrDefaultAsync(c => c.Idcliente == aluguer.ClienteIdcliente);
 
+            _context.Infracoes.Add(infracao);
+            await _context.SaveChangesAsync();
 
-            if (infracao.DataInfracao != null)
+            int idInfracao = await _context.Infracoes
+                .Where(i => i.AluguerIdaluguer == saveIDA && i.DataInfracao == dataInfracao)
+                .Select(i => i.Idinfracao)
+                .FirstOrDefaultAsync();
+
+
+            if (dataInfracao != null)
             {
-
                 if (cliente.LoginIdlogin != null)
                 {
                     var notificacaoData = new
                     {
-                        Cliente = new
-                        {
-                            cliente.NomeCliente,
-                            cliente.Nifcliente,
-                            cliente.ContactoC1,
-                            cliente.LoginIdloginNavigation.Email
-
-                        },
-                        Multa = new
-                        {
-                            infracao.Idinfracao,
-                            infracao.DataInfracao,
-                            infracao.ValorInfracao,
-                            infracao.DescInfracao,
-                            infracao.EstadoInfracao,
-                            infracao.DataLimPagInfracoes,
-                        },
-                        Aluguer = new
-                        {
-                            aluguer.Idaluguer,
-                            aluguer.DataLevantamento,
-                            aluguer.DataDevolucao,
-                            aluguer.VeiculoIdveiculoNavigation.MatriculaVeiculo,
-                            aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
-                            aluguer.VeiculoIdveiculoNavigation.ModeloVeiculoIdmodeloNavigation.DescModelo,
-                        }
+                        idInfracao,
+                        aluguer.Idaluguer
                     };
 
                     var jsonData = JsonSerializer.Serialize(notificacaoData);
@@ -251,20 +234,19 @@ namespace RESTful_API.Controllers
                     {
                         ConteudoNotif = jsonData,
                         LoginIdlogin = cliente.LoginIdlogin,
+                        TipoNotificacao = 1 // 1 - Multa
                     };
 
                     _context.Notificacaos.Add(notificacao);
-
+                    await _context.SaveChangesAsync(); // <<< ESTA LINHA ESTAVA FALTANDO
                 }
                 else
                 {
                     return NotFound("Erro ao imitir notificação, processo cancelado");
-
                 }
             }
 
-            _context.Infracoes.Add(infracao);
-            await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetInfracao), new { id = infracao.Idinfracao }, infracao);
                
         }

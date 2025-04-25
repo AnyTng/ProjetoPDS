@@ -460,15 +460,20 @@ namespace RESTful_API.Controllers
             }
 
             // --- Password to hash ---
-            string passwordHash;
-            try
+            if (clienteAdmin.Password != null)
             {
-                passwordHash = BCrypt.Net.BCrypt.HashPassword(clienteAdmin.Password);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro ao gerar hash da password para {clienteAdmin.NomeCliente}: {ex.Message}");
-                return StatusCode(500, "Erro interno ao processar o registo.");
+                string passwordHash;
+                try
+                {
+                    passwordHash = BCrypt.Net.BCrypt.HashPassword(clienteAdmin.Password);
+                    clienteToUpdate.LoginIdloginNavigation.HashPassword = passwordHash;
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao gerar hash da password para {clienteAdmin.NomeCliente}: {ex.Message}");
+                    return StatusCode(500, "Erro interno ao processar o registo.");
+                }
             }
 
             // --- Update Allowed Fields (same as before) ---
@@ -478,7 +483,6 @@ namespace RESTful_API.Controllers
             clienteToUpdate.RuaCliente = clienteAdmin.RuaCliente;
             clienteToUpdate.ContactoC1 = clienteAdmin.ContactoC1;
             clienteToUpdate.ContactoC2 = clienteAdmin.ContactoC2;
-            clienteToUpdate.LoginIdloginNavigation.HashPassword = passwordHash;
             clienteToUpdate.LoginIdloginNavigation.Email = clienteAdmin.Email;
             clienteToUpdate.EstadoValCc = clienteAdmin.EstadoValCc;
 
