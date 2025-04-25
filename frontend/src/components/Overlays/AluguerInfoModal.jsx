@@ -23,7 +23,7 @@ const formatCurrency = (value) => {
 };
 
 // Componente Modal atualizado
-const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
+const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
 
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
@@ -49,6 +49,25 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
     const valorTotal = (Number(valorReserva) || 0) + (Number(valorQuitacao) || 0);
 
     // Função para chamar a API de atualização de estado
+
+    const handleMarcCompleted = async () => {
+        if (!idaluguer) return;
+        setIsUpdating(true);
+        setUpdateError(null);
+        try {
+            const apiUrl = `/api/Alugueres/entrega?idAluguer=${idaluguer}`;
+            await fetchWithAuth(apiUrl, { method: 'PUT' });
+
+            // Sucesso: Força o reload da página inteira
+            window.location.reload();
+
+
+        } catch (err) {
+            console.error('Erro ao marcar como concluído:', err);
+            setUpdateError(err.message || 'Falha ao marcar como concluído.');
+            setIsUpdating(false); // Resetar o estado de atualização em caso de erro
+        }
+    }
     const handleUpdateEstado = async (novoEstado) => {
         if (!idaluguer) return;
         setIsUpdating(true);
@@ -60,11 +79,7 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
             // Sucesso: Força o reload da página inteira
             window.location.reload();
 
-            // Alternativa (sem reload, atualiza lista no pai):
-            // if (onStatusUpdate) {
-            //     onStatusUpdate();
-            // }
-            // onClose(); // Fecha o modal (pode ser desnecessário se a página recarregar)
+
 
         } catch (err) {
             console.error(`Erro ao atualizar estado para ${novoEstado}:`, err);
@@ -81,6 +96,10 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
 
     // Verifica se o estado atual já é 'Alugado'
     const isAlreadyAlugado = currentEstadoAluguer?.toLowerCase() === 'alugado';
+
+    // Verifica se o estado permite cancelamento
+    const canCancel = currentEstadoAluguer?.toLowerCase() === 'pendente' ||
+                      currentEstadoAluguer?.toLowerCase() === 'aguarda levantamento';
 
     return (
         <div
@@ -167,22 +186,29 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
                                     disabled={isUpdating}
                                 />
                             )}
-                            <Button
-                                text={isUpdating ? "A processar..." : "Cancelar Aluguer"}
-                                variant="danger"
-                                type="button"
-                                onClick={() => handleUpdateEstado('Cancelado')}
-                                disabled={isUpdating}
-                            />
+
+                            {/* Mostrar botão Cancelar apenas se o estado permitir */}
+                            {canCancel && (
+                                <Button
+                                    text={isUpdating ? "A processar..." : "Cancelar Aluguer"}
+                                    variant="danger"
+                                    type="button"
+                                    onClick={() => handleUpdateEstado('Cancelado')}
+                                    disabled={isUpdating}
+                                />
+                            )}
+
+                            {isAlreadyAlugado && (
+                                <Button
+                                    text={isUpdating ? "A processar..." : "Terminar"}
+                                    variant="primary"
+                                    type="button"
+                                    onClick={() => handleMarcCompleted()}
+                                    disabled={isUpdating}
+                                />
+                            )}
                         </>
                     )}
-                    <Button
-                        text="Fechar"
-                        variant="secondary"
-                        type="button"
-                        onClick={onClose}
-                        disabled={isUpdating}
-                    />
                 </div>
             </div>
         </div>
@@ -190,3 +216,4 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
 };
 
 export default AluguerInfoModal;
+
