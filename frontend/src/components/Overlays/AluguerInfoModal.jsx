@@ -23,18 +23,18 @@ const formatCurrency = (value) => {
 };
 
 // Componente Modal atualizado
-const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
+const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
 
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
 
     if (!isOpen || !aluguerData) return null;
 
-    // Extrair dados do aluguerData (Read-Only)
+    // Extrair dados do aluguerData, incluindo objetos nested
     const {
         idaluguer,
-        veiculoIdveiculo,
-        clienteIdcliente,
+        cliente,        // Objeto Cliente
+        veiculo,        // Objeto Veiculo
         dataLevantamento,
         dataEntregaPrevista,
         dataDevolucao,
@@ -43,31 +43,19 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
         valorReserva,
         valorQuitacao,
         estadoAluguer: currentEstadoAluguer,
-    } = aluguerData;
+    } = aluguerData || {}; // Fallback para aluguerData
 
-    // Calcular Valor Total
+    // Extrair detalhes do cliente e veículo com fallbacks
+    const nomeCliente = cliente?.nomeCliente || 'N/D';
+    const matriculaVeiculo = veiculo?.matriculaVeiculo || 'N/D';
+    const marcaVeiculo = veiculo?.marca || '';
+    const modeloVeiculo = veiculo?.modelo || '';
+    const veiculoDisplay = `${marcaVeiculo} ${modeloVeiculo} (${matriculaVeiculo})`; // Combina marca/modelo/matrícula
+
+    // Calcular Valor Total (Mantido)
     const valorTotal = (Number(valorReserva) || 0) + (Number(valorQuitacao) || 0);
 
-    // Função para chamar a API de atualização de estado
-
-    const handleMarcCompleted = async () => {
-        if (!idaluguer) return;
-        setIsUpdating(true);
-        setUpdateError(null);
-        try {
-            const apiUrl = `/api/Alugueres/entrega?idAluguer=${idaluguer}`;
-            await fetchWithAuth(apiUrl, { method: 'PUT' });
-
-            // Sucesso: Força o reload da página inteira
-            window.location.reload();
-
-
-        } catch (err) {
-            console.error('Erro ao marcar como concluído:', err);
-            setUpdateError(err.message || 'Falha ao marcar como concluído.');
-            setIsUpdating(false); // Resetar o estado de atualização em caso de erro
-        }
-    }
+    // Função para chamar a API de atualização de estado (Mantida)
     const handleUpdateEstado = async (novoEstado) => {
         if (!idaluguer) return;
         setIsUpdating(true);
@@ -75,31 +63,38 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
         try {
             const apiUrl = `/api/Alugueres/atualizaestado?id=${idaluguer}&estadoAluguer=${encodeURIComponent(novoEstado)}`;
             await fetchWithAuth(apiUrl, { method: 'PUT' });
-
-            // Sucesso: Força o reload da página inteira
-            window.location.reload();
-
-
-
+            window.location.reload(); // Mantido conforme pedido anterior
         } catch (err) {
             console.error(`Erro ao atualizar estado para ${novoEstado}:`, err);
             setUpdateError(err.message || `Falha ao atualizar estado para ${novoEstado}.`);
-            // Não recarrega nem fecha em caso de erro, para mostrar a mensagem
-            setIsUpdating(false); // Resetar o estado de atualização em caso de erro
+            setIsUpdating(false);
         }
-        // Removido finally block que fazia setIsUpdating(false) para garantir que só acontece se não houver reload
     };
 
-    // Só permite alterar se não estiver já 'Concluido' ou 'Cancelado'
+    // Função para marcar como concluído (Mantida)
+    const handleMarcCompleted = async () => {
+        if (!idaluguer) return;
+        setIsUpdating(true);
+        setUpdateError(null);
+        try {
+            const apiUrl = `/api/Alugueres/entrega?idAluguer=${idaluguer}`;
+            await fetchWithAuth(apiUrl, { method: 'PUT' });
+            window.location.reload(); // Mantido
+        } catch (err) {
+            console.error('Erro ao marcar como concluído:', err);
+            setUpdateError(err.message || 'Falha ao marcar como concluído.');
+            setIsUpdating(false);
+        }
+    }
+
+
+    // Condições de estado e botões (Mantidas)
     const canUpdateStatus = currentEstadoAluguer?.toLowerCase() !== 'concluido' &&
         currentEstadoAluguer?.toLowerCase() !== 'cancelado';
-
-    // Verifica se o estado atual já é 'Alugado'
     const isAlreadyAlugado = currentEstadoAluguer?.toLowerCase() === 'alugado';
-
-    // Verifica se o estado permite cancelamento
     const canCancel = currentEstadoAluguer?.toLowerCase() === 'pendente' ||
-                      currentEstadoAluguer?.toLowerCase() === 'aguarda levantamento';
+        currentEstadoAluguer?.toLowerCase() === 'aguarda levantamento';
+
 
     return (
         <div
@@ -119,16 +114,19 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                     Detalhes do Aluguer #{idaluguer || ''}
                 </h2>
 
-                {/* Grid para mostrar os detalhes (Read-Only) */}
+                {/* Grid para mostrar os detalhes (Read-Only) - Atualizado para mostrar dados nested */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm mb-6">
-                    <div className="flex flex-col">
-                        <span className="font-semibold text-gray-500 mb-1">ID Cliente:</span>
-                        <span className="text-gray-800">{clienteIdcliente}</span>
+                    {/* Campo Cliente Atualizado */}
+                    <div className="flex flex-col md:col-span-2"> {/* Ocupa as duas colunas */}
+                        <span className="font-semibold text-gray-500 mb-1">Cliente:</span>
+                        <span className="text-gray-800">{nomeCliente}</span>
                     </div>
-                    <div className="flex flex-col">
-                        <span className="font-semibold text-gray-500 mb-1">ID Veículo:</span>
-                        <span className="text-gray-800">{veiculoIdveiculo}</span>
+                    {/* Campo Veículo Atualizado */}
+                    <div className="flex flex-col md:col-span-2"> {/* Ocupa as duas colunas */}
+                        <span className="font-semibold text-gray-500 mb-1">Veículo:</span>
+                        <span className="text-gray-800">{veiculoDisplay}</span>
                     </div>
+                    {/* Restantes campos mantidos */}
                     <div className="flex flex-col">
                         <span className="font-semibold text-gray-500 mb-1">Levantamento:</span>
                         <span className="text-gray-800">{formatDate(dataLevantamento)}</span>
@@ -153,7 +151,6 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                         <span className="font-semibold text-gray-500 mb-1">Valor Quitação:</span>
                         <span className="text-gray-800">{formatCurrency(valorQuitacao)}</span>
                     </div>
-                    {/* Novo campo Valor Total */}
                     <div className="flex flex-col">
                         <span className="font-semibold text-gray-500 mb-1">Valor Total:</span>
                         <span className="text-gray-800 font-bold">{formatCurrency(valorTotal)}</span>
@@ -168,12 +165,12 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                     </div>
                 </div>
 
-                {/* Mensagem de Erro de Atualização */}
+                {/* Mensagem de Erro de Atualização (Mantida) */}
                 {updateError && (
                     <div className="text-red-600 text-sm text-center mb-4 -mt-2">{updateError}</div>
                 )}
 
-                {/* Botões de Ação */}
+                {/* Botões de Ação (Lógica Mantida) */}
                 <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-gray-200">
                     {canUpdateStatus && (
                         <>
@@ -186,9 +183,7 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                                     disabled={isUpdating}
                                 />
                             )}
-
-                            {/* Mostrar botão Cancelar apenas se o estado permitir */}
-                            {canCancel && (
+                            {canCancel && ( // Usa a variável canCancel
                                 <Button
                                     text={isUpdating ? "A processar..." : "Cancelar Aluguer"}
                                     variant="danger"
@@ -197,11 +192,10 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                                     disabled={isUpdating}
                                 />
                             )}
-
-                            {isAlreadyAlugado && (
+                            {isAlreadyAlugado && ( // Botão Terminar
                                 <Button
                                     text={isUpdating ? "A processar..." : "Terminar"}
-                                    variant="primary"
+                                    variant="primary" // Ou outra variante se preferir
                                     type="button"
                                     onClick={() => handleMarcCompleted()}
                                     disabled={isUpdating}
@@ -209,6 +203,13 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
                             )}
                         </>
                     )}
+                    <Button
+                        text="Fechar"
+                        variant="secondary"
+                        type="button"
+                        onClick={onClose}
+                        disabled={isUpdating}
+                    />
                 </div>
             </div>
         </div>
@@ -216,4 +217,3 @@ const AluguerInfoModal = ({ isOpen, onClose,aluguerData }) => {
 };
 
 export default AluguerInfoModal;
-
