@@ -1,4 +1,4 @@
-// srcFrontend/components/registerformUser.jsx
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputFieldLong from "./inputFieldLong.jsx";
@@ -14,7 +14,7 @@ const validateCodigoPostal = (cp) => {
     return /^\d{7}$/.test(cpDigits);
 };
 
-const RegisterFormUser = () => {
+const RegisterFormPrestador = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -160,7 +160,7 @@ const RegisterFormUser = () => {
                 <InputFieldLong id="contacto2-register" placeholder="Contacto Secundário (9 dígitos, Opcional)" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoC2} onChange={(e) => setContactoC2(e.target.value)} disabled={isLoading} />
                 <p className="text-xs text-gray-500 mt-1">* Campo obrigatório</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center w-full mt-5">
-                    <Button text="É uma Empresa?" variant="text" type="button" className="flex-1" disabled={isLoading} onClick={() => navigate('/registerPrestador')}/> {/* Leva para registo empresa */}
+                    <Button text="É uma Empresa?" variant="text" type="button" className="flex-1" disabled={isLoading} onClick={() => navigate('/registerEmpresa')}/> {/* Leva para registo empresa */}
                     <Button text={isLoading ? "A Registar..." : "Registar"} variant="primary" type="submit" className="flex-1" disabled={isLoading}/>
                 </div>
                 <div className="text-center mt-4">
@@ -171,4 +171,4 @@ const RegisterFormUser = () => {
     );
 };
 
-export default RegisterFormUser;
+export default RegisterFormPrestador;
