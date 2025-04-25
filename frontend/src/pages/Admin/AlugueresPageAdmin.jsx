@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
-import PedidoAluguerCard from "../../components/Cards/pedidoAluguerCard.jsx"; // O nome do ficheiro mantém-se, mas o componente é adaptado
+import PedidoAluguerCard from "../../components/Cards/pedidoAluguerCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
-import AluguerInfoModal from "../../components/Overlays/AluguerInfoModal.jsx";
+import AluguerInfoModal from "../../components/Overlays/AluguerInfoModal.jsx"; // Assume que este modal também foi atualizado ou será
 import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 const AlugueresPageAdmin = () => {
@@ -16,11 +16,13 @@ const AlugueresPageAdmin = () => {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedAluguer, setSelectedAluguer] = useState(null);
 
+    // Função para buscar dados do endpoint que retorna a estrutura nested
     const fetchAlugueres = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await fetchWithAuth("/api/Alugueres");
+            // Certifique-se que este é o endpoint correto para a nova estrutura
+            const data = await fetchWithAuth("/api/Alugueres/pesquisapedido");
             setAlugueres(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Erro ao buscar alugueres:", err);
@@ -35,13 +37,20 @@ const AlugueresPageAdmin = () => {
         fetchAlugueres();
     }, []);
 
+    // Atualizar filtragem para pesquisar nos campos nested
     const filtered = !isLoading && !error ? alugueres.filter((aluguer) => {
         const searchTerm = search.toLowerCase();
         const idMatch = (aluguer.idaluguer?.toString() || "").includes(searchTerm);
-        const veiculoIdMatch = (aluguer.veiculoIdveiculo?.toString() || "").includes(searchTerm);
-        const clienteIdMatch = (aluguer.clienteIdcliente?.toString() || "").includes(searchTerm);
+        // Pesquisar no nome do cliente (nested)
+        const clienteMatch = (aluguer.cliente?.nomeCliente?.toLowerCase() || "").includes(searchTerm);
+        // Pesquisar na matrícula, marca ou modelo do veículo (nested)
+        const veiculoMatch =
+            (aluguer.veiculo?.matriculaVeiculo?.toLowerCase() || "").includes(searchTerm) ||
+            (aluguer.veiculo?.marca?.toLowerCase() || "").includes(searchTerm) ||
+            (aluguer.veiculo?.modelo?.toLowerCase() || "").includes(searchTerm);
         const estadoMatch = (aluguer.estadoAluguer?.toLowerCase() || "").includes(searchTerm);
-        return idMatch || veiculoIdMatch || clienteIdMatch || estadoMatch;
+
+        return idMatch || clienteMatch || veiculoMatch || estadoMatch;
     }) : [];
 
     const handleOpenDetailModal = (aluguer) => {
@@ -54,19 +63,9 @@ const AlugueresPageAdmin = () => {
         setSelectedAluguer(null);
     };
 
-    // Funções handleApproveAluguer e handleRejectAluguer (manter/adaptar/remover se necessário)
-    const handleApproveAluguer = async (aluguerId) => {
-        console.log(`[API Placeholder] Aprovar Aluguer ID: ${aluguerId}`);
-        // Lógica API aqui...
-        // await fetchAlugueres(); // Re-fetch
-        handleCloseDetailModal();
-    };
-
-    const handleRejectAluguer = async (aluguerId) => {
-        console.log(`[API Placeholder] Rejeitar Aluguer ID: ${aluguerId}`);
-        // Lógica API aqui...
-        // await fetchAlugueres(); // Re-fetch
-        handleCloseDetailModal();
+    // Esta função será chamada pelo Modal após uma atualização bem-sucedida
+    const handleStatusUpdate = () => {
+        fetchAlugueres(); // Recarrega a lista
     };
 
     let content;
@@ -86,10 +85,10 @@ const AlugueresPageAdmin = () => {
         content = (
             <div className="flex flex-col gap-6 pb-6">
                 {filtered.map((aluguer) => (
-                    <PedidoAluguerCard // Usando o mesmo componente, mas passando a prop 'aluguerData'
+                    <PedidoAluguerCard
                         key={aluguer.idaluguer}
-                        aluguerData={aluguer} // Passa o objeto completo do aluguer
-                        onVerInfoClick={() => handleOpenDetailModal(aluguer)} // Passa a função de clique
+                        aluguerData={aluguer} // Passa o objeto completo
+                        onVerInfoClick={() => handleOpenDetailModal(aluguer)}
                     />
                 ))}
             </div>
@@ -103,7 +102,7 @@ const AlugueresPageAdmin = () => {
                 email={user?.email}
                 filter={
                     <FilterInput
-                        placeholder="Pesquisar por ID Aluguer/Veículo/Cliente, Estado..."
+                        placeholder="Pesquisar por ID, Cliente, Veículo, Estado..." // Atualizado
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         disabled={isLoading || !!error}
@@ -113,13 +112,14 @@ const AlugueresPageAdmin = () => {
                 {content}
             </DashboardLayout>
 
+            {/* Passar a função de callback para o Modal */}
             {selectedAluguer && (
                 <AluguerInfoModal
                     isOpen={isDetailModalOpen}
                     onClose={handleCloseDetailModal}
                     aluguerData={selectedAluguer}
-                    onApprove={handleApproveAluguer}
-                    onReject={handleRejectAluguer}
+                    onStatusUpdate={handleStatusUpdate} // Passa a função para recarregar a lista
+                    // Remover onApprove/onReject se não forem mais usados pelo modal atualizado
                 />
             )}
         </>

@@ -177,7 +177,7 @@ const AluguerCard = ({
                 {canRateAluguer && (
                     <Button
                         text={currentRating > 0 ? `Classificação: ${currentRating}/5` : "Avaliar Aluguer"}
-                        variant="secondary"
+                        variant="text"
                         onClick={() => setIsRatingOpen(true)}
                         className="px-6 !py-1 text-base flex items-center gap-2"
                         icon={
