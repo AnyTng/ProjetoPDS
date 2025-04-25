@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Button from '../button.jsx';
 import InputFieldLong from '../inputFieldLong.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
-
+import { fetchWithAuth } from '../../utils/api'; // Assuming this is correctly configured
 
 // Image handling functions removed
 
@@ -146,12 +146,10 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                 {/* Form Content */}
                 {!isLoading && !error && userData && (
                     <form onSubmit={handleSubmit}>
-                        {/* Image Section Removed */}
-
-                        {/* Input Fields Grid */}
+                        {/* Input Fields Grid - Labels are passed via the 'label' prop */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-6">
                             <InputFieldLong
-                                label="Nome Completo"
+                                label="Nome Completo" // Label already exists
                                 name="nomeCliente"
                                 value={formData.nomeCliente}
                                 onChange={handleChange}
@@ -160,7 +158,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="NIF"
+                                label="NIF" // Label already exists
                                 name="nifCliente"
                                 value={formData.nifCliente}
                                 onChange={handleChange}
@@ -170,7 +168,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Data de Nascimento"
+                                label="Data de Nascimento" // Label already exists
                                 name="dataNascCliente"
                                 value={formData.dataNascCliente}
                                 onChange={handleChange}
@@ -180,7 +178,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Email"
+                                label="Email" // Label already exists
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
@@ -190,7 +188,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Nova Password (opcional)"
+                                label="Nova Password (opcional)" // Label already exists
                                 name="password"
                                 type="password"
                                 value={formData.password}
@@ -199,7 +197,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Contacto Principal"
+                                label="Contacto Principal" // Label already exists
                                 name="contactoC1"
                                 value={formData.contactoC1}
                                 onChange={handleChange}
@@ -209,7 +207,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Contacto Secundário"
+                                label="Contacto Secundário" // Label already exists
                                 name="contactoC2"
                                 value={formData.contactoC2}
                                 onChange={handleChange}
@@ -218,7 +216,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Rua"
+                                label="Rua" // Label already exists
                                 name="ruaCliente"
                                 value={formData.ruaCliente}
                                 onChange={handleChange}
@@ -227,7 +225,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Código Postal"
+                                label="Código Postal" // Label already exists
                                 name="codigoPostal"
                                 value={formData.codigoPostal}
                                 onChange={handleChange}
@@ -236,7 +234,7 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 disabled={isSubmitting}
                             />
                             <InputFieldLong
-                                label="Localidade"
+                                label="Localidade" // Label already exists
                                 name="localidade"
                                 value={formData.localidade}
                                 onChange={handleChange}
@@ -246,10 +244,10 @@ const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLo
                                 readOnly // Still read-only
                             />
 
-                            {/* estadoValCc Checkbox */}
+                            {/* estadoValCc Checkbox with its label */}
                             <div className="md:col-span-2 flex items-center gap-2">
                                 <input type="checkbox" id="estadoValCc" name="estadoValCc" checked={formData.estadoValCc} onChange={handleChange} className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" disabled={isSubmitting} />
-                                <label htmlFor="estadoValCc" className="text-sm text-gray-700">Estado Validação CC</label>
+                                <label htmlFor="estadoValCc" className="text-sm text-gray-700">Estado Validação CC</label> {/* Label for checkbox */}
                             </div>
                         </div>
 
