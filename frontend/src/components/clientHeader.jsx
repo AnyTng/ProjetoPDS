@@ -36,7 +36,7 @@ const ClientHeader = ({ userImage }) => {
                     <button className="hover:text-black" onClick={() => navigate('/eShop')}>Pesquisa</button>
                     <button className="hover:text-black">Contacte-nos</button>
                     <button className="hover:text-black">Sobre Nós</button>
-                    <button className="hover:text-black">É uma Empresa de Manutenção?</button>
+                    {!user? (<button className="hover:text-black">É uma Empresa de Manutenção?</button>) : null}
                 </nav>
 
                 {/* 3. Lógica Condicional: Avatar ou Botões */}
