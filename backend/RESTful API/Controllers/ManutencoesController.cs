@@ -242,13 +242,16 @@ namespace RESTful_API.Controllers
             {
                 var email = empresa.LoginIdloginNavigation.Email;
                 var assunto = "Proposta Aceite";
-                var mensagem = $"A sua proposta com o ID {proposta.Idmanutencao} foi aceite.";
+                var mensagem = $"Caro/a {empresa.FuncionarioEmpresa}.<br>A sua proposta para {proposta.DescProposta} com o ID {proposta.Idmanutencao} foi {proposta.EstadoProposta}." +
+                                $"<br><br><br>__<br>" +
+                                $"Com os melhores cumprimentos,<br>" +
+                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
+                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
+                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
+                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
             }
-            
-
-
-
+           
             var manutencoes = await _context.Manutencaos
                 .Where(m => m.DespesaIddespesa == proposta.DespesaIddespesa && 
                 m.Idmanutencao!= idProposta)
