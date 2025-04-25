@@ -41,6 +41,7 @@ CREATE TABLE Infracoes (
   ValorInfracao    float NULL, 
   DescInfracao     varchar(8000) NULL,
   EstadoInfracao varchar(300) NULL,
+  DataLimPagInfracoes datetime null,
   PRIMARY KEY (IDInfracao));
 CREATE TABLE ModeloVeiculo (
   IDModelo            int IDENTITY NOT NULL, 
@@ -139,6 +140,7 @@ CREATE TABLE Notificacao (
   IDNotif       int IDENTITY NOT NULL, 
   ConteudoNotif varchar(8000) NULL, 
   LoginIDLogin  int NOT NULL, 
+  TipoNotificacao int NULL,
   PRIMARY KEY (IDNotif));
 ALTER TABLE Cliente ADD CONSTRAINT FKCliente381375 FOREIGN KEY (CodigoPostalCP) REFERENCES CodigoPostal (CP);
 ALTER TABLE Veiculo ADD CONSTRAINT FKVeiculo296432 FOREIGN KEY (ModeloVeiculoIDModelo) REFERENCES ModeloVeiculo (IDModelo);
@@ -13604,16 +13606,16 @@ INSERT INTO ModeloVeiculo (DescModelo, MarcaVeiculoIDMarca) VALUES
 
 
 INSERT INTO Veiculo (MatriculaVeiculo, LotacaoVeiculo, TaraVeiculo, DescCor, DataLegal, DataFabricacao, DataAquisicao, ValorDiarioVeiculo, ModeloVeiculoIDModelo, CaminhoFotoVeiculo, DescVeiculo) VALUES
-('AA-00-AA', 5, 1500, 'Preto', '2020-01-01', '2019-01-01', '2020-01-01', 50.00, 1, NULL, NULL),
-('BB-11-BB', 5, 1600, 'Branco', '2020-02-02', '2019-02-02', '2020-02-02', 55.00, 2, NULL, NULL),
-('CC-22-CC', 5, 1700, 'Azul', '2020-03-03', '2019-03-03', '2020-03-03', 60.00, 3, NULL, NULL),
-('DD-33-DD', 5, 1800, 'Vermelho', '2020-04-04', '2019-04-04', '2020-04-04', 65.00, 4, NULL, NULL),
-('EE-44-EE', 5, 1900, 'Verde', '2020-05-05', '2019-05-05', '2020-05-05', 70.00, 5, NULL, NULL),
-('FF-55-FF', 5, 2000, 'Cinza', '2020-06-06', '2019-06-06', '2020-06-06', 75.00, 6,NULL, NULL),
-('GG-66-GG', 5, 2100, 'Prata', '2020-07-07', '2019-07-07', '2020-07-07', 80.00, 7, NULL, NULL),
-('HH-77-HH', 5, 2200, 'Dourado', '2020-08-08', '2019-08-08', '2020-08-08', 85.00, 8, NULL, NULL),
-('II-88-II', 5, 2300, 'Laranja', '2020-09-09', '2019-09-09', '2020-09-09', 90.00, 9, NULL, NULL),
-('JJ-99-JJ', 5, 2400, 'Roxo', '2020-10-10', '2019-10-10', '2020-10-10', 95.00, 10, NULL, NULL);
+('AA-00-AA', 5, 1500, 'Preto', '2020-01-01', '2019-01-01', '2020-01-01', 50.00, 1, 'imageVeiculo/AA-00-AA/c65f13b7-c564-4f23-90b3-228c89453794_tc.jpg', NULL),
+('BB-11-BB', 5, 1600, 'Branco', '2020-02-02', '2019-02-02', '2020-02-02', 55.00, 2, 'imageVeiculo/BB-11-BB/32054d1e-9737-49db-afb7-cd3fefe34259_images (1).jpg', NULL),
+('CC-22-CC', 5, 1700, 'Azul', '2020-03-03', '2019-03-03', '2020-03-03', 60.00, 3, 'imageVeiculo/CC-22-CC/40dc45c8-2546-45f3-b4c9-7cca699527ce_bmwx5.jpg', NULL),
+('DD-33-DD', 5, 1800, 'Vermelho', '2020-04-04', '2019-04-04', '2020-04-04', 65.00, 4, 'imageVeiculo/DD-33-DD/0fd45878-1c2a-4b2e-a58a-87bd4f034cac_mercedes.jpg', NULL),
+('EE-44-EE', 5, 1900, 'Verde', '2020-05-05', '2019-05-05', '2020-05-05', 70.00, 5, 'imageVeiculo/EE-44-EE/6bdb057f-2ff7-4069-8018-8c377f3dda4d_Novo-Audi-A4-2016 (3).jpg', NULL),
+('FF-55-FF', 5, 2000, 'Cinza', '2020-06-06', '2019-06-06', '2020-06-06', 75.00, 6,'imageVeiculo/FF-55-FF/cd525cd2-539d-410e-b9f8-902250a90245_golf.jpg', NULL),
+('GG-66-GG', 5, 2100, 'Prata', '2020-07-07', '2019-07-07', '2020-07-07', 80.00, 7, 'imageVeiculo/GG-66-GG/d90d104f-0b29-4dd1-88c3-61c451a44f07_clio.jpg', NULL),
+('HH-77-HH', 5, 2200, 'Dourado', '2020-08-08', '2019-08-08', '2020-08-08', 85.00, 8, 'imageVeiculo/HH-77-HH/df9e0f98-807d-435b-8e81-4fe95bb00d03_208.jpg', NULL),
+('II-88-II', 5, 2300, 'Laranja', '2020-09-09', '2019-09-09', '2020-09-09', 90.00, 9, 'imageVeiculo/II-88-II/7bc7334e-27e0-4557-9909-578219aa7b2d_nissan.jpg', NULL),
+('JJ-99-JJ', 5, 2400, 'Roxo', '2020-10-10', '2019-10-10', '2020-10-10', 95.00, 10, 'imageVeiculo/JJ-99-JJ/d8583836-4772-4b05-ad48-e6e150b380d0_s.jpg', NULL);
 
 INSERT INTO Seguradora (DescSeguradora) VALUES
 ('Allianz'),
