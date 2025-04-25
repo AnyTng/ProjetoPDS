@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RESTful_API.Interface;
 using RESTful_API.Models;
+using RESTful_API.Service; 
 
 namespace RESTful_API.Controllers
 {
@@ -15,11 +17,14 @@ namespace RESTful_API.Controllers
     public class ManutencoesController : ControllerBase
     {
         private readonly PdsContext _context;
+        private readonly IEmailService _emailService;  // Adicionar a dependência do IEmailService
 
-        public ManutencoesController(PdsContext context)
+        public ManutencoesController(PdsContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;  // Injetando o serviço de email
         }
+
 
         // GET: api/Manutencoes
         [HttpGet]
@@ -228,7 +233,7 @@ namespace RESTful_API.Controllers
             }
 
             proposta.EstadoProposta = "Aceite";
-            /*
+            
 
             //quero que envie um email para a em presa 
             //enviar email para a empresa
@@ -240,12 +245,7 @@ namespace RESTful_API.Controllers
                 var mensagem = $"A sua proposta com o ID {proposta.Idmanutencao} foi aceite.";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
             }
-            */
-
-
-
-
-
+            
 
 
 

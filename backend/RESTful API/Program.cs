@@ -5,7 +5,9 @@ using Microsoft.OpenApi.Models;
 using RESTful_API.Models;
 using System.Text;
 using System.Text.Json.Serialization; // Adicionar este using
-using QuestPDF.Infrastructure; // importante!
+using QuestPDF.Infrastructure;
+using RESTful_API.Interface;
+using RESTful_API.Service; // importante!
 
 
 
@@ -113,6 +115,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 var app = builder.Build();
