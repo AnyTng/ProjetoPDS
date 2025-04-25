@@ -521,8 +521,10 @@ namespace RESTful_API.Controllers
             if (string.IsNullOrWhiteSpace(clienteDto.NomeCliente)) return BadRequest("Nome é obrigatório.");
             // ... other validations ...
             string cpDigits = new string(clienteDto.CodigoPostal.Where(char.IsDigit).ToArray());
+
             if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int cpNumeric))
                 return BadRequest("Formato inválido para Código Postal.");
+
              var loginExists = await _context.Logins.AnyAsync(l => l.Idlogin == clienteDto.LoginIdlogin);
              if (!loginExists) return BadRequest($"Login com ID {clienteDto.LoginIdlogin} não encontrado.");
              var existingCliente = await _context.Clientes.FirstOrDefaultAsync(c => c.LoginIdlogin == clienteDto.LoginIdlogin);

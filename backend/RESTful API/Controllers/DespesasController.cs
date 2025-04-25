@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -103,5 +104,95 @@ namespace RESTful_API.Controllers
         {
             return _context.Despesas.Any(e => e.Iddespesa == id);
         }
+
+        //////////
+        //Despesas por admin
+
+        //Ver todos os concursos
+        [HttpGet("Concursos")]
+        public async Task<ActionResult<IEnumerable<Despesa>>> GetConcursos()
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3) // Verifica se é administrador
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+            return await _context.Despesas.ToListAsync();
+        }
+
+
+        //Criar Concurso
+        [HttpPost("CriarConcurso")]
+        public async Task<ActionResult<Despesa>> CriarConcurso(string matricula, string descDesp)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3) // Verifica se é administrador
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            var veiculo = _context.Veiculos.FirstOrDefault(v => v.MatriculaVeiculo == matricula);
+            if (veiculo == null)
+            {
+                return NotFound("Veículo não encontrado.");
+            }
+
+            var despesa = new Despesa
+            {
+                DescConcurso = descDesp,
+                DataInicio = DateTime.Now,
+                EstadoConcurso = "Ativo",
+                VeiculoIdveiculoNavigation = veiculo
+            };
+
+            veiculo.EstadoVeiculo = "Avariado";
+
+            _context.Despesas.Add(despesa);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetDespesa", new { id = despesa.Iddespesa }, despesa);
+        }
+
+
+
+        //////////
+        //Despesas por Empresa
+
+        //Ver todos os concursos
+        [HttpGet("ConcursosAtivos")]
+        public async Task<ActionResult<IEnumerable<Despesa>>> GetConcursosAtivos()
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 2)
+            {
+                return Forbid("Acesso restrito a Empresas.");
+            }
+
+
+
+            // Buscar despesas ativas ou relacionadas às manutenções da empresa
+            var despesas = await _context.Despesas
+                .Where(d => d.EstadoConcurso == "Ativo")
+                .ToListAsync();
+
+            return despesas;
+        }
+
+
+
     }
 }
