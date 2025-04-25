@@ -45,6 +45,9 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
         estadoAluguer: currentEstadoAluguer,
     } = aluguerData;
 
+    // Calcular Valor Total
+    const valorTotal = (Number(valorReserva) || 0) + (Number(valorQuitacao) || 0);
+
     // Função para chamar a API de atualização de estado
     const handleUpdateEstado = async (novoEstado) => {
         if (!idaluguer) return;
@@ -130,6 +133,11 @@ const AluguerInfoModal = ({ isOpen, onClose, aluguerData, onStatusUpdate }) => {
                     <div className="flex flex-col">
                         <span className="font-semibold text-gray-500 mb-1">Valor Quitação:</span>
                         <span className="text-gray-800">{formatCurrency(valorQuitacao)}</span>
+                    </div>
+                    {/* Novo campo Valor Total */}
+                    <div className="flex flex-col">
+                        <span className="font-semibold text-gray-500 mb-1">Valor Total:</span>
+                        <span className="text-gray-800 font-bold">{formatCurrency(valorTotal)}</span>
                     </div>
                     <div className="flex flex-col">
                         <span className="font-semibold text-gray-500 mb-1">Classificação:</span>
