@@ -21,7 +21,7 @@ import ConcursosManAdmin from '../pages/Admin/concursosManAdmin.jsx';
 import FaturasPageAdmin from '../pages/Admin/faturasPageAdmin.jsx';
 import MultasPageAdmin from '../pages/Admin/multasPageAdmin.jsx';
 import NotificationsPageAdmin from '../pages/Admin/notificationsPageAdmin.jsx';
-import PedidosPageAdmin from '../pages/Admin/pedidosPageAdmin.jsx';
+import AlugueresPageAdmin from '../pages/Admin/AlugueresPageAdmin.jsx';
 import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
@@ -144,7 +144,7 @@ const AppRoutes = () => (
             path="/admin/pedidos" // Pedidos de Aluguer
             element={
                 <PrivateRoute allowedRoles={['admin']}>
-                    <PedidosPageAdmin />
+                    <AlugueresPageAdmin />
                 </PrivateRoute>
             }
         />

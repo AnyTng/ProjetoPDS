@@ -71,7 +71,7 @@ namespace RESTful_API.Controllers
         public string CodigoPostal { get; set; }
         public string Localidade { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         public int? ContactoC1 { get; set; }
         public int? ContactoC2 { get; set; }

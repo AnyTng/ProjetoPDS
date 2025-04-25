@@ -1,8 +1,8 @@
-import PedidosPageAdmin from "../pages/Admin/pedidosPageAdmin.jsx";
+import AlugueresPageAdmin from "../pages/Admin/AlugueresPageAdmin.jsx";
 
 export default {
-    title: "Pages/PedidosPageAdmin",
-    component: PedidosPageAdmin,
+    title: "Pages/AlugueresPageAdmin",
+    component: AlugueresPageAdmin,
 };
 
 const pedidosMock = [
@@ -30,7 +30,7 @@ const pedidosMock = [
     },
 ];
 
-const Template = (args) => <PedidosPageAdmin {...args} />;
+const Template = (args) => <AlugueresPageAdmin {...args} />;
 
 export const ListaDePedidos = Template.bind({});
 ListaDePedidos.args = {
