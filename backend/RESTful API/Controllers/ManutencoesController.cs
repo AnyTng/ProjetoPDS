@@ -187,7 +187,6 @@ namespace RESTful_API.Controllers
 
             return manutencoes;
         }
-        [HttpGet("PagarMulta")]
 
 
         /////////////////////
@@ -270,7 +269,7 @@ namespace RESTful_API.Controllers
             var despesa = await _context.Despesas.FindAsync(proposta.DespesaIddespesa);
             if (despesa != null)
             {
-                despesa.EstadoConcurso = "Encerrado";
+                despesa.EstadoConcurso = "Em Manutencao";
             }
 
             //selecionar o veiculo associado ao ao concurso e modar a seu estado para "Em Manutencao"

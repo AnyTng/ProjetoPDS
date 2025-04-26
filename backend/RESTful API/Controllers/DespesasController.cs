@@ -226,6 +226,7 @@ namespace RESTful_API.Controllers
 
 
             despesa.EstadoConcurso = "Concluido";
+            despesa.DataFim = DateTime.Now;
             _context.Entry(despesa).State = EntityState.Modified;
 
             // Estado veiculo muda para disponivel
@@ -270,6 +271,128 @@ namespace RESTful_API.Controllers
                 .ToListAsync();
 
             return despesas;
+        }
+
+        //submeter Fatura recebe pdf
+        [HttpPut("SubmeterFatura")]
+        public async Task<IActionResult> SubmeterFatura(int idConcurso, IFormFile pdf)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 2) // Verifica se é administrador
+            {
+                return Forbid("Acesso restrito a Empresas.");
+            }
+            var despesa = await _context.Despesas.FindAsync(idConcurso);
+            if (despesa == null)
+            {
+                return NotFound();
+            }
+            string absPath = (""+idConcurso);
+            string? oldPdfPath = despesa.CaminhoFaturaPDF;
+            string? newPDFRelativePath = null;
+            string idC = despesa.Iddespesa.ToString();
+            if (pdf != null)
+            {
+
+
+                // Garante que a matrícula a usar no caminho existe
+                var idPDFParaPasta = !string.IsNullOrWhiteSpace(idC)
+                    ? idC
+                    : absPath;
+
+                if (string.IsNullOrWhiteSpace(idPDFParaPasta))
+                {
+                    return BadRequest("O ID do cliente é necessário para guardar a imagem.");
+                }
+
+
+                // Nome seguro do ficheiro
+                var fileName = Path.GetFileName(pdf.FileName);
+                // Cria um nome único para evitar conflitos e potenciais problemas de segurança
+                var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
+                var relativeFolderPath = Path.Combine("assets/pdfManut", idPDFParaPasta);
+                var absoluteFolderPath = Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath);
+
+                if (!Directory.Exists(absoluteFolderPath))
+                {
+                    Directory.CreateDirectory(absoluteFolderPath);
+                }
+
+                var absoluteFilePath = Path.Combine(absoluteFolderPath, uniqueFileName);
+
+                try
+                {
+                    using (var stream = new FileStream(absoluteFilePath, FileMode.Create))
+                    {
+                        await pdf.CopyToAsync(stream);
+                    }
+
+                    // Guarda o caminho relativo para a base de dados
+                    newPDFRelativePath = Path.Combine(relativeFolderPath, uniqueFileName)
+                        .Replace(Path.DirectorySeparatorChar, '/'); // Normalizar para URL
+                }
+                catch (Exception ex)
+                {
+                    // Log do erro seria útil aqui
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        $"Erro ao guardar a imagem: {ex.Message}");
+                }
+            }
+            // Se já existia um PDF, apaga-o
+            if (!string.IsNullOrWhiteSpace(oldPdfPath))
+            {
+                var oldAbsolutePath = Path.Combine(Directory.GetCurrentDirectory(), oldPdfPath);
+                if (System.IO.File.Exists(oldAbsolutePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(oldAbsolutePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log do erro seria útil aqui
+                        return StatusCode(StatusCodes.Status500InternalServerError,
+                            $"Erro ao apagar o PDF antigo: {ex.Message}");
+                    }
+                }
+            }
+            despesa.EstadoConcurso = "Fatura Submetida";
+            despesa.CaminhoFaturaPDF = newPDFRelativePath;
+            _context.Entry(despesa).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpGet("DownloadFatura/{idConcurso}")]
+        public async Task<IActionResult> DownloadFatura(int idConcurso)
+        {
+            var despesa = await _context.Despesas.FindAsync(idConcurso);
+            if (despesa == null || string.IsNullOrEmpty(despesa.CaminhoFaturaPDF))
+            {
+                return NotFound("Fatura não encontrada.");
+            }
+
+            var absoluteFilePath = Path.Combine(Directory.GetCurrentDirectory(), despesa.CaminhoFaturaPDF.Replace('/', Path.DirectorySeparatorChar));
+
+            if (!System.IO.File.Exists(absoluteFilePath))
+            {
+                return NotFound("Ficheiro não encontrado.");
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(absoluteFilePath, FileMode.Open))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            return File(memory, "application/pdf", Path.GetFileName(absoluteFilePath));
         }
     }
 }
