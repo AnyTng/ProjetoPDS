@@ -268,6 +268,8 @@ namespace RESTful_API.Controllers
             // Buscar despesas ativas ou relacionadas às manutenções da empresa
             var despesas = await _context.Despesas
                 .Include(d=>d.VeiculoIdveiculoNavigation)
+                    .ThenInclude(v=>v.ModeloVeiculoIdmodeloNavigation)
+                        .ThenInclude(m=>m.MarcaVeiculoIdmarcaNavigation)
                 .Where(d => d.EstadoConcurso == "Ativo")
                 .ToListAsync();
 
