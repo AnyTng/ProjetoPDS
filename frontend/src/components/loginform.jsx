@@ -72,7 +72,7 @@ const LoginForm = () => {
                 } else if (roleNameToUse === 'cliente') { // ID 1
                     navigate("/user/profile");
                 } else if (roleNameToUse === 'empresa') { // ID 2
-                    navigate("/prestador/dashboard"); // Ajusta esta rota
+                    navigate("/prestador/Concursos"); // Ajusta esta rota
                 } else {
                     console.warn("Role desconhecida ou não mapeada:", roleNameToUse);
                     navigate("/");

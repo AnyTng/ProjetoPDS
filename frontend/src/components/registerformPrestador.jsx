@@ -18,18 +18,18 @@ const RegisterFormPrestador = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    // Estados (mantêm-se iguais)
+    // Estados para o formulário de prestador
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [nomeCliente, setNomeCliente] = useState("");
-    const [dataNascCliente, setDataNascCliente] = useState("");
-    const [nifCliente, setNifCliente] = useState("");
-    const [ruaCliente, setRuaCliente] = useState("");
+    const [funcionarioEmpresa, setFuncionarioEmpresa] = useState("");
+    const [nomeEmpresa, setNomeEmpresa] = useState("");
+    const [nifEmpresa, setNifEmpresa] = useState("");
+    const [ruaEmpresa, setRuaEmpresa] = useState("");
     const [codigoPostal, setCodigoPostal] = useState("");
     const [localidade] = "placeholder";
-    const [contactoC1, setContactoC1] = useState("");
-    const [contactoC2, setContactoC2] = useState("");
+    const [contactoE1, setContactoE1] = useState("");
+    const [contactoE2, setContactoE2] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +38,7 @@ const RegisterFormPrestador = () => {
         setError("");
         setIsLoading(true);
 
-        // Validações Frontend (mantêm-se iguais)
+        // Validações Frontend
         if (password !== confirmPassword) {
             setError("As palavras-passe não coincidem.");
             setIsLoading(false);
@@ -49,18 +49,18 @@ const RegisterFormPrestador = () => {
             setIsLoading(false);
             return;
         }
-        if (!/^\d{9}$/.test(nifCliente)) {
+        if (!/^\d{9}$/.test(nifEmpresa)) {
             setError("NIF inválido. Deve ter exatamente 9 dígitos.");
             setIsLoading(false);
             return;
         }
-        if (!/^\d{9}$/.test(contactoC1)) {
-            setError("Contacto principal inválido. Deve ter exatamente 9 dígitos.");
+        if (!/^\d{9}$/.test(contactoE1)) {
+            setError("Contacto principal da empresa inválido. Deve ter exatamente 9 dígitos.");
             setIsLoading(false);
             return;
         }
-        if (contactoC2 && !/^\d{9}$/.test(contactoC2)) {
-            setError("Contacto secundário inválido. Deve ter 9 dígitos (se preenchido).");
+        if (contactoE2 && !/^\d{9}$/.test(contactoE2)) {
+            setError("Contacto secundário da empresa inválido. Deve ter 9 dígitos.");
             setIsLoading(false);
             return;
         }
@@ -68,16 +68,15 @@ const RegisterFormPrestador = () => {
         let authToken = null;
 
         try {
-            // Passo 1: Registar Login
-            // ****** TIPO_LOGIN_CLIENTE ATUALIZADO PARA 1 ******
-            const TIPO_LOGIN_CLIENTE = 1;
+            // Passo 1: Registar Login com tipo 3 (conforme solicitado)
+            const TIPO_LOGIN_PRESTADOR = 2;
             const registerResponse = await fetch(`${API_BASE_URL}/api/Auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     username: email,
                     password: password,
-                    tipoLoginIDTLogin: TIPO_LOGIN_CLIENTE
+                    tipoLoginIDTLogin: TIPO_LOGIN_PRESTADOR
                 })
             });
 
@@ -103,35 +102,36 @@ const RegisterFormPrestador = () => {
             if (!loginId) throw new Error("ID do utilizador não encontrado no token.");
             console.log(`Registo Passo 2: Login OK. ID: ${loginId}`);
 
-            // Passo 3: Criar Cliente
-            const clientePayload = {
-                nomeCliente,
-                dataNascCliente: dataNascCliente || null,
-                nifCliente: parseInt(nifCliente, 10),
-                ruaCliente,
-                codigoPostal, // Envia como string (backend trata)
-                localidade,
+            // Passo 3: Criar Empresa
+            const empresaPayload = {
+                funcionarioEmpresa: funcionarioEmpresa,
+                nomeEmpresa: nomeEmpresa,
+                nifEmpresa: parseInt(nifEmpresa, 10),
+                ruaEmpresa: ruaEmpresa,
+                codigoPostal: codigoPostal,
                 loginIdlogin: parseInt(loginId, 10),
-                contactoC1: parseInt(contactoC1, 10),
-                contactoC2: contactoC2 ? parseInt(contactoC2, 10) : null,
+                contactoE1: parseInt(contactoE1, 10),
+                contactoE2: contactoE2 ? parseInt(contactoE2, 10) : null
             };
-            const clienteResponse = await fetch(`${API_BASE_URL}/api/Clientes`, {
+
+            const empresaResponse = await fetch(`${API_BASE_URL}/api/Empresas`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${authToken}` },
-                body: JSON.stringify(clientePayload)
+                body: JSON.stringify(empresaPayload)
             });
-            if (!clienteResponse.ok) {
-                let errMsg = `Erro ${clienteResponse.status} ao criar perfil.`;
-                try { const errorData = await clienteResponse.json(); errMsg = errorData.detail || errorData.title || (errorData.errors ? JSON.stringify(errorData.errors) : errMsg); } catch { }
+
+            if (!empresaResponse.ok) {
+                let errMsg = `Erro ${empresaResponse.status} ao criar perfil de empresa.`;
+                try { const errorData = await empresaResponse.json(); errMsg = errorData.detail || errorData.title || (errorData.errors ? JSON.stringify(errorData.errors) : errMsg); } catch { }
                 throw new Error(errMsg);
             }
-            console.log("Registo Passo 3: Perfil Cliente criado.");
+            console.log("Registo Passo 3: Perfil de Empresa criado.");
 
             // Sucesso
             alert("Registo efetuado com sucesso!");
             login(authToken); // Chama login do contexto com o token
             // ****** NAVEGAÇÃO ATUALIZADA ******
-            navigate("/user/profile"); // Navega para perfil do cliente (role ID 1)
+            navigate("/Prestador/Concursos"); // Navega para a página de concursos do prestador (role ID 3)
 
         } catch (err) {
             console.error("Erro detalhado no processo de registo:", err);
@@ -141,26 +141,25 @@ const RegisterFormPrestador = () => {
         }
     };
 
-    // JSX (mantém-se igual à resposta anterior, apenas o botão "É uma empresa?" pode navegar para outro sítio)
+    // JSX atualizado para o formulário de prestador
     return (
         <div className={"outsideDiv w-full max-w-lg p-6 md:p-8"}>
-            <h4 className="text-xl font-bold text-center mb-6">Registar Novo Utilizador</h4>
+            <h4 className="text-xl font-bold text-center mb-6">Registo de Empresa</h4>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
                 {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
                 <InputFieldLong id="email-register" placeholder="Email *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} autoComplete="email"/>
                 <InputFieldLong id="password-register" placeholder="Password *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} autoComplete="new-password"/>
                 <InputFieldLong id="confirm-password-register" placeholder="Confirmar Password *" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoading} autoComplete="new-password"/>
                 <hr className="my-4 border-gray-300"/>
-                <InputFieldLong id="nome-register" placeholder="Nome Completo *" type="text" value={nomeCliente} onChange={(e) => setNomeCliente(e.target.value)} required disabled={isLoading} autoComplete="name" />
-                <InputFieldLong id="data-nasc-register" placeholder="Data de Nascimento" type="date" value={dataNascCliente} onChange={(e) => setDataNascCliente(e.target.value)} disabled={isLoading} />
-                <InputFieldLong id="nif-register" placeholder="NIF (9 dígitos) *" type="text" pattern="\d{9}" title="NIF deve ter 9 dígitos" value={nifCliente} onChange={(e) => setNifCliente(e.target.value)} required disabled={isLoading} />
-                <InputFieldLong id="rua-register" placeholder="Rua *" type="text" value={ruaCliente} onChange={(e) => setRuaCliente(e.target.value)} required disabled={isLoading} autoComplete="street-address"/>
+                <InputFieldLong id="nome-empresa-register" placeholder="Nome da Empresa *" type="text" value={nomeEmpresa} onChange={(e) => setNomeEmpresa(e.target.value)} required disabled={isLoading} />
+                <InputFieldLong id="funcionario-register" placeholder="Nome do Funcionário *" type="text" value={funcionarioEmpresa} onChange={(e) => setFuncionarioEmpresa(e.target.value)} required disabled={isLoading} />
+                <InputFieldLong id="nif-register" placeholder="NIF da Empresa (9 dígitos) *" type="text" pattern="\d{9}" title="NIF deve ter 9 dígitos" value={nifEmpresa} onChange={(e) => setNifEmpresa(e.target.value)} required disabled={isLoading} />
+                <InputFieldLong id="rua-register" placeholder="Rua da Empresa *" type="text" value={ruaEmpresa} onChange={(e) => setRuaEmpresa(e.target.value)} required disabled={isLoading} autoComplete="street-address"/>
                 <InputFieldLong id="cp-register" placeholder="Código Postal (Ex: 1234-567) *" type="text" value={codigoPostal} onChange={(e) => setCodigoPostal(e.target.value)} required disabled={isLoading} autoComplete="postal-code"/>
-                <InputFieldLong id="contacto1-register" placeholder="Contacto Principal (9 dígitos) *" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoC1} onChange={(e) => setContactoC1(e.target.value)} required disabled={isLoading} autoComplete="tel-national"/>
-                <InputFieldLong id="contacto2-register" placeholder="Contacto Secundário (9 dígitos, Opcional)" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoC2} onChange={(e) => setContactoC2(e.target.value)} disabled={isLoading} />
+                <InputFieldLong id="contacto1-register" placeholder="Contacto Principal (9 dígitos) *" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoE1} onChange={(e) => setContactoE1(e.target.value)} required disabled={isLoading} autoComplete="tel-national"/>
+                <InputFieldLong id="contacto2-register" placeholder="Contacto Secundário (9 dígitos, Opcional)" type="tel" pattern="\d{9}" title="Número deve ter 9 dígitos" value={contactoE2} onChange={(e) => setContactoE2(e.target.value)} disabled={isLoading} />
                 <p className="text-xs text-gray-500 mt-1">* Campo obrigatório</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center w-full mt-5">
-                    <Button text="É uma Empresa?" variant="text" type="button" className="flex-1" disabled={isLoading} onClick={() => navigate('/registerEmpresa')}/> {/* Leva para registo empresa */}
                     <Button text={isLoading ? "A Registar..." : "Registar"} variant="primary" type="submit" className="flex-1" disabled={isLoading}/>
                 </div>
                 <div className="text-center mt-4">
