@@ -240,9 +240,10 @@ namespace RESTful_API.Controllers
             //quero que envie um email para a em presa 
             //enviar email para a empresa
             var empresa = await _context.Empresas.FindAsync(proposta.EmpresaIdempresa);
+            
             if (empresa != null)
             {
-                var email = empresa.LoginIdloginNavigation.Email;
+                var email = ClaimTypes.Name;
                 var assunto = "Proposta Aceite";
                 var mensagem = $"Caro/a {empresa.FuncionarioEmpresa}.<br>A sua proposta para {proposta.DescProposta} com o ID {proposta.Idmanutencao} foi {proposta.EstadoProposta}." +
                                 $"<br><br><br>__<br>" +
