@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System; // Adicionado para Exception e Console.WriteLine
 
+using RESTful_API.Service;
+
 namespace RESTful_API.Controllers
 {
     [ApiController]
@@ -111,7 +113,7 @@ namespace RESTful_API.Controllers
                 return BadRequest("Email e password são obrigatórios.");
             }
              // ****** VALIDAÇÃO CORRETA DOS IDs ******
-            if (!new[] { 1, 2, 3 }.Contains(request.TipoLoginIDTLogin)) // Verifica se o ID é 1, 2 ou 3
+            if (!new[] { 1, 2 }.Contains(request.TipoLoginIDTLogin)) // Verifica se o ID é 1, 2
             {
                 return BadRequest("Tipo de utilizador inválido.");
             }

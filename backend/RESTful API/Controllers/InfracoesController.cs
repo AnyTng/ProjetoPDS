@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using RESTful_API.Models;
+using RESTful_API.Interface;
+using RESTful_API.Service;
+
+
 
 namespace RESTful_API.Controllers
 {
@@ -18,10 +22,12 @@ namespace RESTful_API.Controllers
     public class InfracoesController : ControllerBase
     {
         private readonly PdsContext _context;
+        private readonly IEmailService _emailService;
 
-        public InfracoesController(PdsContext context)
+        public InfracoesController(PdsContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: api/Infracoes
@@ -217,8 +223,20 @@ namespace RESTful_API.Controllers
                 .Select(i => i.Idinfracao)
                 .FirstOrDefaultAsync();
 
-
-            if (dataInfracao != null)
+            if (cliente != null)
+            {
+                var email = "linoazevedo100@gmail.com";// empresa.LoginIdloginNavigation.Email;
+                var assunto = "Proposta Aceite";
+                var mensagem = $"Caro/a {cliente.NomeCliente}.<br>Vimos por este meio lhe informar, que no dia {infracao.DataInfracao}." +
+                                $"<br><br><br>__<br>" +
+                                $"Com os melhores cumprimentos,<br>" +
+                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
+                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
+                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
+                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                await _emailService.EnviarEmail(email, assunto, mensagem);
+            }
+            /*if (dataInfracao != null)
             {
                 if (cliente.LoginIdlogin != null)
                 {
@@ -244,7 +262,7 @@ namespace RESTful_API.Controllers
                 {
                     return NotFound("Erro ao imitir notificação, processo cancelado");
                 }
-            }
+            }*/
 
 
             return CreatedAtAction(nameof(GetInfracao), new { id = infracao.Idinfracao }, infracao);
