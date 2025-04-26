@@ -1,62 +1,68 @@
+// src/components/Cards/propostaCardAdmin.jsx
+
+import React from "react";
 import Button from "../button.jsx";
 
+const badgeStyles = {
+    Pendente:  "bg-yellow-100 text-yellow-800",
+    Aceite:    "bg-green-100 text-green-800",
+    Rejeitada: "bg-red-100 text-red-800",
+    Cancelado: "bg-gray-100 text-gray-800"
+};
+
 const PropostaCardAdmin = ({
-                               CarroId,
-                               CarroNome,
-                               EmpresaNome,
-                               Data,
-                               Valor,
-                               TipoManutencao,
+                               idmanutencao,
+                               descProposta,
+                               valorProposta,
+                               estadoProposta,
+                               dataInicioMan,
+                               dataFimMan,
+                               concursoState,
                                onAceitar,
-                               onRejeitar,
-                           }) => {
-    return (
-        <div className="w-full bg-white border border-gray-200 rounded-xl px-8 py-6 flex flex-col gap-4 shadow-sm">
-            <div className="grid grid-cols-2 gap-x-12 gap-y-2 text-sm">
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">ID Carro:</span>
-                    <span>{CarroId}</span>
+                           }) => (
+    <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+        <div>
+            <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg font-semibold">{descProposta}</h3>
+                <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        badgeStyles[estadoProposta] || "bg-gray-100 text-gray-800"
+                    }`}
+                >
+          {estadoProposta}
+        </span>
+            </div>
+            <div className="text-sm text-gray-600 space-y-1">
+                <div>
+                    <strong>Valor:</strong>{" "}
+                    {valorProposta.toLocaleString("pt-PT", {
+                        style: "currency",
+                        currency: "EUR",
+                    })}
                 </div>
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">Valor:</span>
-                    <span>{Valor}</span>
+                <div>
+                    <strong>Início:</strong>{" "}
+                    {new Date(dataInicioMan).toLocaleDateString()}
                 </div>
-
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">Carro:</span>
-                    <span>{CarroNome}</span>
-                </div>
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">Tipo de Manutenção:</span>
-                    <span>{TipoManutencao}</span>
-                </div>
-
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">Empresa:</span>
-                    <span>{EmpresaNome}</span>
-                </div>
-                <div className="flex gap-2">
-                    <span className="font-semibold text-slate-900">Data:</span>
-                    <span>{Data}</span>
+                <div>
+                    <strong>Fim:</strong>{" "}
+                    {dataFimMan ? new Date(dataFimMan).toLocaleDateString() : "—"}
                 </div>
             </div>
+        </div>
 
-            <div className="flex justify-end gap-4 pt-4">
-                <Button
-                    text="Rejeitar"
-                    variant="text"
-                    className="px-6 !py-1 text-base"
-                    onClick={onRejeitar}
-                />
+        {/* Só mostra o botão "Aceitar" se o concurso estiver ativo */}
+        {concursoState === "Ativo" && (
+            <div className="mt-4 flex justify-end border-t border-gray-200 pt-4">
                 <Button
                     text="Aceitar"
                     variant="primary"
-                    className="px-6 !py-1 text-base"
-                    onClick={onAceitar}
+                    onClick={() => onAceitar(idmanutencao)}
+                    className="px-4 py-1 text-sm"
                 />
             </div>
-        </div>
-    );
-};
+        )}
+    </div>
+);
 
 export default PropostaCardAdmin;

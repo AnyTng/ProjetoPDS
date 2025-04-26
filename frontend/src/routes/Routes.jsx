@@ -126,6 +126,15 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
+        {/* Rota para ver propostas de um concurso específico via URL /admin/concursos/:id */}
+        <Route
+            path="/admin/concursos/:concursoId"
+            element={
+                <PrivateRoute allowedRoles={['admin']}>
+                    <PropostasPageAdmin />
+                </PrivateRoute>
+            }
+        />
         <Route
             path="/admin/faturas"
             element={
