@@ -13,7 +13,6 @@ const HistoricoPropostasPrestador = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch all proposals (no filtering by concurso)
     const fetchPropostas = useCallback(async () => {
         setIsLoading(true);
         setError(null);
@@ -32,7 +31,6 @@ const HistoricoPropostasPrestador = () => {
         fetchPropostas();
     }, [fetchPropostas]);
 
-    // Filter only by search text, not by concurso ID
     const filtered = !isLoading && !error
         ? propostas.filter(p =>
             p.descProposta.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,9 +48,11 @@ const HistoricoPropostasPrestador = () => {
             <div className="p-6 text-center text-gray-600">Nenhuma proposta encontrada.</div>
         );
     } else {
+        // sort highest‐id first
+        const sorted = [...filtered].sort((a, b) => b.idmanutencao - a.idmanutencao);
         content = (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6">
-                {filtered.map(proposta => (
+                {sorted.map(proposta => (
                     <PropostaPrestadorCard key={proposta.idmanutencao} proposta={proposta} />
                 ))}
             </div>

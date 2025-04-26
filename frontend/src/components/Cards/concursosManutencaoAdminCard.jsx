@@ -1,16 +1,15 @@
 // src/components/Cards/ConcursosManutencaoAdminCard.jsx
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../button.jsx';
 import { API_BASE_URL } from '../../utils/api';
 
 const badgeStyles = {
-    Ativo:             'bg-green-100    text-green-800',
-    'Em Manutenção':   'bg-yellow-100   text-yellow-800',
-    Concluido:         'bg-blue-100     text-blue-800',
-    Cancelado:         'bg-red-100      text-red-800',
-    'Fatura Submetida':'bg-purple-100  text-purple-800',
+    Ativo:              'bg-green-100    text-green-800',
+    'Em Manutenção':    'bg-yellow-100   text-yellow-800',
+    Concluido:          'bg-blue-100     text-blue-800',
+    Cancelado:          'bg-red-100      text-red-800',
+    'Fatura Submetida': 'bg-purple-100  text-purple-800',
 };
 
 const ConcursosManutencaoAdminCard = ({
@@ -19,10 +18,16 @@ const ConcursosManutencaoAdminCard = ({
                                           estadoConcurso,
                                           dataInicio,
                                           dataFim,
-                                          caminhoFaturaPDF,
                                           veiculoIdveiculoNavigation,
                                       }) => {
     const navigate = useNavigate();
+
+    // Brand and model navigation
+    const modeloNav = veiculoIdveiculoNavigation?.modeloVeiculoIdmodeloNavigation;
+    const marcaNav = modeloNav?.marcaVeiculoIdmarcaNavigation;
+
+    // Determine if invoice download link should show
+    const hasInvoice = estadoConcurso === 'Fatura Submetida';
 
     return (
         <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-lg flex flex-col justify-between">
@@ -44,11 +49,10 @@ const ConcursosManutencaoAdminCard = ({
                 )}
 
                 {/* Marca + Modelo */}
-                {veiculoIdveiculoNavigation?.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation && (
+                {marcaNav && modeloNav && (
                     <p className="text-sm text-gray-600">
                         Veículo: <span className="font-medium text-gray-800">
-                            {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.marcaVeiculoIdmarcaNavigation.descMarca}{' '}
-                        {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.descModelo}
+                            {marcaNav.descMarca} {modeloNav.descModelo}
                         </span>
                     </p>
                 )}
@@ -69,9 +73,9 @@ const ConcursosManutencaoAdminCard = ({
 
             {/* Footer */}
             <div className="mt-4 flex justify-between items-center border-t border-gray-200 pt-4">
-                {caminhoFaturaPDF ? (
+                {hasInvoice ? (
                     <a
-                        href={`${API_BASE_URL}/${caminhoFaturaPDF}`}
+                        href={`${API_BASE_URL}/api/Despesas/DownloadFatura/${iddespesa}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm font-medium underline text-indigo-600 hover:text-indigo-800"
@@ -79,11 +83,7 @@ const ConcursosManutencaoAdminCard = ({
                         Transferir Fatura
                     </a>
                 ) : (
-                    <span className="text-sm text-gray-400">
-                        {caminhoFaturaPDF
-                            ? 'Ver fatura não disponível'
-                            : 'Sem fatura'}
-                    </span>
+                    <span className="text-sm text-gray-400">Sem fatura</span>
                 )}
 
                 <Button
