@@ -55,7 +55,7 @@ namespace RESTful_API.Controllers
         }
 
         // GET: api/Infracoes
-        [HttpGet]
+        [HttpGet("vermultasAdmin")]
         public async Task<ActionResult<IEnumerable<Infracao>>> GetInfracoes()
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -69,14 +69,61 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a admin.");
             }
 
-            return await _context.Infracoes
-                .Include(i => i.AluguerIdaluguerNavigation)
-                    .ThenInclude(a => a.ClienteIdclienteNavigation)
-                .Include(i => i.AluguerIdaluguerNavigation)
-                    .ThenInclude(a => a.VeiculoIdveiculoNavigation)
-                        .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
-                            .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
-                .ToListAsync();
+            var infracoes = await _context.Infracoes
+                            .Include(i => i.AluguerIdaluguerNavigation)
+                                .ThenInclude(a => a.ClienteIdclienteNavigation)
+                            .Include(i => i.AluguerIdaluguerNavigation)
+                                .ThenInclude(a => a.VeiculoIdveiculoNavigation)
+                                    .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                                        .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                            .ToListAsync();
+
+            if (infracoes == null || !infracoes.Any())
+            {
+                return NotFound("Sem Infrações.");
+            }
+
+            var infracaoDTOs = new List<InfDTO>();
+
+            foreach (var infracao in infracoes)
+            {
+                var contestacao = await _context.Contestacaos
+                    .Where(c => c.InfracoesIdinfracao == infracao.Idinfracao)
+                    .Select(c => new
+                    {
+                        c.Idcontestacao,
+                        c.DescContestacao,
+                        c.EstadoContestacao
+                    })
+                    .FirstOrDefaultAsync();
+
+                var dto = new InfDTO
+                {
+                    DataInicio = infracao.AluguerIdaluguerNavigation?.DataLevantamento,
+                    DataDevolucao = infracao.AluguerIdaluguerNavigation?.DataDevolucao,
+                    DataInf = infracao.DataInfracao,
+                    ValorInf = infracao.ValorInfracao,
+                    DescInf = infracao.DescInfracao,
+                    EstadoInf = infracao.EstadoInfracao,
+                    DataLimPagInf = infracao.DataLimPagInfracoes,
+                    Idinf = infracao.Idinfracao,
+                    MatriculaVeiculo = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.MatriculaVeiculo,
+                    NomeCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.NomeCliente,
+                    EmailCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.LoginIdloginNavigation?.Email,
+                    NomeMarca = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.ModeloVeiculoIdmodeloNavigation?.MarcaVeiculoIdmarcaNavigation?.DescMarca,
+                    NomeModelo = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.ModeloVeiculoIdmodeloNavigation?.DescModelo,
+                    NifCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.Nifcliente,
+                    TelefoneCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.ContactoC1,
+                    IdCont = contestacao?.Idcontestacao ?? 0,
+                    EstadoContestacao = contestacao?.EstadoContestacao,
+                    DescContestacao = contestacao?.DescContestacao
+                };
+
+
+                infracaoDTOs.Add(dto);
+            }
+
+            return Ok(infracaoDTOs);
         }
 
         // GET: api/Infracoes/5
@@ -272,7 +319,7 @@ namespace RESTful_API.Controllers
         ///Cliente 
         ///
 
-        [HttpGet("ConsultarMultas")]
+        [HttpGet("ConsultarMultasCliente")]
         public async Task<IActionResult> ConsultarMultas()
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

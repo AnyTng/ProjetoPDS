@@ -180,6 +180,7 @@ namespace RESTful_API.Controllers
 
             // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
+                .Include(m => m.DespesaIddespesaNavigation)
                 .Where(m => m.EmpresaIdempresaNavigation.LoginIdlogin == userIdLogin)
                 .ToListAsync();
 

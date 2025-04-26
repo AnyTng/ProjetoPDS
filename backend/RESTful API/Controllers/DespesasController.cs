@@ -202,6 +202,45 @@ namespace RESTful_API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+        ///////
+        /// 
+        [HttpPut("TerminoConcurso")]
+        public async Task<IActionResult> TerminoConcurso(int id)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3) // Verifica se é administrador
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            var despesa = await _context.Despesas.FindAsync(id);
+            if (despesa == null)
+            {
+                return NotFound();
+            }
+
+
+            despesa.EstadoConcurso = "Concluido";
+            _context.Entry(despesa).State = EntityState.Modified;
+
+            // Estado veiculo muda para disponivel
+            var veiculo = await _context.Veiculos.FindAsync(despesa.VeiculoIdveiculo);
+            if (veiculo != null)
+            {
+                veiculo.EstadoVeiculo = "Disponível";
+                _context.Entry(veiculo).State = EntityState.Modified;
+            }
+
+
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
 
 
@@ -232,8 +271,5 @@ namespace RESTful_API.Controllers
 
             return despesas;
         }
-
-
-
     }
 }
