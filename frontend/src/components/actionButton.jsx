@@ -2,6 +2,7 @@ import React from "react";
 import plusIcon from "../assets/PlusIcon.svg";
 import xIcon from "../assets/XIcon.svg";
 import uploadIcon from "../assets/UploadIcon.svg";
+import Checkmark from "../assets/Checkmark.svg";
 import "../index.css";
 import '../css/global.css'
 
@@ -21,6 +22,10 @@ const ActionButton = ({ type = "none", text = "", onClick }) => {
         case "upload":
             style = "bg-[#2C2C2C] hover:bg-[#1a1a1a] text-white";
             iconSrc = uploadIcon;
+            break;
+        case "check":
+            style = "bg-[#2C2C2C] hover:bg-[#1a1a1a] text-white";
+            iconSrc = Checkmark;
             break;
         case "none":
         default:

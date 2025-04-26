@@ -84,6 +84,21 @@ const PropostasPageAdmin = () => {
         }
     };
 
+    const handleReturnVehicle = async () => {
+        if (!window.confirm("Tem certeza que deseja marcar o veículo como devolvido?")) return;
+        try {
+            await fetchWithAuth(
+                `/api/Despesas/TerminoConcurso?id=${concursoId}`,
+                { method: "PUT" }
+            );
+            navigate("/admin/concursos");
+        } catch (err) {
+            console.error("Erro ao marcar veículo como devolvido:", err);
+            alert(`Não foi possível marcar o veículo como devolvido: ${err.message}`);
+        }
+    };
+
+
     const filtered = !isLoading && !error
         ? propostas.filter(p =>
             p.descProposta.toLowerCase().includes(search.toLowerCase()) ||
@@ -134,16 +149,24 @@ const PropostasPageAdmin = () => {
                 />
             }
             floatingAction={
-                concursoState === "Ativo" && (
+                concursoState === "Ativo" ? (
                     <ActionButton
                         type="remove"
                         text="Cancelar Concurso"
                         onClick={handleCancelConcurso}
                         disabled={isLoading || !!error || propostas.length === 0}
                     />
-                )
-            }
-        >
+                ) : concursoState === "Em Manutencao" ? (
+                    <ActionButton
+                        type="check"
+                        text="Veículo Devolvido"
+                        onClick={handleReturnVehicle} // or handleVeiculoDevolvido if you have a separate handler
+                        disabled={isLoading || !!error || propostas.length === 0}
+                    />
+                ) : null
+            }>
+
+
             {content}
         </DashboardLayout>
     );
