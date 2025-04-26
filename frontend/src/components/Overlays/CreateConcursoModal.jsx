@@ -2,32 +2,35 @@ import React, { useState, useEffect } from 'react';
 import Button from '../button.jsx';
 import InputFieldLong from '../inputFieldLong.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
+import { fetchWithAuth } from '../../utils/api';
 
-const initialFormData = {
-    veiculoId: '',
-    descricaoManutencao: '',
-};
+const initialFormData = { matricula: '', descDesp: '' };
 
-const CreateConcursoModal = ({ isOpen, onClose, onSubmit }) => {
+const CreateConcursoModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState(initialFormData);
 
+    useEffect(() => console.log('formData:', formData), [formData]);
 
-    useEffect(() => {
-        console.log("Estado formData ATUALIZADO:", formData);
-    }, [formData]); // Corre sempre que formData mudar
-
-
-    const handleChange = (e) => {
+    const handleChange = e => {
         const { name, value } = e.target;
-        // *** DEBUG LOG *** Adiciona este console.log
-        console.log(`handleChange - Name: ${name}, Value: ${value}`);
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(f => ({ ...f, [name]: value }));
     };
 
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        onSubmit(formData);
+
+        const params = new URLSearchParams(formData).toString();
+        const endpoint = `/api/Despesas/CriarConcurso?${params}`;
+
+        try {
+            const data = await fetchWithAuth(endpoint, { method: 'POST' });
+            console.log('Criado:', data);
+            setFormData(initialFormData);
+            onClose();
+        } catch (err) {
+            console.error(err);
+            alert(`Erro ao criar: ${err.message}`);
+        }
     };
 
     if (!isOpen) return null;
@@ -41,7 +44,11 @@ const CreateConcursoModal = ({ isOpen, onClose, onSubmit }) => {
                 className="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md relative"
                 onClick={e => e.stopPropagation()}
             >
-                <button onClick={onClose} className="absolute top-4 right-4 w-6 h-6 text-gray-500 hover:text-gray-800" aria-label="Fechar">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 w-6 h-6 text-gray-500 hover:text-gray-800"
+                    aria-label="Fechar"
+                >
                     <img src={XIcon} alt="Fechar" className="w-full h-full" />
                 </button>
 
@@ -51,33 +58,56 @@ const CreateConcursoModal = ({ isOpen, onClose, onSubmit }) => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="veiculoId" className="block text-sm font-medium text-gray-700 mb-1">ID do Veículo</label>
+                        <label
+                            htmlFor="matricula"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Matrícula
+                        </label>
                         <InputFieldLong
-                            id="veiculoId"
-                            name="veiculoId"
+                            id="matricula"
+                            name="matricula"
                             type="text"
-                            placeholder="Ex: C-001 ou Matrícula"
-                            value={formData.veiculoId} // Ligado ao estado
-                            onChange={handleChange}      // Ligado ao handler
+                            placeholder="Matrícula"
+                            value={formData.matricula}
+                            onChange={handleChange}
                             required
                         />
                     </div>
+
                     <div>
-                        <label htmlFor="descricaoManutencao" className="block text-sm font-medium text-gray-700 mb-1">Descrição da Manutenção</label>
+                        <label
+                            htmlFor="descDesp"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Descrição da Manutenção
+                        </label>
                         <textarea
-                            id="descricaoManutencao"
-                            name="descricaoManutencao"
+                            id="descDesp"
+                            name="descDesp"
                             rows="4"
-                            className="w-full p-2 mt-1 border rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                            className="w-full p-2 mt-1 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 shadow-sm rounded"
                             placeholder="Descreva o tipo de manutenção necessária..."
-                            value={formData.descricaoManutencao} // Ligado ao estado
-                            onChange={handleChange}              // Ligado ao handler
+                            value={formData.descDesp}
+                            onChange={handleChange}
                             required
                         />
                     </div>
+
                     <div className="flex justify-end gap-4 pt-6">
-                        <Button text="Cancelar" variant="secondary" type="button" onClick={onClose} className="!py-1.5" />
-                        <Button text="Confirmar Criação" variant="primary" type="submit" className="!py-1.5" />
+                        <Button
+                            text="Cancelar"
+                            variant="secondary"
+                            type="button"
+                            onClick={onClose}
+                            className="!py-1.5"
+                        />
+                        <Button
+                            text="Confirmar Criação"
+                            variant="primary"
+                            type="submit"
+                            className="!py-1.5"
+                        />
                     </div>
                 </form>
             </div>

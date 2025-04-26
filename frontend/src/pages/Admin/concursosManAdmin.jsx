@@ -1,99 +1,97 @@
-import React, { useState, useEffect } from "react"; // Importar useEffect
+// src/pages/Admin/concursosManAdmin.jsx
+
+import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import ConcursosManutencaoAdminCard from "../../components/Cards/concursosManutencaoAdminCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import FloatingButton from "../../components/floatingButton.jsx";
 import CreateConcursoModal from "../../components/Overlays/CreateConcursoModal.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
-import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
+import { fetchWithAuth } from "../../utils/api";
 
 const ConcursosManAdmin = () => {
     const [search, setSearch] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [pedidos, setPedidos] = useState([]); // 1. Começa vazio, sem mocks
-    const [isLoading, setIsLoading] = useState(true); // 2. Estado de Loading
-    const [error, setError] = useState(null); // 3. Estado de Erro
+    const [concursos, setConcursos] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const { user } = useAuth();
 
-    // 4. useEffect para buscar dados da API
-    useEffect(() => {
+    const fetchConcursos = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        // Usar fetchWithAuth para chamadas autenticadas
-        fetchWithAuth("/api/admin/concursos")
-            .then(data => {
-                // Assumindo que a API retorna um array de 'pedidos' (concursos)
-                setPedidos(data);
-                setIsLoading(false);
-            })
-            .catch(err => {
-                console.error("Erro ao buscar concursos:", err);
-                setError(err.message || "Ocorreu um erro ao buscar os concursos.");
-                setIsLoading(false);
-            });
-    }, []); // Array vazio para correr só na montagem
+        try {
+            const data = await fetchWithAuth("/api/Despesas/Concursos");
+            setConcursos(data);
+        } catch (err) {
+            console.error("Erro ao buscar concursos:", err);
+            setError(err.message || "Ocorreu um erro ao carregar os concursos.");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-    // --- Handlers ---
+    useEffect(() => {
+        fetchConcursos();
+    }, [fetchConcursos]);
+
     const handleOpenCreateModal = () => setIsCreateModalOpen(true);
     const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
-    // Placeholder para criar concurso (chamado pelo modal)
-    const handleCreateConcurso = (concursoData) => {
-        console.log("--- Criar Novo Concurso (Placeholder) ---");
-        console.log("Dados recebidos:", concursoData);
-        // Lógica API (POST) aqui...
-        // Exemplo: fetchWithAuth("/api/admin/concursos", { 
-        //           method: 'POST', 
-        //           body: concursoData 
-        //         })
-        //           .then(newConcurso => {
-        //               setPedidos(prev => [newConcurso, ...prev]); // Adiciona à lista se API retornar o objeto criado
-        //           })
-        //           .catch(err => console.error("Erro ao criar concurso:", err));
-        handleCloseCreateModal(); // Fecha o modal
+    // Após criar, só refresca a lista
+    const handleCreateConcurso = async () => {
+        await fetchConcursos();
     };
-    // --- Fim Handlers ---
 
-    // Filtra APENAS se não estiver loading e não houver erro
-    const filtered = !isLoading && !error ? pedidos.filter((pedido) =>
-        (pedido.carroId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (pedido.TipoManutencao?.toLowerCase() || "").includes(search.toLowerCase())
-    ) : [];
+    // Filtrar por descrição ou matrícula
+    const filtered = !isLoading && !error
+        ? concursos.filter(item =>
+            item.descConcurso.toLowerCase().includes(search.toLowerCase()) ||
+            (item.veiculoIdveiculoNavigation?.matriculaVeiculo || "")
+                .toLowerCase()
+                .includes(search.toLowerCase())
+        )
+        : [];
 
-    // --- Lógica de Renderização Condicional ---
     let content;
     if (isLoading) {
-        content = <div className="p-6 text-center text-gray-500">A carregar concursos...</div>;
+        content = (
+            <div className="p-6 text-center text-gray-500">
+                A carregar concursos...
+            </div>
+        );
     } else if (error) {
-        content = <div className="p-6 text-center text-red-600">Erro: {error}</div>;
+        content = (
+            <div className="p-6 text-center text-red-600">
+                {error}
+            </div>
+        );
     } else if (filtered.length === 0) {
         content = (
             <div className="flex justify-center items-center h-64">
                 <p className="text-gray-600 text-lg text-center">
-                    {search ? "Nenhum concurso corresponde à pesquisa." : "Não existem concursos registados."}
+                    Nenhum concurso encontrado.
                 </p>
             </div>
         );
     } else {
         content = (
-            <div className="flex flex-col gap-6 pb-6">
-                {filtered.map((pedido) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 p-6">
+                {filtered.map(concurso => (
                     <ConcursosManutencaoAdminCard
-                        key={pedido.concursoId} // Usa um ID único vindo da API
-                        // Passa as props necessárias para o Card a partir do objeto 'pedido'
-                        concursoId={pedido.concursoId}
-                        carroId={pedido.carroId}
-                        carroNome={pedido.carroNome}
-                        estado={pedido.estado}
-                        TipoManutencao={pedido.TipoManutencao}
-                        valor={pedido.valor}
-                        imageUrl={pedido.imageUrl}
+                        key={concurso.iddespesa}
+                        iddespesa={concurso.iddespesa}
+                        descConcurso={concurso.descConcurso}
+                        estadoConcurso={concurso.estadoConcurso}
+                        dataInicio={concurso.dataInicio}
+                        dataFim={concurso.dataFim}
+                        caminhoFaturaPDF={concurso.caminhoFaturaPDF}
+                        veiculoIdveiculoNavigation={concurso.veiculoIdveiculoNavigation}
                     />
                 ))}
             </div>
         );
     }
-    // --- Fim Lógica Renderização ---
 
     return (
         <>
@@ -102,23 +100,22 @@ const ConcursosManAdmin = () => {
                 email={user?.email}
                 filter={
                     <FilterInput
-                        placeholder="Pesquisar por ID carro ou manutenção..."
+                        placeholder="Pesquisar por matrícula ou descrição..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={e => setSearch(e.target.value)}
                     />
                 }
                 floatingAction={
                     <FloatingButton
                         type="add"
                         text="Novo Concurso"
-                        onClick={handleOpenCreateModal} // Chama a função correta
+                        onClick={handleOpenCreateModal}
                     />
                 }
             >
-                {content} {/* Renderiza o conteúdo */}
+                {content}
             </DashboardLayout>
 
-            {/* Modal de Criação */}
             <CreateConcursoModal
                 isOpen={isCreateModalOpen}
                 onClose={handleCloseCreateModal}
