@@ -30,9 +30,9 @@ const Header = ({ userType, email }) => {
         { label: "Concursos", onClick: () => { navigate("/admin/concursos"); setIsMenuOpen(false); } },
     ];
 
-    // 5. Definir itens do menu para Prestador (Exemplo - ajustar conforme necessário)
+    // 5. Definir itens do menu para Prestador
     const prestadorMenuItems = [
-        //fazer isto depois :)
+        { label: "Concursos", onClick: () => { navigate("/prestador/Concursos"); setIsMenuOpen(false); } },
     ];
 
     // Determinar quais itens mostrar com base no userType
@@ -56,7 +56,7 @@ const Header = ({ userType, email }) => {
         <header style={{ ...styles.header, position: 'relative' }}>
             <h1 style={styles.title}>{title}</h1>
             <div style={styles.rightSection}>
-                <span>{email}</span>
+                <span style={styles.email}>{email}</span>
                 {/* 6. Tornar o ícone clicável */}
                 <button onClick={toggleMenu} style={styles.menuButton}>
                     <img src={menuIcon} alt="Menu" style={styles.icon} />
@@ -121,6 +121,16 @@ const styles = {
         zIndex: 1000, // Garante que fica sobre outro conteúdo
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Sombra opcional
         borderRadius: '4px', // Borda arredondada opcional
+    },
+    // Estilo para o email do usuário
+    email: {
+        fontSize: '16px',
+        fontWeight: '500',
+        color: '#4a5568',
+        padding: '4px 8px',
+        backgroundColor: '#f7fafc',
+        borderRadius: '4px',
+        border: '1px solid #e2e8f0'
     }
 };
 

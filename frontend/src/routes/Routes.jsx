@@ -5,12 +5,16 @@ import AdminLogin from '../pages/Admin/loginpageAdmin.jsx';
 import RegisterUser from '../pages/LoggedOut/RegisterPageUser.jsx';
 import PrivateRoute from './PrivateRoute';
 
-
-//Public Pages
-
+// Public Pages
 import EShopPage from "../pages/LoggedOut/eShopPage.jsx";
 import CarShop from "../pages/LoggedOut/carShop.jsx";
 import RegisterPagePrestador from "../pages/Prestador/registerPrestador.jsx";
+
+//Prestador Pages
+import ConcursosPrestador from "../pages/Prestador/ConcursosPrestador.jsx";  // ← only import once
+import PropostasPrestador from "../pages/Prestador/PropostasPrestador.jsx";
+
+
 
 // Payment Pages
 import PaymentSuccess from "../pages/Cliente/PaymentSuccess.jsx";
@@ -19,20 +23,17 @@ import PaymentFailure from "../pages/Cliente/PaymentFailure.jsx";
 // Admin Pages
 import CarsPageAdmin from '../pages/Admin/carsPageAdmin.jsx';
 import ConcursosManAdmin from '../pages/Admin/concursosManAdmin.jsx';
+import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
 import FaturasPageAdmin from '../pages/Admin/faturasPageAdmin.jsx';
 import MultasPageAdmin from '../pages/Admin/multasPageAdmin.jsx';
 import NotificationsPageAdmin from '../pages/Admin/notificationsPageAdmin.jsx';
 import AlugueresPageAdmin from '../pages/Admin/AlugueresPageAdmin.jsx';
-import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
-//User Pages
+// User Pages
 import ClientePerfil from "../pages/Cliente/clientePerfil.jsx";
 import CarRent from "../pages/Cliente/AlugarCarroForm.jsx";
 import ClienteReservas from "../pages/Cliente/ClienteReservas.jsx";
-// Adicionar outras páginas de cliente/empresa aqui...
-// import EmpresaDashboard from '../pages/Empresa/EmpresaDashboard.jsx'; // Exemplo
-
 
 const AppRoutes = () => (
     <Routes>
@@ -44,59 +45,61 @@ const AppRoutes = () => (
         <Route path="/eShop" element={<EShopPage />} />
         <Route path="/eShop/:carID" element={<CarShop />} />
         <Route path="/registerPrestador" element={<RegisterPagePrestador />} />
-        {/* Adicionar rota para /registerEmpresa se existir */}
-        {/* <Route path="/registerEmpresa" element={<RegisterEmpresa />} /> */}
 
-
-        {/* --- Rotas Protegidas --- */}
-
-        {/* Rota do Perfil do Cliente (ID Role = 1) */}
+        {/* --- Rotas Protegidas (Cliente) --- */}
         <Route
             path="/user/profile"
             element={
-                // ****** ATUALIZADO PARA 'cliente' ******
                 <PrivateRoute allowedRoles={['cliente']}>
                     <ClientePerfil />
                 </PrivateRoute>
             }
         />
-
-
         <Route
             path="/eShop/rent/:carID"
             element={
                 <PrivateRoute allowedRoles={['cliente']}>
-                   <CarRent />
+                    <CarRent />
                 </PrivateRoute>
             }
         />
-
         <Route
             path="/user/alugueres"
             element={
                 <PrivateRoute allowedRoles={['cliente']}>
-                   <ClienteReservas />
+                    <ClienteReservas />
                 </PrivateRoute>
             }
         />
 
-        {/* Exemplo Rota Dashboard Empresa (ID Role = 2) */}
-        {/* <Route
-            path="/prestador/dashboard"
+        {/* --- Rotas Prestador (empresa) --- */}
+        <Route
+            path="/prestador"
+            element={<Navigate to="/prestador/concursos" replace />}
+        />
+        <Route
+            path="/prestador/concursos"
             element={
                 <PrivateRoute allowedRoles={['empresa']}>
-                    <EmpresaDashboard />
+                    <ConcursosPrestador />
                 </PrivateRoute>
             }
-        /> */}
+        />
 
-
-        {/* Rotas do Admin (ID Role = 3) */}
         <Route
-            path="/admin/dashboard" // Rota genérica dashboard admin
+            path="/prestador/concursos/:concursoId"
+            element={
+                <PrivateRoute allowedRoles={['empresa']}>
+                    <PropostasPrestador />
+                </PrivateRoute>
+            }
+        />
+
+        {/* --- Rotas do Admin (ID Role = 3) --- */}
+        <Route
+            path="/admin/dashboard"
             element={
                 <PrivateRoute allowedRoles={['admin']}>
-                    {/* Redireciona para a primeira página real do admin */}
                     <Navigate to="/admin/veiculos" replace />
                 </PrivateRoute>
             }
@@ -117,16 +120,6 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
-        {/* Rota dinâmica para propostas de um concurso específico */}
-        <Route
-            path="/admin/propostas/:concursoId"
-            element={
-                <PrivateRoute allowedRoles={['admin']}>
-                    <PropostasPageAdmin />
-                </PrivateRoute>
-            }
-        />
-        {/* Rota para ver propostas de um concurso específico via URL /admin/concursos/:id */}
         <Route
             path="/admin/concursos/:concursoId"
             element={
@@ -152,7 +145,7 @@ const AppRoutes = () => (
             }
         />
         <Route
-            path="/admin/pedidos" // Pedidos de Aluguer
+            path="/admin/pedidos"
             element={
                 <PrivateRoute allowedRoles={['admin']}>
                     <AlugueresPageAdmin />
@@ -175,18 +168,14 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
-        {/* --- Fim Rotas Admin --- */}
-
 
         {/* --- Rotas de Pagamento --- */}
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failure" element={<PaymentFailure />} />
 
-        {/* --- Rotas de Feedback --- */}
+        {/* --- Erros / Fallback --- */}
         <Route path="/unauthorized" element={<div>Acesso Não Autorizado</div>} />
-        {/* Fallback para Rotas Não Encontradas */}
         <Route path="*" element={<div>404 - Página Não Encontrada</div>} />
-
     </Routes>
 );
 

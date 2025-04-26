@@ -22,6 +22,8 @@ const ConcursosManAdmin = () => {
         setError(null);
         try {
             const data = await fetchWithAuth("/api/Despesas/Concursos");
+            // Ordena por ID decrescente
+            data.sort((a, b) => b.iddespesa - a.iddespesa);
             setConcursos(data);
         } catch (err) {
             console.error("Erro ao buscar concursos:", err);
@@ -38,19 +40,24 @@ const ConcursosManAdmin = () => {
     const handleOpenCreateModal = () => setIsCreateModalOpen(true);
     const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
-    // Após criar, só refresca a lista
+    // Após criar o concurso, recarrega toda a página
     const handleCreateConcurso = async () => {
-        await fetchConcursos();
+        // espera que o modal já tenha enviado o POST
+        // e atualizado o backend, então recarrega:
+        window.location.reload();
     };
 
-    // Filtrar por descrição ou matrícula
+    // Filtra por ID, descrição ou matrícula
     const filtered = !isLoading && !error
-        ? concursos.filter(item =>
-            item.descConcurso.toLowerCase().includes(search.toLowerCase()) ||
-            (item.veiculoIdveiculoNavigation?.matriculaVeiculo || "")
+        ? concursos.filter(item => {
+            const term = search.toLowerCase();
+            const idMatch = item.iddespesa.toString().includes(term);
+            const descMatch = item.descConcurso.toLowerCase().includes(term);
+            const matMatch = (item.veiculoIdveiculoNavigation?.matriculaVeiculo || "")
                 .toLowerCase()
-                .includes(search.toLowerCase())
-        )
+                .includes(term);
+            return idMatch || descMatch || matMatch;
+        })
         : [];
 
     let content;
@@ -100,7 +107,7 @@ const ConcursosManAdmin = () => {
                 email={user?.email}
                 filter={
                     <FilterInput
-                        placeholder="Pesquisar por matrícula ou descrição..."
+                        placeholder="Pesquisar por ID, matrícula ou descrição..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -110,6 +117,7 @@ const ConcursosManAdmin = () => {
                         type="add"
                         text="Novo Concurso"
                         onClick={handleOpenCreateModal}
+                        disabled={isLoading}
                     />
                 }
             >

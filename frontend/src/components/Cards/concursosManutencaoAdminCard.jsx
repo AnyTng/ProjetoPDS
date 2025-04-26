@@ -4,9 +4,11 @@ import Button from "../button.jsx";
 import { API_BASE_URL } from '../../utils/api';
 
 const badgeStyles = {
-    Ativo:    'bg-green-100 text-green-800',
-    Encerrado:'bg-gray-100 text-gray-800',
-    Cancelado:'bg-red-100 text-red-800',
+    Ativo:             'bg-green-100    text-green-800',
+    'Em Manutenção':   'bg-yellow-100   text-yellow-800',
+    Concluido:         'bg-blue-100     text-blue-800',
+    Cancelado:         'bg-red-100      text-red-800',
+    'Fatura Submetida':'bg-purple-100  text-purple-800',
 };
 
 const ConcursosManutencaoAdminCard = ({
@@ -21,30 +23,32 @@ const ConcursosManutencaoAdminCard = ({
     const navigate = useNavigate();
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
-            {/* Cabeçalho */}
-            <div>
-                <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold">{descConcurso}</h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${badgeStyles[estadoConcurso]}`}>
-            {estadoConcurso}
-          </span>
-                </div>
+        <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-lg flex flex-col justify-between">
+            {/* Badge */}
+            <span
+                className={`absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full ${badgeStyles[estadoConcurso] ?? 'bg-gray-100 text-gray-800'}`}
+            >
+                {estadoConcurso}
+            </span>
+
+            {/* Conteúdo */}
+            <div className="space-y-3">
+                <h3 className="text-xl font-bold text-gray-900">{descConcurso}</h3>
 
                 {veiculoIdveiculoNavigation?.matriculaVeiculo && (
-                    <p className="text-sm text-gray-600 mb-2">
-                        Matrícula: {veiculoIdveiculoNavigation.matriculaVeiculo}
+                    <p className="text-sm text-gray-600">
+                        Matrícula: <span className="font-medium text-gray-800">{veiculoIdveiculoNavigation.matriculaVeiculo}</span>
                     </p>
                 )}
 
                 <div className="text-sm text-gray-600 space-y-1">
                     <div>
-                        <strong>Início:</strong>{' '}
+                        <strong className="font-medium">Início:</strong>{' '}
                         {new Date(dataInicio).toLocaleString()}
                     </div>
                     {dataFim && (
                         <div>
-                            <strong>Fim:</strong>{' '}
+                            <strong className="font-medium">Fim:</strong>{' '}
                             {new Date(dataFim).toLocaleString()}
                         </div>
                     )}
@@ -52,24 +56,24 @@ const ConcursosManutencaoAdminCard = ({
             </div>
 
             {/* Rodapé */}
-            <div className="mt-4 flex justify-between items-center border-t border-gray-200 pt-4">
-                {caminhoFaturaPDF ? (
+            <div className="mt-6 flex justify-between items-center border-t border-gray-200 pt-4">
+                {estadoConcurso === 'Fatura Submetida' && caminhoFaturaPDF ? (
                     <a
                         href={`${API_BASE_URL}/${caminhoFaturaPDF}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm underline"
+                        className="text-sm font-medium underline text-indigo-600 hover:text-indigo-800"
                     >
-                        Ver Fatura
+                        Transferir Fatura
                     </a>
                 ) : (
-                    <span className="text-sm text-gray-400">Sem fatura</span>
+                    <span className="text-sm text-gray-400">{caminhoFaturaPDF ? 'Ver fatura não disponível' : 'Sem fatura'}</span>
                 )}
 
                 <Button
                     text="Ver Detalhes"
                     variant="primary"
-                    className="text-sm py-1.5 px-4"
+                    className="px-6 py-2 text-sm font-medium"
                     onClick={() => navigate(`/admin/concursos/${iddespesa}`)}
                 />
             </div>

@@ -17,8 +17,8 @@ const DashboardLayout = ({
         <div className="h-screen flex flex-col bg-gray-100">
             {/* Header fixo */}
             <div className="flex-none">
-                {/* 4. Passar user?.email diretamente para o Header */}
-                <Header userType="Admin" email={user?.email} />
+                {/* Passar userType baseado no roleName do usuário */}
+                <Header userType={user?.roleName === 'empresa' ? 'Prestador' : 'Admin'} email={user?.email} />
             </div>
 
             {/* Container principal com padding lateral */}

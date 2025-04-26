@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
             const userData = {
                 id: decodedToken.nameid || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
-                email: decodedToken.name || decodedToken.email || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+                email: decodedToken.name || decodedToken.email || decodedToken.username || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] || decodedToken.unique_name,
                 roleId: finalRoleId,
                 roleName: finalRoleName,
             };
