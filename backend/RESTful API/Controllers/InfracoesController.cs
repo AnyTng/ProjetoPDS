@@ -17,6 +17,30 @@ using RESTful_API.Service;
 
 namespace RESTful_API.Controllers
 {
+    // DTO
+    public class InfDTO
+    {
+        public DateTime? DataInicio { get; set; }
+        public DateTime? DataDevolucao { get; set; }
+        public DateTime? DataInf { get; set; }
+        public double? ValorInf { get; set; }
+        public string? DescInf { get; set; }
+        public string? EstadoInf { get; set; }
+        public DateTime? DataLimPagInf { get; set; }
+        public int? Idinf { get; set; }
+        public string? MatriculaVeiculo { get; set; }
+        public string? NomeCliente { get; set; }
+        public string EmailCliente { get; set; }
+        public string NomeMarca { get; set; }
+        public string NomeModelo { get; set; }
+        public int? NifCliente { get; set; }
+        public int? TelefoneCliente { get; set; }
+        public int? IdCont { get; set; }
+        public string EstadoContestacao { get; set; }
+        public string DescContestacao { get; set; }
+    }
+
+
     [Route("api/[controller]")]
     [ApiController]
     public class InfracoesController : ControllerBase
@@ -158,8 +182,8 @@ namespace RESTful_API.Controllers
 
 
 
-        //
-        //     Admin insere multa
+        ///////////////////
+        //     Admin 
         //
 
         [HttpPost("inserir-multa")]
@@ -225,9 +249,11 @@ namespace RESTful_API.Controllers
 
             if (cliente != null)
             {
-                var email = "linoazevedo100@gmail.com";// empresa.LoginIdloginNavigation.Email;
-                var assunto = "Proposta Aceite";
-                var mensagem = $"Caro/a {cliente.NomeCliente}.<br>Vimos por este meio lhe informar, que no dia {infracao.DataInfracao}." +
+                var email = cliente.LoginIdloginNavigation.Email;
+                var assunto = "Notificação de Infração - Ação Necessária";
+                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, no dia {infracao.DataInfracao}, a quando o veículo ({matricula}) alugado estava em sua posse," +
+                    $" foi registada a seguinte infração: {infracao.DescInfracao}.<br><br>Solicitamos que aceda ao nosso site para efetuar o pagamento até {infracao.DataLimPagInfracoes}." +
+                    $"<br><br>Agradecemos a sua atenção a este assunto.<br><br>" +
                                 $"<br><br><br>__<br>" +
                                 $"Com os melhores cumprimentos,<br>" +
                                 $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
@@ -236,38 +262,96 @@ namespace RESTful_API.Controllers
                                 $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
             }
-            /*if (dataInfracao != null)
-            {
-                if (cliente.LoginIdlogin != null)
-                {
-                    var notificacaoData = new
-                    {
-                        idInfracao,
-                        aluguer.Idaluguer
-                    };
-
-                    var jsonData = JsonSerializer.Serialize(notificacaoData);
-
-                    var notificacao = new Notificacao
-                    {
-                        ConteudoNotif = jsonData,
-                        LoginIdlogin = cliente.LoginIdlogin,
-                        TipoNotificacao = 1 // 1 - Multa
-                    };
-
-                    _context.Notificacaos.Add(notificacao);
-                    await _context.SaveChangesAsync(); // <<< ESTA LINHA ESTAVA FALTANDO
-                }
-                else
-                {
-                    return NotFound("Erro ao imitir notificação, processo cancelado");
-                }
-            }*/
-
 
             return CreatedAtAction(nameof(GetInfracao), new { id = infracao.Idinfracao }, infracao);
                
         }
+
+
+        ///////////
+        ///Cliente 
+        ///
+
+        [HttpGet("ConsultarMultas")]
+        public async Task<IActionResult> ConsultarMultas()
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 1) // Verifica se é cliente
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
+
+            var cliente = await _context.Clientes
+                                        .Include(c => c.CodigoPostalCpNavigation)
+                                        .FirstOrDefaultAsync(c => c.LoginIdlogin == userIdLogin);
+            if (cliente == null)
+            {
+                return NotFound("Cliente não encontrado.");
+            }
+
+            var infracoes = await _context.Infracoes
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.ClienteIdclienteNavigation)
+                .Include(i => i.AluguerIdaluguerNavigation)
+                    .ThenInclude(a => a.VeiculoIdveiculoNavigation)
+                        .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                            .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                .Where(i => i.AluguerIdaluguerNavigation.ClienteIdcliente == cliente.Idcliente)
+                .ToListAsync();
+
+            if (infracoes == null || !infracoes.Any())
+            {
+                return NotFound("Sem Infrações.");
+            }
+
+            var infracaoDTOs = new List<InfDTO>();
+
+            foreach (var infracao in infracoes)
+            {
+                var contestacao = await _context.Contestacaos
+                    .Where(c => c.InfracoesIdinfracao == infracao.Idinfracao)
+                    .Select(c => new
+                    {
+                        c.Idcontestacao,
+                        c.DescContestacao,
+                        c.EstadoContestacao
+                    })
+                    .FirstOrDefaultAsync();
+
+                var dto = new InfDTO
+                {
+                    DataInicio = infracao.AluguerIdaluguerNavigation?.DataLevantamento,
+                    DataDevolucao = infracao.AluguerIdaluguerNavigation?.DataDevolucao,
+                    DataInf = infracao.DataInfracao,
+                    ValorInf = infracao.ValorInfracao,
+                    DescInf = infracao.DescInfracao,
+                    EstadoInf = infracao.EstadoInfracao,
+                    DataLimPagInf = infracao.DataLimPagInfracoes,
+                    Idinf = infracao.Idinfracao,
+                    MatriculaVeiculo = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.MatriculaVeiculo,
+                    NomeCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.NomeCliente,
+                    EmailCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.LoginIdloginNavigation?.Email,
+                    NomeMarca = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.ModeloVeiculoIdmodeloNavigation?.MarcaVeiculoIdmarcaNavigation?.DescMarca,
+                    NomeModelo = infracao.AluguerIdaluguerNavigation?.VeiculoIdveiculoNavigation?.ModeloVeiculoIdmodeloNavigation?.DescModelo,
+                    NifCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.Nifcliente,
+                    TelefoneCliente = infracao.AluguerIdaluguerNavigation?.ClienteIdclienteNavigation?.ContactoC1,
+                    IdCont = contestacao?.Idcontestacao ?? 0,
+                    EstadoContestacao = contestacao?.EstadoContestacao,
+                    DescContestacao = contestacao?.DescContestacao
+                };
+
+
+                infracaoDTOs.Add(dto);
+            }
+
+            return Ok(infracaoDTOs);
+        }
+
 
     }
 }
