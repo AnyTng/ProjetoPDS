@@ -355,8 +355,8 @@ public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
         return NotFound("Aluguer não encontrado.");
 
     // 4) Ensure the logged-in cliente owns this rental
-    if (aluguer.ClienteIdcliente != userIdLogin)
-        return Forbid("Você não pode cancelar este aluguer.");
+    /*if (aluguer. != userIdLogin)
+        return Forbid("Você não pode cancelar este aluguer.");*/
 
     // 5) Only pending or “aguarda levantamento” rentals can be cancelled
     if (aluguer.EstadoAluguer != "Pendente"
