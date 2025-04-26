@@ -186,6 +186,8 @@ namespace RESTful_API.Controllers
 
             return manutencoes;
         }
+        [HttpGet("PagarMulta")]
+
 
         /////////////////////
         /// Administrador
@@ -240,7 +242,7 @@ namespace RESTful_API.Controllers
             var empresa = await _context.Empresas.FindAsync(proposta.EmpresaIdempresa);
             if (empresa != null)
             {
-                var email = "linoazevedo100@gmail.com";// empresa.LoginIdloginNavigation.Email;
+                var email = empresa.LoginIdloginNavigation.Email;
                 var assunto = "Proposta Aceite";
                 var mensagem = $"Caro/a {empresa.FuncionarioEmpresa}.<br>A sua proposta para {proposta.DescProposta} com o ID {proposta.Idmanutencao} foi {proposta.EstadoProposta}." +
                                 $"<br><br><br>__<br>" +
@@ -300,6 +302,7 @@ namespace RESTful_API.Controllers
             }
             return NoContent();
         }   
+
 
     }
 }
