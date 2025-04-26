@@ -245,8 +245,6 @@ namespace RESTful_API.Controllers
             if (empresa != null)
             {
                 var email = login.Email;
-                
-
                 var assunto = "Proposta Aceite";
                 var mensagem = $"Caro/a {empresa.FuncionarioEmpresa}.<br>A sua proposta para {proposta.DescProposta} com o ID {proposta.Idmanutencao} foi {proposta.EstadoProposta}." +
                                 $"<br><br><br>__<br>" +
