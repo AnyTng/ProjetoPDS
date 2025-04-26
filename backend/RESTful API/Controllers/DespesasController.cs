@@ -122,7 +122,11 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a Administrador.");
             }
-            return await _context.Despesas.ToListAsync();
+            return await _context.Despesas
+                .Include(d => d.VeiculoIdveiculoNavigation)
+                    .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
+                        .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
+                        .ToListAsync();
         }
 
 
