@@ -31,13 +31,19 @@ const ConcursoPrestadorCard = ({ concurso }) => {
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">{descConcurso}</h3>
                     <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            badgeStyles[estadoConcurso] ?? "bg-gray-100 text-gray-800"
-                        }`}
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${badgeStyles[estadoConcurso] ?? "bg-gray-100 text-gray-800"}`}
                     >
-            {estadoConcurso}
-          </span>
+                        {estadoConcurso}
+                    </span>
                 </div>
+
+                {/* Brand + Model */}
+                {veiculoIdveiculoNavigation?.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation && (
+                    <p className="text-sm text-gray-600 mb-2">
+                        Veículo: {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.marcaVeiculoIdmarcaNavigation.descMarca}{" "}
+                        {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.descModelo}
+                    </p>
+                )}
 
                 {veiculoIdveiculoNavigation?.matriculaVeiculo && (
                     <p className="text-sm text-gray-600 mb-2">
@@ -45,15 +51,14 @@ const ConcursoPrestadorCard = ({ concurso }) => {
                     </p>
                 )}
 
-                <div className="text-sm text-gray-600 space-y-1">
+                {/* Dates */}
+                <div className="text-sm text-gray-600">
                     <div>
-                        <strong>Início:</strong>{" "}
-                        {new Date(dataInicio).toLocaleDateString()}
+                        Início: {new Date(dataInicio).toLocaleDateString()}
                     </div>
                     {dataFim && (
                         <div>
-                            <strong>Fim:</strong>{" "}
-                            {new Date(dataFim).toLocaleDateString()}
+                            Fim: {new Date(dataFim).toLocaleDateString()}
                         </div>
                     )}
                 </div>
@@ -68,7 +73,7 @@ const ConcursoPrestadorCard = ({ concurso }) => {
                     className="px-4 py-2 text-sm"
                 />
 
-                {estadoConcurso === "Fatura Submetida" && caminhoFaturaPDF && (
+                {caminhoFaturaPDF && (
                     <a
                         href={`${API_BASE_URL}/${caminhoFaturaPDF}`}
                         target="_blank"

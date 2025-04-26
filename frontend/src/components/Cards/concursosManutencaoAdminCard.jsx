@@ -1,6 +1,8 @@
+// src/components/Cards/ConcursosManutencaoAdminCard.jsx
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from "../button.jsx";
+import Button from '../button.jsx';
 import { API_BASE_URL } from '../../utils/api';
 
 const badgeStyles = {
@@ -18,7 +20,7 @@ const ConcursosManutencaoAdminCard = ({
                                           dataInicio,
                                           dataFim,
                                           caminhoFaturaPDF,
-                                          veiculoIdveiculoNavigation
+                                          veiculoIdveiculoNavigation,
                                       }) => {
     const navigate = useNavigate();
 
@@ -26,7 +28,7 @@ const ConcursosManutencaoAdminCard = ({
         <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-lg flex flex-col justify-between">
             {/* Badge */}
             <span
-                className={`absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full ${badgeStyles[estadoConcurso] ?? 'bg-gray-100 text-gray-800'}`}
+                className={`absolute top-4 right-4 px-3 py-1 text-xs font-medium rounded-full ${badgeStyles[estadoConcurso] ?? 'bg-gray-100 text-gray-800'}`}
             >
                 {estadoConcurso}
             </span>
@@ -38,6 +40,16 @@ const ConcursosManutencaoAdminCard = ({
                 {veiculoIdveiculoNavigation?.matriculaVeiculo && (
                     <p className="text-sm text-gray-600">
                         Matrícula: <span className="font-medium text-gray-800">{veiculoIdveiculoNavigation.matriculaVeiculo}</span>
+                    </p>
+                )}
+
+                {/* Marca + Modelo */}
+                {veiculoIdveiculoNavigation?.modeloVeiculoIdmodeloNavigation?.marcaVeiculoIdmarcaNavigation && (
+                    <p className="text-sm text-gray-600">
+                        Veículo: <span className="font-medium text-gray-800">
+                            {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.marcaVeiculoIdmarcaNavigation.descMarca}{' '}
+                        {veiculoIdveiculoNavigation.modeloVeiculoIdmodeloNavigation.descModelo}
+                        </span>
                     </p>
                 )}
 
@@ -55,9 +67,9 @@ const ConcursosManutencaoAdminCard = ({
                 </div>
             </div>
 
-            {/* Rodapé */}
-            <div className="mt-6 flex justify-between items-center border-t border-gray-200 pt-4">
-                {estadoConcurso === 'Fatura Submetida' && caminhoFaturaPDF ? (
+            {/* Footer */}
+            <div className="mt-4 flex justify-between items-center border-t border-gray-200 pt-4">
+                {caminhoFaturaPDF ? (
                     <a
                         href={`${API_BASE_URL}/${caminhoFaturaPDF}`}
                         target="_blank"
@@ -67,7 +79,11 @@ const ConcursosManutencaoAdminCard = ({
                         Transferir Fatura
                     </a>
                 ) : (
-                    <span className="text-sm text-gray-400">{caminhoFaturaPDF ? 'Ver fatura não disponível' : 'Sem fatura'}</span>
+                    <span className="text-sm text-gray-400">
+                        {caminhoFaturaPDF
+                            ? 'Ver fatura não disponível'
+                            : 'Sem fatura'}
+                    </span>
                 )}
 
                 <Button

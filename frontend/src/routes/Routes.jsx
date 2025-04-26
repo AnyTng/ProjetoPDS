@@ -13,6 +13,7 @@ import RegisterPagePrestador from "../pages/Prestador/registerPrestador.jsx";
 //Prestador Pages
 import ConcursosPrestador from "../pages/Prestador/ConcursosPrestador.jsx";  // ← only import once
 import PropostasPrestador from "../pages/Prestador/PropostasPrestador.jsx";
+import HistoricoPropostasPrestador from "../pages/Prestador/HistoricoPropostasPrestador.jsx";
 
 
 
@@ -29,6 +30,8 @@ import MultasPageAdmin from '../pages/Admin/multasPageAdmin.jsx';
 import NotificationsPageAdmin from '../pages/Admin/notificationsPageAdmin.jsx';
 import AlugueresPageAdmin from '../pages/Admin/AlugueresPageAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
+
+
 
 // User Pages
 import ClientePerfil from "../pages/Cliente/clientePerfil.jsx";
@@ -94,6 +97,17 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
+
+        <Route
+
+            path="/prestador/TodasPropostas"
+            element={
+                <PrivateRoute allowedRoles={['empresa']}>
+                    <HistoricoPropostasPrestador />
+                </PrivateRoute>
+            }
+        />
+        {/* <Route
 
         {/* --- Rotas do Admin (ID Role = 3) --- */}
         <Route
