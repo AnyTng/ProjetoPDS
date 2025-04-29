@@ -1,5 +1,5 @@
 import XIcon from '../../assets/XIconBlack.svg';
-import InfoIcon from '../../assets/InfoIcon.svg'; // Adiciona este ícone manualmente
+import InfoIcon from '../../assets/InfoIcon.svg';
 import Button from '../button.jsx';
 
 const InfoAlertBox = ({

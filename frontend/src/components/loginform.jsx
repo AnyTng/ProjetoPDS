@@ -1,4 +1,3 @@
-// srcFrontend/components/loginform.jsx
 import { useState } from "react";
 import InputFieldLong from "./inputFieldLong.jsx";
 import Button from "./button.jsx";

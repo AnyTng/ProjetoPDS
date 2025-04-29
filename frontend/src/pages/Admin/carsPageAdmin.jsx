@@ -1,4 +1,3 @@
-// src/pages/Admin/carsPageAdmin.jsx
 import React, { useState, useEffect } from "react";
 import DashboardLayout     from "../../components/dashboardLayout.jsx";
 import VeiculoCard         from "../../components/Cards/veiculoCard.jsx";

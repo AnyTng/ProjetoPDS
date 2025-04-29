@@ -1,4 +1,3 @@
-// src/components/Footer.jsx
 import React from 'react';
 import icon from '../assets/carXPressIcon.svg'
 

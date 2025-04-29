@@ -1,5 +1,3 @@
-// src/components/Cards/ConcursoPrestadorCard.jsx
-
 import React from "react";
 import Button from "../button.jsx";
 import { useNavigate } from "react-router-dom";

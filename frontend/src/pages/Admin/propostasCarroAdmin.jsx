@@ -1,5 +1,3 @@
-// src/pages/Admin/propostasCarroAdmin.jsx
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
@@ -128,6 +126,7 @@ const PropostasPageAdmin = () => {
                         valorProposta={p.valorProposta}
                         estadoProposta={p.estadoProposta}
                         dataInicioMan={p.dataInicioMan}
+                        nomeEmpresa={p.empresaIdempresaNavigation.nomeEmpresa}
                         dataFimMan={p.dataFimMan}
                         concursoState={concursoState}
                         onAceitar={handleAccept}

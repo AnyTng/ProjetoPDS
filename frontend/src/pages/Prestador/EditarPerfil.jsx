@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import PropostaPrestadorCard from "../../components/Cards/PropostaPrestadorCard.jsx";
@@ -5,14 +6,13 @@ import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import { fetchWithAuth } from "../../utils/api";
 
-const HistoricoPropostasPrestador = () => {
+const EditarPerfilPrestador = () => {
     const { user } = useAuth();
-    const [search, setSearch] = useState("");
     const [propostas, setPropostas] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchPropostas = useCallback(async () => {
+    const fetchPerfil = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -60,19 +60,12 @@ const HistoricoPropostasPrestador = () => {
 
     return (
         <DashboardLayout
-            title="Histórico de Propostas"
+            title="Os seus dados"
             email={user?.email}
-            filter={
-                <FilterInput
-                    placeholder="Pesquisar por descrição ou valor…"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
-            }
         >
             {content}
         </DashboardLayout>
     );
 };
 
-export default HistoricoPropostasPrestador;
+export default EditarPerfilPrestador;

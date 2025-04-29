@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Button from '../button.jsx';
 import InputFieldLong from '../inputFieldLong.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
-import UploadIcon from '../../assets/UploadIcon.svg'; // Ícone para o botão do ficheiro
+import UploadIcon from '../../assets/UploadIcon.svg';
 
 const initialFormData = {
     idTransacao: '', // ID Aluguer/Serviço/Multa?

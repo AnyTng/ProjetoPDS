@@ -1,6 +1,4 @@
-// src/components/clientHeader.jsx
 import logo from "../assets/logo.svg";
-import profilePic from "../assets/react.svg";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";

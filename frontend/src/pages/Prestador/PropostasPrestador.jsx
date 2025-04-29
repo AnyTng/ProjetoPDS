@@ -1,5 +1,3 @@
-// src/pages/Prestador/PropostasPrestador.jsx
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import DashboardLayout from "../../components/dashboardLayout.jsx";

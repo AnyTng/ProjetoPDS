@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react"; // Adicionar useEffect
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import FaturaCard from "../../components/Cards/faturaCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import FloatingButton from "../../components/floatingButton.jsx";
 import { useAuth } from "../../hooks/useAuth.js"; // Adicionar useAuth
-// Importar o novo modal (será criado a seguir)
 import UploadFaturaModal from "../../components/Overlays/UploadFaturaModal.jsx";
-import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 // Remover props 'faturas' e 'email'
 const FaturasPageAdmin = () => {

@@ -3,7 +3,7 @@ import DashboardLayout from "../../components/dashboardLayout.jsx";
 import PedidoAluguerCard from "../../components/Cards/pedidoAluguerCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
-import AluguerInfoModal from "../../components/Overlays/AluguerInfoModal.jsx"; // Assume que este modal também foi atualizado ou será
+import AluguerInfoModal from "../../components/Overlays/AluguerInfoModal.jsx";
 import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 const AlugueresPageAdmin = () => {

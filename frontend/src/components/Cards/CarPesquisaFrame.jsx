@@ -1,9 +1,5 @@
-// src/components/Cards/PesquisaCarFrame.jsx
 import React, { useState, useEffect } from 'react';
 
-// Removed placeholder component as per requirements
-
-// Função para formatar valor monetário
 const formatCurrency = (value) => {
     if (value === null || value === undefined || value === '') return '€0.00'; // Default para €0.00 se vazio
     const numericValue = Number(String(value).replace(/[^0-9.,]/g, '').replace(',', '.'));
@@ -11,7 +7,7 @@ const formatCurrency = (value) => {
     return `${numericValue.toFixed(2)}`;
 };
 
-// Componente Car Frame Simplificado
+
 const CarPesquisaFrame = ({
                               // Props que serão renderizadas:
                               ValorDiarioVeiculo,
@@ -20,7 +16,7 @@ const CarPesquisaFrame = ({
                               DescModelo,
                               DescMarca,
 
-                              // Props recebidas mas NÃO renderizadas diretamente neste componente:
+
                               Idveiculo,
                               MatriculaVeiculo,
                               LotacaoVeiculo,

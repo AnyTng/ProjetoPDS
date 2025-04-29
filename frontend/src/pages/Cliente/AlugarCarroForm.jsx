@@ -1,4 +1,3 @@
-// src/pages/Cliente/AlugarCarroForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
