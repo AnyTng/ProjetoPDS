@@ -461,7 +461,7 @@ namespace RESTful_API.Controllers
             {
                 return BadRequest("O prazo para pagamento da infração já expirou.");
             }
-            infracao.EstadoInfracao = "Aguardando Paga";
+            infracao.EstadoInfracao = "Aguardando Pagamento";
             await _context.SaveChangesAsync();
 
             // Aqui você pode adicionar a lógica para processar o pagamento com Stripe
