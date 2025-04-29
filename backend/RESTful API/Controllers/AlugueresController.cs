@@ -238,142 +238,142 @@ namespace RESTful_API.Controllers
                 aluguerId = novoAluguer.Idaluguer
             });
         }
-[HttpPost("webhook")]
-public async Task<IActionResult> StripeWebhook()
-{
-    var json = await new StreamReader(Request.Body).ReadToEndAsync();
-    var webhookSecret = _config["Stripe:WebhookSecret"];
-    Event stripeEvent;
-
-    try
-    {
-        stripeEvent = EventUtility.ConstructEvent(
-            json,
-            Request.Headers["Stripe-Signature"],
-            webhookSecret
-        );
-    }
-    catch
-    {
-        return BadRequest("Invalid webhook signature.");
-    }
-
-    // Helper to pull the aluguer ID out of the session metadata
-    int? GetAluguerId(Session session)
-    {
-        if (session?.Metadata != null
-            && session.Metadata.TryGetValue("aluguerId", out var idStr)
-            && int.TryParse(idStr, out var id))
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook()
         {
-            return id;
-        }
-        return null;
-    }
+            var json = await new StreamReader(Request.Body).ReadToEndAsync();
+            var webhookSecret = _config["Stripe:WebhookSecret"];
+            Event stripeEvent;
 
-    switch (stripeEvent.Type)
-    {
-        case "checkout.session.completed":
-        {
-            var session = stripeEvent.Data.Object as Session;
-            var aluguerId = GetAluguerId(session);
-            if (aluguerId.HasValue)
+            try
             {
-                var aluguer = await _context.Aluguers
-                    .Include(a => a.VeiculoIdveiculoNavigation)
-                    .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
-
-                if (aluguer != null)
-                {
-                    aluguer.EstadoAluguer = "Aguarda levantamento";
-                    aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Alugado";
-                    await _context.SaveChangesAsync();
-                }
+                stripeEvent = EventUtility.ConstructEvent(
+                    json,
+                    Request.Headers["Stripe-Signature"],
+                    webhookSecret
+                );
             }
-            break;
-        }
-
-        case "checkout.session.expired":
-        case "checkout.session.async_payment_failed":
-        case "payment_intent.payment_failed":
-        {
-            // These events all mean the customer did not complete payment
-            // so we should cancel the aluguer and mark the car available again.
-            var session = stripeEvent.Data.Object as Session;
-            var aluguerId = GetAluguerId(session);
-            if (aluguerId.HasValue)
+            catch
             {
-                var aluguer = await _context.Aluguers
-                    .Include(a => a.VeiculoIdveiculoNavigation)
-                    .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+                return BadRequest("Invalid webhook signature.");
+            }
 
-                if (aluguer != null)
+            // Helper to pull the aluguer ID out of the session metadata
+            int? GetAluguerId(Session session)
+            {
+                if (session?.Metadata != null
+                    && session.Metadata.TryGetValue("aluguerId", out var idStr)
+                    && int.TryParse(idStr, out var id))
                 {
-                    aluguer.EstadoAluguer = "Cancelado";
-                    // Only set the vehicle status back if it was reserved/pending
-                    if (aluguer.VeiculoIdveiculoNavigation != null)
+                    return id;
+                }
+                return null;
+            }
+
+            switch (stripeEvent.Type)
+            {
+                case "checkout.session.completed":
+                {
+                    var session = stripeEvent.Data.Object as Session;
+                    var aluguerId = GetAluguerId(session);
+                    if (aluguerId.HasValue)
                     {
-                        aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
+                        var aluguer = await _context.Aluguers
+                            .Include(a => a.VeiculoIdveiculoNavigation)
+                            .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                        if (aluguer != null)
+                        {
+                            aluguer.EstadoAluguer = "Aguarda levantamento";
+                            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Alugado";
+                            await _context.SaveChangesAsync();
+                        }
                     }
-                    await _context.SaveChangesAsync();
+                    break;
                 }
+
+                case "checkout.session.expired":
+                case "checkout.session.async_payment_failed":
+                case "payment_intent.payment_failed":
+                {
+                    // These events all mean the customer did not complete payment
+                    // so we should cancel the aluguer and mark the car available again.
+                    var session = stripeEvent.Data.Object as Session;
+                    var aluguerId = GetAluguerId(session);
+                    if (aluguerId.HasValue)
+                    {
+                        var aluguer = await _context.Aluguers
+                            .Include(a => a.VeiculoIdveiculoNavigation)
+                            .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                        if (aluguer != null)
+                        {
+                            aluguer.EstadoAluguer = "Cancelado";
+                            // Only set the vehicle status back if it was reserved/pending
+                            if (aluguer.VeiculoIdveiculoNavigation != null)
+                            {
+                                aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
+                            }
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    // Other events you might want to ignore or log
+                    break;
             }
-            break;
+
+            return Ok();
         }
 
-        default:
-            // Other events you might want to ignore or log
-            break;
-    }
+        [HttpPut("cancelar")]
+        public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
+        {
+            // 1) Parse user info from token
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim   = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin)
+                || !int.TryParse(roleIdClaim,   out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
 
-    return Ok();
-}
+            // 2) Only clients (roleId == 1) may cancel
+            if (userTipoLogin != 1)
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
 
-[HttpPut("cancelar")]
-public async Task<IActionResult> PutCancelarAluguer(int idAluguer)
-{
-    // 1) Parse user info from token
-    var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var roleIdClaim   = User.FindFirstValue("roleId");
-    if (!int.TryParse(idLoginClaim, out int userIdLogin)
-        || !int.TryParse(roleIdClaim,   out int userTipoLogin))
-    {
-        return Unauthorized("Token inválido.");
-    }
+            // 3) Load the rental together with its vehicle
+            var aluguer = await _context.Aluguers
+                .Include(a => a.VeiculoIdveiculoNavigation)
+                .FirstOrDefaultAsync(a => a.Idaluguer == idAluguer);
 
-    // 2) Only clients (roleId == 1) may cancel
-    if (userTipoLogin != 1)
-    {
-        return Forbid("Acesso restrito a cliente.");
-    }
+            if (aluguer == null)
+                return NotFound("Aluguer não encontrado.");
 
-    // 3) Load the rental together with its vehicle
-    var aluguer = await _context.Aluguers
-        .Include(a => a.VeiculoIdveiculoNavigation)
-        .FirstOrDefaultAsync(a => a.Idaluguer == idAluguer);
+            // 4) Ensure the logged-in cliente owns this rental
+            /*if (aluguer. != userIdLogin)
+                return Forbid("Você não pode cancelar este aluguer.");*/
 
-    if (aluguer == null)
-        return NotFound("Aluguer não encontrado.");
+            // 5) Only pending or “aguarda levantamento” rentals can be cancelled
+            if (aluguer.EstadoAluguer != "Pendente"
+                && aluguer.EstadoAluguer != "Aguarda levantamento")
+            {
+                return BadRequest("Aluguer não se encontra ativo para cancelamento.");
+            }
 
-    // 4) Ensure the logged-in cliente owns this rental
-    /*if (aluguer. != userIdLogin)
-        return Forbid("Você não pode cancelar este aluguer.");*/
+            // 6) Perform cancellation
+            aluguer.EstadoAluguer = "Cancelado";
+            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
 
-    // 5) Only pending or “aguarda levantamento” rentals can be cancelled
-    if (aluguer.EstadoAluguer != "Pendente"
-        && aluguer.EstadoAluguer != "Aguarda levantamento")
-    {
-        return BadRequest("Aluguer não se encontra ativo para cancelamento.");
-    }
+            // 7) Save changes (EF will track both updates automatically)
+            await _context.SaveChangesAsync();
 
-    // 6) Perform cancellation
-    aluguer.EstadoAluguer = "Cancelado";
-    aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
-
-    // 7) Save changes (EF will track both updates automatically)
-    await _context.SaveChangesAsync();
-
-    return Ok();
-}
+            return Ok();
+        }
 
         //-------------------//
         //Admin Aluguer

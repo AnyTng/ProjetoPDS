@@ -141,6 +141,21 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Cliente não encontrado.");
             }
+
+            // Verifica se a infração existe
+            var infracao = await _context.Infracoes.FindAsync(idInf);
+            if (infracao == null)
+            {
+                return NotFound("Infração não encontrada.");
+            }
+            // Verifica se a infração já tem uma contestação
+            var contestacaoExistente = await _context.Contestacaos
+                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == idInf);
+            if (contestacaoExistente != null)
+            {
+                return BadRequest("Já existe uma contestação para esta infração.");
+            }
+            // Cria a nova contestação
             var contestacao = new Contestacao
             {
                 ClienteIdcliente = cliente.Idcliente, // Aqui você deve definir o ID do cliente relacionado
@@ -148,6 +163,10 @@ namespace RESTful_API.Controllers
                 EstadoContestacao = "Pendente", // Estado inicial da contestação
                 InfracoesIdinfracao = idInf // Aqui você deve definir o ID da infração relacionada
             };
+            //Muda stato da infracao para "Contestada"
+            infracao.EstadoInfracao = "Contestada";
+            _context.Entry(infracao).State = EntityState.Modified;
+
 
             // Adiciona a contestação ao contexto
             _context.Contestacaos.Add(contestacao);
@@ -195,6 +214,7 @@ namespace RESTful_API.Controllers
                     .ThenInclude(a => a.VeiculoIdveiculoNavigation)
                 .FirstOrDefaultAsync(i => i.Idinfracao == contestacao.InfracoesIdinfracao);
             
+
             var veiculo = await _context.Veiculos
                 .Where(v => v.Idveiculo == infracao.AluguerIdaluguerNavigation.VeiculoIdveiculo)
                 .FirstOrDefaultAsync();
@@ -211,6 +231,9 @@ namespace RESTful_API.Controllers
                                 $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
                                 $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
+                
+                infracao.EstadoInfracao = "Contestação Aceite";
+                _context.Entry(infracao).State = EntityState.Modified;
             }
 
             if (cliente != null && estadoContestacao == "Negada")
@@ -225,6 +248,8 @@ namespace RESTful_API.Controllers
                                 $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
                                 $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
+                infracao.EstadoInfracao = "Contestação Negada";
+                _context.Entry(infracao).State = EntityState.Modified;
             }
 
             try

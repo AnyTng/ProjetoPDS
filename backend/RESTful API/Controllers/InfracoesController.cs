@@ -12,6 +12,8 @@ using Microsoft.VisualBasic;
 using RESTful_API.Models;
 using RESTful_API.Interface;
 using RESTful_API.Service;
+using Stripe.Checkout;
+using Stripe;
 
 
 
@@ -47,11 +49,16 @@ namespace RESTful_API.Controllers
     {
         private readonly PdsContext _context;
         private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
-        public InfracoesController(PdsContext context, IEmailService emailService)
+        public InfracoesController(PdsContext context, IEmailService emailService, IConfiguration config)
         {
             _context = context;
             _emailService = emailService;
+            _config = config;
+
+            // Carrega a chave secreta Stripe (uma única vez)
+            StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
 
         // GET: api/Infracoes
@@ -136,7 +143,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 1)//verifica se é admin
+            if (userTipoLogin != 1)
             {
                 return Forbid("Acesso restrito a admin.");
             }
@@ -400,5 +407,262 @@ namespace RESTful_API.Controllers
         }
 
 
+        //pagar multa como stripe
+        [HttpPost("PagarMulta")]
+        public async Task<IActionResult> PagarMulta(int idInfracao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 1) // Verifica se é cliente
+            {
+                return Forbid("Acesso restrito a cliente.");
+            }
+
+            var infracao = await _context.Infracoes.FindAsync(idInfracao);
+            if (infracao == null)
+            {
+                return NotFound("Infração não encontrada.");
+            }
+            if (infracao.EstadoInfracao == "Paga")
+            {
+                return BadRequest("Esta infração já foi paga.");
+            }
+            if (infracao.EstadoInfracao == "Contestação Aceite")
+            {
+                return BadRequest("Esta infração foi contestada! \nEstado da Contestação: Aceite.");
+            }
+            if (infracao.DataLimPagInfracoes < DateTime.Now)
+            {
+                return BadRequest("O prazo para pagamento da infração já expirou.");
+            }
+            infracao.EstadoInfracao = "Aguardando Paga";
+            await _context.SaveChangesAsync();
+
+            // Aqui você pode adicionar a lógica para processar o pagamento com Stripe
+            string frontendBase = _config["Frontend:BaseUrl"];
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            Currency = "eur",
+                            UnitAmount = (long)(infracao.ValorInfracao * 100), // Stripe espera o valor em centavos
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                //Name = $"Reserva de aluguer: {veiculo.ModeloVeiculoIdmodeloNavigation.DescModelo}",
+                            },
+                        },
+                        Quantity = 1,
+                    },
+                },
+                Mode = "payment",
+                Metadata = new Dictionary<string, string>
+                {
+                    { "aluguerId", infracao.Idinfracao.ToString() }
+                },
+                SuccessUrl = $"{frontendBase}/payment/success?aluguerId={infracao.Idinfracao}",
+                CancelUrl = $"{frontendBase}/payment/failure?aluguerId={infracao.Idinfracao}",
+                ExpiresAt = DateTime.UtcNow.AddMinutes(30)
+            };
+
+            var service = new SessionService();
+            Session session = service.Create(options);
+
+            return Ok(new
+            {
+                checkoutUrl = session.Url,
+                InfracaoId = infracao.Idinfracao 
+            });
+        }
+
+        /*[HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            var json = await new StreamReader(Request.Body).ReadToEndAsync();
+            var webhookSecret = _config["Stripe:WebhookSecret"];
+            Event stripeEvent;
+
+            try
+            {
+                stripeEvent = EventUtility.ConstructEvent(
+                    json,
+                    Request.Headers["Stripe-Signature"],
+                    webhookSecret
+                );
+            }
+            catch
+            {
+                return BadRequest("Invalid webhook signature.");
+            }
+
+            // Helper to pull the aluguer ID out of the session metadata
+            int? GetAluguerId(Session session)
+            {
+                if (session?.Metadata != null
+                    && session.Metadata.TryGetValue("aluguerId", out var idStr)
+                    && int.TryParse(idStr, out var id))
+                {
+                    return id;
+                }
+                return null;
+            }
+
+            switch (stripeEvent.Type)
+            {
+                case "checkout.session.completed":
+                    {
+                        var session = stripeEvent.Data.Object as Session;
+                        var aluguerId = GetAluguerId(session);
+                        if (aluguerId.HasValue)
+                        {
+                            var aluguer = await _context.Aluguers
+                                .Include(a => a.VeiculoIdveiculoNavigation)
+                                .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                            if (aluguer != null)
+                            {
+                                aluguer.EstadoAluguer = "Aguarda levantamento";
+                                aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Alugado";
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                        break;
+                    }
+
+                case "checkout.session.expired":
+                case "checkout.session.async_payment_failed":
+                case "payment_intent.payment_failed":
+                    {
+                        // These events all mean the customer did not complete payment
+                        // so we should cancel the aluguer and mark the car available again.
+                        var session = stripeEvent.Data.Object as Session;
+                        var aluguerId = GetAluguerId(session);
+                        if (aluguerId.HasValue)
+                        {
+                            var aluguer = await _context.Aluguers
+                                .Include(a => a.VeiculoIdveiculoNavigation)
+                                .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                            if (aluguer != null)
+                            {
+                                aluguer.EstadoAluguer = "Cancelado";
+                                // Only set the vehicle status back if it was reserved/pending
+                                if (aluguer.VeiculoIdveiculoNavigation != null)
+                                {
+                                    aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
+                                }
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                        break;
+                    }
+
+                default:
+                    // Other events you might want to ignore or log
+                    break;
+            }
+
+            return Ok();
+        }*/
     }
 }
+
+   /*
+        [HttpPost("webhook")]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            var json = await new StreamReader(Request.Body).ReadToEndAsync();
+            var webhookSecret = _config["Stripe:WebhookSecret"];
+            Event stripeEvent;
+
+            try
+            {
+                stripeEvent = EventUtility.ConstructEvent(
+                    json,
+                    Request.Headers["Stripe-Signature"],
+                    webhookSecret
+                );
+            }
+            catch
+            {
+                return BadRequest("Invalid webhook signature.");
+            }
+
+            // Helper to pull the aluguer ID out of the session metadata
+            int? GetAluguerId(Session session)
+            {
+                if (session?.Metadata != null
+                    && session.Metadata.TryGetValue("aluguerId", out var idStr)
+                    && int.TryParse(idStr, out var id))
+                {
+                    return id;
+                }
+                return null;
+            }
+
+            switch (stripeEvent.Type)
+            {
+                case "checkout.session.completed":
+                {
+                    var session = stripeEvent.Data.Object as Session;
+                    var aluguerId = GetAluguerId(session);
+                    if (aluguerId.HasValue)
+                    {
+                        var aluguer = await _context.Aluguers
+                            .Include(a => a.VeiculoIdveiculoNavigation)
+                            .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                        if (aluguer != null)
+                        {
+                            aluguer.EstadoAluguer = "Aguarda levantamento";
+                            aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Alugado";
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    break;
+                }
+
+                case "checkout.session.expired":
+                case "checkout.session.async_payment_failed":
+                case "payment_intent.payment_failed":
+                {
+                    // These events all mean the customer did not complete payment
+                    // so we should cancel the aluguer and mark the car available again.
+                    var session = stripeEvent.Data.Object as Session;
+                    var aluguerId = GetAluguerId(session);
+                    if (aluguerId.HasValue)
+                    {
+                        var aluguer = await _context.Aluguers
+                            .Include(a => a.VeiculoIdveiculoNavigation)
+                            .FirstOrDefaultAsync(a => a.Idaluguer == aluguerId.Value);
+
+                        if (aluguer != null)
+                        {
+                            aluguer.EstadoAluguer = "Cancelado";
+                            // Only set the vehicle status back if it was reserved/pending
+                            if (aluguer.VeiculoIdveiculoNavigation != null)
+                            {
+                                aluguer.VeiculoIdveiculoNavigation.EstadoVeiculo = "Disponível";
+                            }
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    // Other events you might want to ignore or log
+                    break;
+            }
+
+            return Ok();
+        }*/
