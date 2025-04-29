@@ -19,6 +19,7 @@ const PropostaCardAdmin = ({
                                dataFimMan,
                                concursoState,
                                onAceitar,
+    nomeEmpresa
                            }) => (
     <div className="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
         <div>
@@ -33,6 +34,10 @@ const PropostaCardAdmin = ({
         </span>
             </div>
             <div className="text-sm text-gray-600 space-y-1">
+                <div>
+                    <strong>Empresa:</strong> {nomeEmpresa}
+                </div>
+
                 <div>
                     <strong>Valor:</strong>{" "}
                     {valorProposta.toLocaleString("pt-PT", {

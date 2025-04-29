@@ -23,7 +23,6 @@ const Header = ({ userType, email }) => {
     const adminMenuItems = [
         { label: "Veículos", onClick: () => { navigate("/admin/veiculos"); setIsMenuOpen(false); } },
         { label: "Multas", onClick: () => { navigate("/admin/multas"); setIsMenuOpen(false); } },
-        { label: "Faturas", onClick: () => { navigate("/admin/faturas"); setIsMenuOpen(false); } },
         { label: "Alugueres", onClick: () => { navigate("/admin/pedidos"); setIsMenuOpen(false); } },
         { label: "Utilizadores", onClick: () => { navigate("/admin/utilizadores"); setIsMenuOpen(false); } },
         { label: "Concursos", onClick: () => { navigate("/admin/concursos"); setIsMenuOpen(false); } },
@@ -48,8 +47,6 @@ const Header = ({ userType, email }) => {
     let title = "Área do Utilizador";
     if (userType === "Admin") title = "Área do administrador";
     else if (userType === "Prestador") title = "Área do Prestador de Serviços";
-    else if (userType === "Cliente") title = "Área do Cliente";
-
 
     return (
         // Usar relative positioning no header para que o menu absoluto se posicione corretamente
