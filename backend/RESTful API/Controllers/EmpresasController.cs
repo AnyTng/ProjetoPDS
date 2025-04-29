@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,17 @@ namespace RESTful_API.Controllers
         public int? ContactoE2 { get; set; }
     }
 
+    public class EmpresaDTOEdit
+    {
+        public string? FuncionarioEmpresa { get; set; }
+        public string? NomeEmpresa { get; set; }
+        public string? RuaEmpresa { get; set; }
+        //public int? CodigoPostalCp { get; set; }
+        public string CodigoPostal { get; set; }
+        public int? ContactoE1 { get; set; }
+        public int? ContactoE2 { get; set; }
+    }
+
 
 
     [Route("api/[controller]")]
@@ -50,9 +62,22 @@ namespace RESTful_API.Controllers
         }
 
         // GET: api/Empresas/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Empresa>> GetEmpresa(int id)
+        [HttpGet("me")]
+        public async Task<ActionResult<Empresa>> GetEmpresa()
         {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 2)
+            {
+                return Forbid("Acesso restrito a Empresas.");
+            }
+
+            int id = userIdLogin;
+
             var empresa = await _context.Empresas.FindAsync(id);
 
             if (empresa == null)
@@ -65,23 +90,46 @@ namespace RESTful_API.Controllers
 
         // PUT: api/Empresas/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmpresa(int id, Empresa empresa)
+        [HttpPut("me")]
+        public async Task<IActionResult> PutEmpresa( EmpresaDTOEdit empresa)
         {
-            if (id != empresa.Idempresa)
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
-                return BadRequest();
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 2)
+            {
+                return Forbid("Acesso restrito a Empresas.");
             }
 
-            _context.Entry(empresa).State = EntityState.Modified;
+            var empresaToUpdate = await _context.Empresas.FirstOrDefaultAsync(e => e.LoginIdlogin == userIdLogin);
+            if (empresaToUpdate == null)
+            {
+                return NotFound("Empresa não encontrada.");
+            }
+            if (string.IsNullOrWhiteSpace(empresa.FuncionarioEmpresa)) return BadRequest("Nome do representante é obrigatório.");
+            if (string.IsNullOrWhiteSpace(empresa.NomeEmpresa)) return BadRequest("Nome da empresa é obrigatório.");
+            string cpDigits = new string(empresa.CodigoPostal.Where(char.IsDigit).ToArray());
+            if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int cpNumeric)) return BadRequest("Formato inválido para Código Postal.");
+            var codigoPostal = await _context.CodigoPostals.FindAsync(cpNumeric);
+            if (codigoPostal == null) return BadRequest("Código Postal não existe.");
 
+            empresaToUpdate.FuncionarioEmpresa = empresa.FuncionarioEmpresa;
+            empresaToUpdate.NomeEmpresa = empresa.NomeEmpresa;
+            empresaToUpdate.RuaEmpresa = empresa.RuaEmpresa;
+            empresaToUpdate.CodigoPostalCp = cpNumeric;
+            empresaToUpdate.ContactoE1 = empresa.ContactoE1;
+            empresaToUpdate.ContactoE2 = empresa.ContactoE2;
+            _context.Entry(empresaToUpdate).State = EntityState.Modified;
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EmpresaExists(id))
+                if (!EmpresaExists(empresaToUpdate.Idempresa))
                 {
                     return NotFound();
                 }
@@ -90,7 +138,6 @@ namespace RESTful_API.Controllers
                     throw;
                 }
             }
-
             return NoContent();
         }
 
