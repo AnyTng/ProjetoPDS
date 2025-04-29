@@ -21,11 +21,10 @@ const Header = ({ userType, email }) => {
 
     // 4. Definir itens do menu para Admin
     const adminMenuItems = [
+        { label: "Veículos", onClick: () => { navigate("/admin/veiculos"); setIsMenuOpen(false); } },
         { label: "Multas", onClick: () => { navigate("/admin/multas"); setIsMenuOpen(false); } },
         { label: "Faturas", onClick: () => { navigate("/admin/faturas"); setIsMenuOpen(false); } },
-        { label: "Veículos", onClick: () => { navigate("/admin/veiculos"); setIsMenuOpen(false); } },
-        { label: "Pedidos/Alugueres", onClick: () => { navigate("/admin/pedidos"); setIsMenuOpen(false); } },
-        { label: "Notificações", onClick: () => { navigate("/admin/notificacoes"); setIsMenuOpen(false); } },
+        { label: "Alugueres", onClick: () => { navigate("/admin/pedidos"); setIsMenuOpen(false); } },
         { label: "Utilizadores", onClick: () => { navigate("/admin/utilizadores"); setIsMenuOpen(false); } },
         { label: "Concursos", onClick: () => { navigate("/admin/concursos"); setIsMenuOpen(false); } },
     ];

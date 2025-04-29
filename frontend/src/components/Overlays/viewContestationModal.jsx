@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 import Button from '../button.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
 
-const ViewContestationModal = ({ isOpen, onClose, contestationText, isLoading, onAccept, onReject, contestationId, contestationStatus }) => {
+const ViewContestationModal = ({ isOpen,
+                                   onClose,
+                                   contestationText,
+                                   isLoading,
+                                   onAccept,
+                                   onReject,
+                                   contestationId,
+                                   contestationStatus,
+                                   multaStatus
+}) => {
+
+
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Check if contestation has already been responded to
+    // Check if contestation has already been responded to or if the multa is paid
     const hasResponse = contestationStatus === 'Aceite' || contestationStatus === 'Negada';
+    const isPaid = multaStatus === 'Paga';
 
     if (!isOpen) return null;
 
@@ -57,7 +69,7 @@ const ViewContestationModal = ({ isOpen, onClose, contestationText, isLoading, o
 
                 <div className="flex justify-between gap-4 pt-6">
                     <div className="flex gap-4">
-                        {!hasResponse && (
+                        {!hasResponse && !isPaid && (
                             <>
                                 <Button 
                                     text="Aceitar" 
