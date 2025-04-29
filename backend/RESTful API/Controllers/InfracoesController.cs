@@ -576,7 +576,7 @@ namespace RESTful_API.Controllers
                                 .Include(a => a.AluguerIdaluguerNavigation)
                                 .FirstOrDefaultAsync(a => a.Idinfracao == infId.Value);
                             var contestacao = await _context.Contestacaos
-                                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == idInfracao);
+                                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == infId);
 
                             // safely grab the EstadoContestacao (will be null if contestacao is null)
                             string estado = contestacao?.EstadoContestacao;
@@ -597,8 +597,8 @@ namespace RESTful_API.Controllers
                             }
                                 // Only set the vehicle status back if it was reserved/pending
 
-                                await _context.SaveChangesAsync();
-                            }
+                            await _context.SaveChangesAsync();
+                            
                         }
                         break;
                     }
