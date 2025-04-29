@@ -1,3 +1,5 @@
+// src/pages/admin/MultasPageAdmin.jsx
+
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import MultaCardAdmin from "../../components/Cards/multaCardAdmin.jsx";
@@ -5,9 +7,8 @@ import FilterInput from "../../components/filterInput.jsx";
 import FloatingButton from "../../components/floatingButton.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import CreateMultaModal from "../../components/Overlays/CreateMultaModal.jsx";
-import EditMultaModal from "../../components/Overlays/EditMultaModal.jsx";
 import ViewContestationModal from "../../components/Overlays/ViewContestationModal.jsx";
-import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
+import { fetchWithAuth } from "../../utils/api";
 
 const MultasPageAdmin = () => {
     const { user } = useAuth();
@@ -25,13 +26,12 @@ const MultasPageAdmin = () => {
     const [contestationText, setContestationText] = useState("");
     const [isFetchingContestation, setIsFetchingContestation] = useState(false);
 
-    // --- Fetch Initial Multas ---
+    // Busca todas as multas
     const fetchMultas = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            // pequen o delay para simular loading
-            const data = await fetchWithAuth('/api/Infracoes/vermultasAdmin');
+            const data = await fetchWithAuth("/api/Infracoes/vermultasAdmin");
             setMultas(data);
         } catch (err) {
             console.error("Erro ao buscar multas:", err);
@@ -46,14 +46,14 @@ const MultasPageAdmin = () => {
         fetchMultas();
     }, []);
 
-    // --- Filtro de pesquisa ---
-    const filtered = multas.filter(m =>
+    // Filtra lista pelo input de pesquisa
+    const filtered = multas.filter((m) =>
         m.idinf.toString().includes(search.toLowerCase()) ||
         (m.nomeCliente || "").toLowerCase().includes(search.toLowerCase()) ||
         (m.matriculaVeiculo || "").toLowerCase().includes(search.toLowerCase())
     );
 
-    // --- Modais ---
+    // Fecha todos os modais
     const handleCloseModals = () => {
         setIsCreateModalOpen(false);
         setIsEditModalOpen(false);
@@ -62,49 +62,57 @@ const MultasPageAdmin = () => {
         setContestationText("");
     };
 
+    // Abre modal de criação
     const handleOpenCreateModal = () => setIsCreateModalOpen(true);
 
-    const handleCreateMulta = async formData => {
-        console.log("[API Placeholder] Criar Multa:", formData);
-        // await fetchWithAuth.post(...)
-        handleCloseModals();
-        fetchMultas();
+    // Cria multa (POST) e recarrega lista
+    const handleCreateMulta = async (formData) => {
+        const { dataInfracao, valorInfracao, matricula, descInfracao, dataLimPagInfracoes } = formData;
+
+        setIsLoading(true);
+        try {
+            const qs = new URLSearchParams({
+                dataInfracao,
+                valorInfracao,
+                matricula,
+                descInfracao,
+                dataLimPagInfracoes,
+            }).toString();
+
+            await fetchWithAuth(`/api/Infracoes/inserir-multa?${qs}`, {
+                method: "POST",
+            });
+
+            handleCloseModals();
+            await fetchMultas();
+        } catch (err) {
+            console.error("Erro ao criar multa:", err);
+            alert("Erro ao criar a multa: " + err.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const handleOpenEditModal = idinf => {
-        const multa = multas.find(m => m.idinf === idinf);
-        if (!multa) return alert("Multa não encontrada.");
-        setSelectedMulta(multa);
-        setIsEditModalOpen(true);
-    };
-
-    const handleUpdateMulta = async (idinf, formData) => {
-        console.log(`[API Placeholder] Atualizar Multa ID ${idinf}`, formData);
-        // await fetchWithAuth.put(...)
-        handleCloseModals();
-        fetchMultas();
-    };
-
-    const handleOpenViewContestationModal = async multa => {
+    // Abre modal de contestação
+    const handleOpenViewContestationModal = async (multa) => {
         if (!multa.idCont) return;
         setIsFetchingContestation(true);
         setContestationText("");
         setIsViewContestationModalOpen(true);
-
         try {
-            // simula fetch real
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Exemplo de fetch real:
             // const { texto } = await fetchWithAuth(`/api/admin/contestacoes/${multa.idCont}`);
+            await new Promise((res) => setTimeout(res, 500));
             setContestationText(`Simulação de texto da contestação #${multa.idCont}.`);
         } catch (err) {
-            console.error(err);
+            console.error("Erro ao buscar contestação:", err);
             setContestationText("Erro ao carregar a contestação.");
         } finally {
             setIsFetchingContestation(false);
         }
     };
 
-    // --- Render ---
+    // Define o conteúdo central
     let content;
     if (isLoading) {
         content = <div className="p-6 text-center text-gray-500">A carregar multas…</div>;
@@ -121,7 +129,7 @@ const MultasPageAdmin = () => {
     } else {
         content = (
             <div className="flex flex-col gap-6 pb-6">
-                {filtered.map(multa => (
+                {filtered.map((multa) => (
                     <MultaCardAdmin
                         key={multa.idinf}
                         multa={multa}
@@ -142,7 +150,7 @@ const MultasPageAdmin = () => {
                     <FilterInput
                         placeholder="Pesquisar por ID, cliente ou matrícula…"
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        onChange={(e) => setSearch(e.target.value)}
                         disabled={isLoading || !!error}
                     />
                 }
@@ -168,7 +176,7 @@ const MultasPageAdmin = () => {
                 <EditMultaModal
                     isOpen={isEditModalOpen}
                     onClose={handleCloseModals}
-                    onSubmit={formData => handleUpdateMulta(selectedMulta.idinf, formData)}
+                    onSubmit={(formData) => handleUpdateMulta(selectedMulta.idinf, formData)}
                     multaData={selectedMulta}
                 />
             )}

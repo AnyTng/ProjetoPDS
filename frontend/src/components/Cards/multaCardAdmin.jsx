@@ -85,13 +85,6 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
             </div>
 
             {/* Footer Actions */}
-            <div className="mt-4 flex justify-between items-center border-t border-gray-200 pt-4">
-                <Button
-                    text="Editar"
-                    variant="primary"
-                    onClick={onEditClick}
-                    className="px-4 py-2 text-sm"
-                />
 
                 {estadoContestacao && (
                     <Button
@@ -102,7 +95,7 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
                     />
                 )}
             </div>
-        </div>
+
     );
 };
 
