@@ -19,7 +19,9 @@ import HistoricoPropostasPrestador from "../pages/Prestador/HistoricoPropostasPr
 
 // Payment Pages
 import PaymentSuccess from "../pages/Cliente/PaymentSuccess.jsx";
-import PaymentFailure from "../pages/Cliente/PaymentFailure.jsx";
+import PaymentFailureAluguer from "../pages/Cliente/PaymentFailureAluguer.jsx";
+import PaymentFailureMulta from "../pages/Cliente/PaymentFailureMulta.jsx";
+import PaymentSuccessMulta from "../pages/Cliente/PaymentSuccessMulta.jsx";
 
 // Admin Pages
 import CarsPageAdmin from '../pages/Admin/carsPageAdmin.jsx';
@@ -67,6 +69,15 @@ const AppRoutes = () => (
                         <ClienteMultas />
                     </PrivateRoute>
                 }
+        />
+
+        <Route
+            path="/payment/failure/multa"
+            element={
+                <PrivateRoute allowedRoles={['cliente']}>
+                    <PaymentFailureMulta />
+                </PrivateRoute>
+            }
         />
         <Route
             path="/eShop/rent/:carID"
@@ -195,7 +206,8 @@ const AppRoutes = () => (
 
         {/* --- Rotas de Pagamento --- */}
         <Route path="/payment/success" element={<PaymentSuccess />} />
-        <Route path="/payment/failure" element={<PaymentFailure />} />
+        <Route path="/payment/success/multa" element={<PaymentSuccessMulta />} />
+        <Route path="/payment/failure" element={<PaymentFailureAluguer />} />
 
         {/* --- Erros / Fallback --- */}
         <Route path="/unauthorized" element={<div>Acesso Não Autorizado</div>} />
