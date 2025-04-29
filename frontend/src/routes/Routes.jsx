@@ -32,11 +32,12 @@ import AlugueresPageAdmin from '../pages/Admin/AlugueresPageAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
 
-
 // User Pages
 import ClientePerfil from "../pages/Cliente/clientePerfil.jsx";
 import CarRent from "../pages/Cliente/AlugarCarroForm.jsx";
 import ClienteReservas from "../pages/Cliente/ClienteReservas.jsx";
+import ClienteMultas from "../pages/Cliente/ClienteMultas.jsx";
+
 
 const AppRoutes = () => (
     <Routes>
@@ -57,6 +58,15 @@ const AppRoutes = () => (
                     <ClientePerfil />
                 </PrivateRoute>
             }
+        />
+
+        <Route
+            path={"user/multas"}
+                element={
+                    <PrivateRoute allowedRoles={['cliente']}>
+                        <ClienteMultas />
+                    </PrivateRoute>
+                }
         />
         <Route
             path="/eShop/rent/:carID"
