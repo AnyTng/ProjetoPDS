@@ -4,30 +4,29 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RESTful_API.Models;
 using System.Text;
-using System.Text.Json.Serialization; // Adicionar este using
+using System.Text.Json.Serialization;
 using QuestPDF.Infrastructure;
 using RESTful_API.Interface;
-using RESTful_API.Service; // importante!
-
-
+using RESTful_API.Service;
+using Hangfire; // ?? Hangfire
+using Hangfire.SqlServer; // ?? Hangfire com SQL Server
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar JWT
 var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "chave-super-secreta");
 
-// Get ConnectionString from appsettings.json
+// Connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-
-// Configure a licença QuestPDF antes de qualquer uso
+// Configurar licença do QuestPDF
 QuestPDF.Settings.License = LicenseType.Community;
 
-// Add DbContext to the service container
+// DbContext
 builder.Services.AddDbContext<PdsContext>(options =>
     options.UseSqlServer(connectionString));
 
-//  Autenticação JWT
+// JWT Auth
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,114 +34,113 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Em produção, deve ser true
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false, // Depende dos seus requisitos
-        ValidateAudience = false, // Depende dos seus requisitos
-        // Considerar adicionar validação de tempo de vida: ValidateLifetime = true,
-        RoleClaimType = "role" // Mapeia a claim 'role' do token para User.IsInRole()
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        RoleClaimType = "role"
     };
 });
 
 builder.Services.AddAuthorization();
 
-// --- MODIFICAÇÃO AQUI ---
-// Adicionar configuração do JsonSerializer para ignorar ciclos
+// Configuração JSON
 builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        // Pode adicionar outras opções globais aqui, se necessário
-        // options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    });
-// --- FIM DA MODIFICAÇÃO ---
-
-builder.Services.AddEndpointsApiExplorer();
-
-// ? CORS
-builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("http://localhost:5173") // URL do seu frontend
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials()); // Necessário se enviar cookies ou cabeçalho Authorization com credenciais
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
-//  Swagger com suporte a JWT
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Minha API PDS", // Ajustar conforme necessário
+        Title = "Minha API PDS",
         Version = "v1",
-        Description = "Documentação da API do Projeto PDS", // Ajustar
+        Description = "Documentação da API do Projeto PDS",
         Contact = new OpenApiContact
         {
-            Name = "Nome da Equipa", // Ajustar
-            Email = string.Empty, // Ajustar
-            // Url = new Uri("https://example.com/contact"), // Opcional
+            Name = "Nome da Equipa",
+            Email = string.Empty,
         }
     });
 
-    // Adicionar definição de segurança para Bearer (JWT)
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Autorização JWT usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http, // Usar Http para Bearer
-        Scheme = "bearer", // Esquema em minúsculas
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT"
     });
 
-    // Adicionar requisito de segurança para operações que precisam de JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             new string[] {}
         }
     });
 });
 
+// Serviços da API
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// ?? Hangfire: registrar e configurar com SQL Server
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(connectionString));
+builder.Services.AddHangfireServer();
+
+// ?? Serviço da tarefa agendada
+builder.Services.AddTransient<ServicoInterno>();
+
+// ?? CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-// Swagger apenas em desenvolvimento (recomendado)
+// ?? Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Minha API V1");
-        // Para aceder à UI do Swagger na raiz da aplicação (ex: http://localhost:5159/)
         c.RoutePrefix = string.Empty;
     });
 }
 
-// HTTPS Redirection pode ser útil mesmo em desenvolvimento se configurar certificados
-// app.UseHttpsRedirection();
-
-// ? Aplica CORS antes de auth/authz
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.UseAuthentication(); // Adiciona middleware de autenticação
-app.UseAuthorization(); // Adiciona middleware de autorização
+// ?? Hangfire dashboard (opcional)
+app.UseHangfireDashboard("/hangfire");
 
-app.MapControllers(); // Mapeia os atributos de rota nos controllers
+// ?? Agendar tarefa diária às 2h
+RecurringJob.AddOrUpdate<ServicoInterno>(
+    "tarefa-diaria",
+    tarefa => tarefa.Executar(),
+    //"45 16 * * *", // Executa todos os dias às 16h42   ss mm hh
+    "0 9 * * *", // Executa todos os dias às 9h
+    TimeZoneInfo.Local
+);
 
+app.MapControllers();
 app.Run();
