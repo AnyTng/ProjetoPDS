@@ -1,0 +1,53 @@
+// src/components/Cards/veiculoCard.jsx
+import Button from "../button.jsx";
+
+// Recebe onVerInfoClick como prop
+const VeiculoCard = ({
+                         CarroId,
+                         CarroNome,
+                         ultimaMod,
+                         Estado,
+                         imageUrl,
+                         onVerInfoClick
+                     }) => {
+
+    return (
+        <div className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-5 flex flex-col gap-4 shadow-sm">
+            {/* ... (código da imagem e informações) ... */}
+            <div className="flex items-center gap-6">
+                {/* ... imagem ... */}
+                <div className="w-40 h-40 rounded-xl overflow-hidden bg-gray-100">
+                    {imageUrl
+                        ? <img src={imageUrl} alt="Veículo" className="w-full h-full object-cover"/>
+                        : <span className="text-gray-400">Sem imagem</span>
+                    }
+                </div>
+                {/* ... informações ... */}
+                <div className="flex-1 space-y-1">
+                    <p className="text-base font-semibold text-slate-900">
+                        Carro: <span className="font-normal">{CarroId}</span> &nbsp;&nbsp;
+                        Nome: <span className="font-normal">{CarroNome}</span> {/* Ajustado para Nome em vez de repetir Carro */}
+                    </p>
+                    <p className="text-base font-semibold text-slate-900">
+                        Última Manutenção: <span className="font-normal">{ultimaMod}</span>
+                    </p>
+                    <p className="text-base font-semibold text-slate-900">
+                        Estado: <span className="font-normal">{Estado}</span>
+                    </p>
+                </div>
+            </div>
+
+            {/* Botão usa a prop diretamente */}
+            <div className="flex justify-end">
+                <Button
+                    text="Informação Completa"
+                    variant="primary"
+                    onClick={onVerInfoClick} // <-- CORRETO: Chama a função passada por prop
+                    className="px-6 !py-1 text-base"
+                />
+            </div>
+        </div>
+    );
+};
+
+export default VeiculoCard;

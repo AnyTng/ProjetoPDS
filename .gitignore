@@ -1,1 +1,16 @@
-.DS_Store
+/.DS_Store
+/.vs
+frontend/src.zip
+/.idea
+/backend/RESTful API/bin/Debug
+/backend/RESTful API/bin
+backend/.idea
+backend/RESTful API/obj
+/backend/RESTful API/obj
+/backend/RESTful API/obj/
+*/.DS_Store
+*.zip
+.vscode/settings.json
+.vs/
+backend/RESTful API/appsettings.json
+backend/RESTful API/.DS_Store
