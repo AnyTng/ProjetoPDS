@@ -320,7 +320,29 @@ namespace RESTful_API.Controllers
             return CreatedAtAction(nameof(GetInfracao), new { id = infracao.Idinfracao }, infracao);
                
         }
-
+        //Put para cancelar a multa
+        [HttpPut("cancelar-multa")]
+        public async Task<IActionResult> CancelarMulta(int idInfracao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+            var infracao = await _context.Infracoes.FindAsync(idInfracao);
+            if (infracao == null)
+            {
+                return NotFound("Infração não encontrada.");
+            }
+            infracao.EstadoInfracao = "Cancelada";
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
         ///////////
         ///Cliente 
@@ -484,7 +506,7 @@ namespace RESTful_API.Controllers
             });
         }
 
-        /*[HttpPost("webhook")]
+        [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
         {
             var json = await new StreamReader(Request.Body).ReadToEndAsync();
@@ -572,7 +594,7 @@ namespace RESTful_API.Controllers
             }
 
             return Ok();
-        }*/
+        }
     }
 }
 
