@@ -33,7 +33,6 @@ namespace RESTful_API.Controllers
     public class EmpresaDTOEdit
     {
         public string? FuncionarioEmpresa { get; set; }
-        public string? NomeEmpresa { get; set; }
         public string? RuaEmpresa { get; set; }
         //public int? CodigoPostalCp { get; set; }
         public string CodigoPostal { get; set; }
@@ -111,14 +110,12 @@ namespace RESTful_API.Controllers
                 return NotFound("Empresa não encontrada.");
             }
             if (string.IsNullOrWhiteSpace(empresa.FuncionarioEmpresa)) return BadRequest("Nome do representante é obrigatório.");
-            if (string.IsNullOrWhiteSpace(empresa.NomeEmpresa)) return BadRequest("Nome da empresa é obrigatório.");
             string cpDigits = new string(empresa.CodigoPostal.Where(char.IsDigit).ToArray());
             if (cpDigits.Length != 7 || !int.TryParse(cpDigits, out int cpNumeric)) return BadRequest("Formato inválido para Código Postal.");
             var codigoPostal = await _context.CodigoPostals.FindAsync(cpNumeric);
             if (codigoPostal == null) return BadRequest("Código Postal não existe.");
 
             empresaToUpdate.FuncionarioEmpresa = empresa.FuncionarioEmpresa;
-            empresaToUpdate.NomeEmpresa = empresa.NomeEmpresa;
             empresaToUpdate.RuaEmpresa = empresa.RuaEmpresa;
             empresaToUpdate.CodigoPostalCp = cpNumeric;
             empresaToUpdate.ContactoE1 = empresa.ContactoE1;
