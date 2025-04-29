@@ -489,9 +489,9 @@ namespace RESTful_API.Controllers
                 Mode = "payment",
                 Metadata = new Dictionary<string, string>
                 {
-                    { "ID Da Infração: ", infracao.Idinfracao.ToString() }
+                    { "infracaoId", infracao.Idinfracao.ToString() }
                 },
-                SuccessUrl = $"{frontendBase}/payment/success?multaId={infracao.Idinfracao}",
+                SuccessUrl = $"{frontendBase}/payment/success/multa?multaId={infracao.Idinfracao}",
                 CancelUrl = $"{frontendBase}/payment/failure/multa?multaId={infracao.Idinfracao}",
                 ExpiresAt = DateTime.UtcNow.AddMinutes(30)
             };
@@ -531,7 +531,7 @@ namespace RESTful_API.Controllers
             int? GetInfId(Session session)
             {
                 if (session?.Metadata != null
-                    && session.Metadata.TryGetValue("idInfId", out var idStr)
+                    && session.Metadata.TryGetValue("infracaoId", out var idStr)
                     && int.TryParse(idStr, out var id))
                 {
                     return id;
@@ -555,7 +555,11 @@ namespace RESTful_API.Controllers
                             if (infracao != null)
                             {
                                 infracao.EstadoInfracao = "Paga";
-                                contestacao.EstadoContestacao = "Paga";
+
+                                if (contestacao != null)
+                                {
+                                    contestacao.EstadoContestacao = "Paga";
+                                }
                                 await _context.SaveChangesAsync();
                             }
                         }
