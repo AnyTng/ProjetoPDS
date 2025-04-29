@@ -27,9 +27,7 @@ import PaymentSuccessMulta from "../pages/Cliente/PaymentSuccessMulta.jsx";
 import CarsPageAdmin from '../pages/Admin/carsPageAdmin.jsx';
 import ConcursosManAdmin from '../pages/Admin/concursosManAdmin.jsx';
 import PropostasPageAdmin from '../pages/Admin/propostasCarroAdmin.jsx';
-import FaturasPageAdmin from '../pages/Admin/faturasPageAdmin.jsx';
 import MultasPageAdmin from '../pages/Admin/multasPageAdmin.jsx';
-import NotificationsPageAdmin from '../pages/Admin/notificationsPageAdmin.jsx';
 import AlugueresPageAdmin from '../pages/Admin/AlugueresPageAdmin.jsx';
 import UsersPageAdmin from '../pages/Admin/usersPageAdmin.jsx';
 
@@ -164,14 +162,6 @@ const AppRoutes = () => (
             }
         />
         <Route
-            path="/admin/faturas"
-            element={
-                <PrivateRoute allowedRoles={['admin']}>
-                    <FaturasPageAdmin />
-                </PrivateRoute>
-            }
-        />
-        <Route
             path="/admin/multas"
             element={
                 <PrivateRoute allowedRoles={['admin']}>
@@ -195,15 +185,6 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
-        <Route
-            path="/admin/notificacoes"
-            element={
-                <PrivateRoute allowedRoles={['admin']}>
-                    <NotificationsPageAdmin />
-                </PrivateRoute>
-            }
-        />
-
         {/* --- Rotas de Pagamento --- */}
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/success/multa" element={<PaymentSuccessMulta />} />
