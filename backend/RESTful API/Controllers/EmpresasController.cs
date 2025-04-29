@@ -76,9 +76,10 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
-            int id = userIdLogin;
 
-            var empresa = await _context.Empresas.FindAsync(id);
+            var empresa = await _context.Empresas
+                .Where(e=>e.LoginIdlogin== userIdLogin)
+                .FirstAsync();
 
             if (empresa == null)
             {
