@@ -607,5 +607,49 @@ namespace RESTful_API.Controllers
 
             return Ok();
         }
+
+        //put mudar estado
+        [HttpPut("mudarEstado")]
+        public async Task<IActionResult> MudarEstado(int idInfracao)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 3)//verifica se é admin
+            {
+                return Forbid("Acesso restrito a admin.");
+            }
+            var infracao = await _context.Infracoes.FindAsync(idInfracao);
+            if (infracao == null)
+            {
+                return NotFound("Infração não encontrada.");
+            }
+
+            var contestacao = await _context.Contestacaos
+                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == idInfracao);
+
+            if (infracao != null)
+            {
+                if (contestacao.EstadoContestacao == "Negada")
+                {
+                    infracao.EstadoInfracao = "Contestação Negada";
+                }
+                if (contestacao.EstadoContestacao == "Pendentw")
+                {
+                    infracao.EstadoInfracao = "Contestada";
+                }
+                if (contestacao.EstadoContestacao == null)
+                {
+                    infracao.EstadoInfracao = "Submetida";
+                }
+                // Only set the vehicle status back if it was reserved/pending
+
+                await _context.SaveChangesAsync();
+            }
+            return NoContent();
+        }
     }
 }
