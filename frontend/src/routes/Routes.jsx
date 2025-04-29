@@ -9,6 +9,8 @@ import PrivateRoute from './PrivateRoute';
 import EShopPage from "../pages/LoggedOut/eShopPage.jsx";
 import CarShop from "../pages/LoggedOut/carShop.jsx";
 import RegisterPagePrestador from "../pages/Prestador/registerPrestador.jsx";
+import EmpresaManutencaoInfoPage from "../pages/LoggedOut/EmpresaManutencaoInfoPage.jsx";
+import SobreNosPage from "../pages/LoggedOut/SobreNosPage.jsx";
 
 //Prestador Pages
 import ConcursosPrestador from "../pages/Prestador/ConcursosPrestador.jsx";  // ← only import once
@@ -49,6 +51,8 @@ const AppRoutes = () => (
         <Route path="/eShop" element={<EShopPage />} />
         <Route path="/eShop/:carID" element={<CarShop />} />
         <Route path="/registerPrestador" element={<RegisterPagePrestador />} />
+        <Route path="/info-empresa-manutencao" element={<EmpresaManutencaoInfoPage />} />
+        <Route path="/nos" element={<SobreNosPage />} />
 
         {/* --- Rotas Protegidas (Cliente) --- */}
         <Route

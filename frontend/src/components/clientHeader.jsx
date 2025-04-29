@@ -32,9 +32,8 @@ const ClientHeader = ({ userImage }) => {
                 {/* Navegação principal - mantém-se */}
                 <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-800">
                     <button className="hover:text-black" onClick={() => navigate('/eShop')}>Pesquisa</button>
-                    <button className="hover:text-black">Contacte-nos</button>
-                    <button className="hover:text-black">Sobre Nós</button>
-                    {!user? (<button className="hover:text-black">É uma Empresa de Manutenção?</button>) : null}
+                    <button className="hover:text-black"onClick={() => navigate('/Nos')}>Sobre Nós</button>
+                    {!user? (<button className="hover:text-black" onClick={() => navigate ('/info-empresa-manutencao')}>É uma Empresa de Manutenção?</button>) : null}
                 </nav>
 
                 {/* 3. Lógica Condicional: Avatar ou Botões */}
