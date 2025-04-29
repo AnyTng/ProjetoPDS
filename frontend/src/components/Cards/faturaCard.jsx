@@ -13,7 +13,6 @@ const FaturaCard = ({
 
     const handleTransferir = () => {
         console.log("Transferir Fatura", FaturaId);
-        // EDITAR ISTOOOO
     };
 
     const isAluguer = Type?.toLowerCase() === "aluguer";
