@@ -29,8 +29,8 @@ const ClienteMultas = () => {
             .catch(console.error);
     }, [user?.id]);
 
-    // Busca multas do cliente
-    useEffect(() => {
+    // Função para buscar multas do cliente
+    const fetchMultas = async () => {
         if (!user?.id) {
             setError("Utilizador não autenticado.");
             setIsLoading(false);
@@ -40,28 +40,37 @@ const ClienteMultas = () => {
         setIsLoading(true);
         setError(null);
 
-        fetchWithAuth("/api/Infracoes/MultasCliente")
-            .then(data => {
-                if (!Array.isArray(data)) throw new Error("Resposta inesperada.");
-                // Ordena da multa mais recente para a mais antiga
-                data.sort((a, b) => new Date(b.dataInfracao) - new Date(a.dataInfracao));
-                setMultas(data);
-                // preenche nome de cliente se vier no payload
-                if (data[0]?.aluguerIdaluguerNavigation?.clienteIdclienteNavigation?.nomeCliente) {
-                    setUserName(data[0].aluguerIdaluguerNavigation.clienteIdclienteNavigation.nomeCliente);
-                }
-            })
-            .catch(err => {
-                console.error("Erro ao buscar multas:", err);
-                setError(err.message || "Erro ao carregar multas.");
-                // se for auth
-                if (err.status === 401 || err.status === 403) {
-                    alert("Sessão expirada. Faça login novamente.");
-                    logout();
-                    navigate("/login");
-                }
-            })
-            .finally(() => setIsLoading(false));
+        try {
+            const data = await fetchWithAuth("/api/Infracoes/MultasCliente");
+
+            if (!Array.isArray(data)) throw new Error("Resposta inesperada.");
+
+            // Ordena da multa mais recente para a mais antiga
+            data.sort((a, b) => new Date(b.dataInfracao) - new Date(a.dataInfracao));
+            setMultas(data);
+
+            // preenche nome de cliente se vier no payload
+            if (data[0]?.aluguerIdaluguerNavigation?.clienteIdclienteNavigation?.nomeCliente) {
+                setUserName(data[0].aluguerIdaluguerNavigation.clienteIdclienteNavigation.nomeCliente);
+            }
+        } catch (err) {
+            console.error("Erro ao buscar multas:", err);
+            setError(err.message || "Erro ao carregar multas.");
+
+            // se for auth
+            if (err.status === 401 || err.status === 403) {
+                alert("Sessão expirada. Faça login novamente.");
+                logout();
+                navigate("/login");
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Busca multas do cliente quando o componente monta
+    useEffect(() => {
+        fetchMultas();
     }, [user?.id, logout, navigate]);
 
     const PlaceholderUserIcon = () => (
@@ -119,7 +128,11 @@ const ClienteMultas = () => {
                         )}
 
                         {!isLoading && multas.map(multa => (
-                            <MultaCardCliente key={multa.idinfracao} multa={multa} />
+                            <MultaCardCliente 
+                                key={multa.idinfracao} 
+                                multa={multa} 
+                                onUpdate={fetchMultas}
+                            />
                         ))}
                     </div>
                 </div>
