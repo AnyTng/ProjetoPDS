@@ -109,7 +109,7 @@ const CarsPageAdmin = () => {
                         key={c.idveiculo}
                         CarroId={c.matriculaVeiculo || `ID ${c.idveiculo}`}
                         CarroNome={`${c.descMarca} ${c.descModelo}`.trim()}
-                        UltimaManutencao={c.dataUltimaManutencao || "N/D"}
+                        ultimaMod = {c.ultimaMod ? new Date(c.ultimaMod).toISOString().slice(0, 10) : "Nenhuma"}
                         Estado={c.estadoVeiculo || "Desconhecido"}
                         imageUrl={c.imagemBase64 || ""}
                         onVerInfoClick={() => handleOpenEditModal(c.idveiculo)}

@@ -339,11 +339,12 @@ const EditVehicleModal = ({ isOpen, onClose, vehicleData, onUpdate }) => {
                                 className="input-select"
                                 required
                             >
-                                <option value="" disabled>Seleccione estado</option>
+                                <option value="" disabled>Selecione um estado</option>
                                 <option value="Disponível">Disponível</option>
                                 <option value="Em Manutenção">Em Manutenção</option>
                                 <option value="Avariado">Avariado</option>
                                 <option value="Alugado">Alugado</option>
+                                <option value="Irregular">Irregular</option>
                                 <option value="Eliminado">Eliminado</option>
                             </select>
                         </div>

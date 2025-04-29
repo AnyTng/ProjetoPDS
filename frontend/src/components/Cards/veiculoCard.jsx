@@ -5,7 +5,7 @@ import Button from "../button.jsx";
 const VeiculoCard = ({
                          CarroId,
                          CarroNome,
-                         UltimaManutencao,
+                         ultimaMod,
                          Estado,
                          imageUrl,
                          onVerInfoClick
@@ -29,7 +29,7 @@ const VeiculoCard = ({
                         Nome: <span className="font-normal">{CarroNome}</span> {/* Ajustado para Nome em vez de repetir Carro */}
                     </p>
                     <p className="text-base font-semibold text-slate-900">
-                        Última Manutenção: <span className="font-normal">{UltimaManutencao}</span>
+                        Última Manutenção: <span className="font-normal">{ultimaMod}</span>
                     </p>
                     <p className="text-base font-semibold text-slate-900">
                         Estado: <span className="font-normal">{Estado}</span>

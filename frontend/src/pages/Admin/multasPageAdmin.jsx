@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import MultaCardAdmin from "../../components/Cards/multaCardAdmin.jsx";
@@ -11,11 +10,12 @@ import ViewContestationModal from "../../components/Overlays/ViewContestationMod
 import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
 
 const MultasPageAdmin = () => {
+    const { user } = useAuth();
+
     const [multas, setMultas] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState("");
-    const { user } = useAuth();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -25,28 +25,18 @@ const MultasPageAdmin = () => {
     const [contestationText, setContestationText] = useState("");
     const [isFetchingContestation, setIsFetchingContestation] = useState(false);
 
-    // --- Fetch Initial Multas (API Ready) ---
+    // --- Fetch Initial Multas ---
     const fetchMultas = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            console.log("[API Placeholder] Fetching multas...");
-            // SUBSTITUIR PELA CHAMADA API REAL
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // const data = await fetchWithAuth('/api/admin/multas');
-            // setMultas(data);
-
-            // Dados de exemplo REMOVER QUANDO TIVER API-
-            setMultas([
-                { multaId: "M001", AluguerId: "ALG-123", clienteNome: "Joana Pereira", DataAtribuicao: "2025-04-10", DataLimite: "2025-04-20", Estado: "pendente", Contacto: "911222333", Valor: "120.00", ContestacaoId: "CST-01"},
-                { multaId: "M002", AluguerId: "ALG-456", clienteNome: "Carlos Moreira", DataAtribuicao: "2025-03-01", DataPagamento: "2025-03-05", Estado: "paga", Contacto: "922333444", Valor: "85.50", ContestacaoId: null},
-                { multaId: "M003", AluguerId: "ALG-789", clienteNome: "Ana Costa", DataAtribuicao: "2025-04-11", DataLimite: "2025-04-21", Estado: "pendente", Contacto: "933444555", Valor: "150.75", ContestacaoId: "CST-02"},
-            ]);
-
+            // pequen o delay para simular loading
+            const data = await fetchWithAuth('/api/Infracoes/vermultasAdmin');
+            setMultas(data);
         } catch (err) {
             console.error("Erro ao buscar multas:", err);
             setError(err.message || "Ocorreu um erro ao buscar as multas.");
-            setMultas([]); // Limpa em caso de erro
+            setMultas([]);
         } finally {
             setIsLoading(false);
         }
@@ -56,13 +46,14 @@ const MultasPageAdmin = () => {
         fetchMultas();
     }, []);
 
-    const filtered = !isLoading && !error ? multas.filter((multa) =>
-        (multa.AluguerId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (multa.clienteNome?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (multa.multaId?.toLowerCase() || "").includes(search.toLowerCase())
-    ) : [];
+    // --- Filtro de pesquisa ---
+    const filtered = multas.filter(m =>
+        m.idinf.toString().includes(search.toLowerCase()) ||
+        (m.nomeCliente || "").toLowerCase().includes(search.toLowerCase()) ||
+        (m.matriculaVeiculo || "").toLowerCase().includes(search.toLowerCase())
+    );
 
-    // --- Modal Handlers ---
+    // --- Modais ---
     const handleCloseModals = () => {
         setIsCreateModalOpen(false);
         setIsEditModalOpen(false);
@@ -71,82 +62,70 @@ const MultasPageAdmin = () => {
         setContestationText("");
     };
 
-    // Create
     const handleOpenCreateModal = () => setIsCreateModalOpen(true);
-    const handleCreateMulta = async (formData) => {
+
+    const handleCreateMulta = async formData => {
         console.log("[API Placeholder] Criar Multa:", formData);
-        // LÓGICA DA API (POST /api/admin/multas) AQUI...
-        // Se sucesso: await fetchMultas(); handleCloseModals();
-        // Se erro: Mostrar feedback de erro
-        handleCloseModals(); // Remover qd tiver API
+        // await fetchWithAuth.post(...)
+        handleCloseModals();
+        fetchMultas();
     };
 
-    // Edit
-    const handleOpenEditModal = (multaId) => {
-        const multaToEdit = multas.find(m => m.multaId === multaId);
-        if (multaToEdit) {
-            setSelectedMulta(multaToEdit);
-            setIsEditModalOpen(true);
-        } else {
-            console.error("Multa não encontrada para editar:", multaId);
-            alert("Erro: Multa não encontrada."); // Feedback básico
-        }
-    };
-    const handleUpdateMulta = async (multaId, formData) => {
-        console.log(`[API Placeholder] Atualizar Multa ID: ${multaId}`, formData);
-        // LÓGICA DA API (PUT /api/admin/multas/{multaId}) AQUI...
-        // Se sucesso: await fetchMultas(); handleCloseModals();
-        // Se erro: Mostrar feedback de erro
-        handleCloseModals(); // Remover qd tiver API
+    const handleOpenEditModal = idinf => {
+        const multa = multas.find(m => m.idinf === idinf);
+        if (!multa) return alert("Multa não encontrada.");
+        setSelectedMulta(multa);
+        setIsEditModalOpen(true);
     };
 
-    // View Contestation
-    const handleOpenViewContestationModal = async (multa) => {
-        if (!multa?.ContestacaoId) return;
+    const handleUpdateMulta = async (idinf, formData) => {
+        console.log(`[API Placeholder] Atualizar Multa ID ${idinf}`, formData);
+        // await fetchWithAuth.put(...)
+        handleCloseModals();
+        fetchMultas();
+    };
+
+    const handleOpenViewContestationModal = async multa => {
+        if (!multa.idCont) return;
         setIsFetchingContestation(true);
         setContestationText("");
         setIsViewContestationModalOpen(true);
 
         try {
-            console.log(`[API Placeholder] Fetching contestation details for ID: ${multa.ContestacaoId}`);
-            // SUBSTITUIR PELA CHAMADA API REAL (/api/admin/contestacoes/{ContestacaoId})
+            // simula fetch real
             await new Promise(resolve => setTimeout(resolve, 500));
-            // const data = await fetchWithAuth(`/api/admin/contestacoes/${multa.ContestacaoId}`);
-            // setContestationText(data.texto); // Assumindo que API retorna { texto: "..." }
-
-            setContestationText(`Texto simulado para contestação ${multa.ContestacaoId}. Detalhes...`); // Dados exemplo
-
+            // const { texto } = await fetchWithAuth(`/api/admin/contestacoes/${multa.idCont}`);
+            setContestationText(`Simulação de texto da contestação #${multa.idCont}.`);
         } catch (err) {
-            console.error("Erro ao buscar contestação:", err);
-            setContestationText("Erro ao carregar o texto da contestação.");
+            console.error(err);
+            setContestationText("Erro ao carregar a contestação.");
         } finally {
             setIsFetchingContestation(false);
         }
     };
 
-    // --- Rendering Logic ---
+    // --- Render ---
     let content;
     if (isLoading) {
-        content = <div className="p-6 text-center text-gray-500">A carregar multas...</div>;
+        content = <div className="p-6 text-center text-gray-500">A carregar multas…</div>;
     } else if (error) {
-        content = <div className="p-6 text-center text-red-600">Erro ao carregar multas: {error}</div>;
+        content = <div className="p-6 text-center text-red-600">Erro: {error}</div>;
     } else if (filtered.length === 0) {
         content = (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex items-center justify-center h-64">
                 <p className="text-gray-600 text-lg text-center">
-                    {search ? "Nenhuma multa corresponde à pesquisa." : "Não existem multas registadas."}
+                    {search ? "Nenhuma multa encontrada." : "Não há multas registadas."}
                 </p>
             </div>
         );
     } else {
         content = (
             <div className="flex flex-col gap-6 pb-6">
-                {filtered.map((multa) => (
+                {filtered.map(multa => (
                     <MultaCardAdmin
-                        key={multa.multaId}
-                        {...multa} // Passa todas as props da multa para o card
-                        // Passa os handlers como props para o card poder chamar as funções da página
-                        onEditClick={() => handleOpenEditModal(multa.multaId)}
+                        key={multa.idinf}
+                        multa={multa}
+                        onEditClick={() => handleOpenEditModal(multa.idinf)}
                         onViewContestationClick={() => handleOpenViewContestationModal(multa)}
                     />
                 ))}
@@ -161,9 +140,9 @@ const MultasPageAdmin = () => {
                 email={user?.email}
                 filter={
                     <FilterInput
-                        placeholder="Pesquisar por ID multa/aluguer ou nome..."
+                        placeholder="Pesquisar por ID, cliente ou matrícula…"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={e => setSearch(e.target.value)}
                         disabled={isLoading || !!error}
                     />
                 }
@@ -179,27 +158,26 @@ const MultasPageAdmin = () => {
                 {content}
             </DashboardLayout>
 
-            {/* Render Modals Conditionally */}
             <CreateMultaModal
                 isOpen={isCreateModalOpen}
                 onClose={handleCloseModals}
-                onSubmit={handleCreateMulta} // Handler da página
+                onSubmit={handleCreateMulta}
             />
 
             {selectedMulta && (
                 <EditMultaModal
                     isOpen={isEditModalOpen}
                     onClose={handleCloseModals}
-                    onSubmit={handleUpdateMulta} // Handler da página
-                    multaData={selectedMulta} // Dados da multa selecionada
+                    onSubmit={formData => handleUpdateMulta(selectedMulta.idinf, formData)}
+                    multaData={selectedMulta}
                 />
             )}
 
             <ViewContestationModal
                 isOpen={isViewContestationModalOpen}
                 onClose={handleCloseModals}
-                isLoading={isFetchingContestation} // Estado de loading do texto
-                contestationText={contestationText} // Texto carregado (ou erro)
+                isLoading={isFetchingContestation}
+                contestationText={contestationText}
             />
         </>
     );
