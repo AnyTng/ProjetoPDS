@@ -1,4 +1,3 @@
-// src/components/FilterSidebar.jsx
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // Custom CSS for range sliders

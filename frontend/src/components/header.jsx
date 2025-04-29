@@ -32,6 +32,7 @@ const Header = ({ userType, email }) => {
     const prestadorMenuItems = [
         { label: "Concursos", onClick: () => { navigate("/prestador/concursos"); setIsMenuOpen(false); } },
         { label: "As minhas Propostas", onClick: () => { navigate("/prestador/TodasPropostas"); setIsMenuOpen(false); } },
+        { label: "O meu perfil", onClick: () => { navigate("/prestador/perfil"); setIsMenuOpen(false); } },
     ];
 
     // Determinar quais itens mostrar com base no userType

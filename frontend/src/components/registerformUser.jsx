@@ -1,4 +1,3 @@
-// srcFrontend/components/registerformUser.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InputFieldLong from "./inputFieldLong.jsx";

@@ -1,7 +1,6 @@
-// src/components/dashboardLayout.jsx
 import React from "react";
 import Header from "./header";
-import { useAuth } from "../hooks/useAuth"; // <-- 1. Importar
+import { useAuth } from "../hooks/useAuth";
 
 const DashboardLayout = ({
                              title,

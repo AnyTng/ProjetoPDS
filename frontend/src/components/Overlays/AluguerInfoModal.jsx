@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Button from '../button.jsx'; // Importa o seu componente Button
+import Button from '../button.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
 import { fetchWithAuth } from "../../utils/api";
 

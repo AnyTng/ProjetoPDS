@@ -1,4 +1,3 @@
-// src/pages/LoggedOut/eShopPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchWithAuth, API_BASE_URL } from '../../utils/api';
 import ClientHeader from '../../components/clientHeader';

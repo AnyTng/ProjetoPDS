@@ -1,4 +1,3 @@
-// src/components/Overlays/CreateMultaModal.jsx
 
 import React, { useState, useEffect } from 'react';
 import Button from '../button.jsx';

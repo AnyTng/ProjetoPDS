@@ -1,4 +1,3 @@
-// src/components/Overlays/CreatePropostaModal.jsx
 import React, { useState, useEffect } from 'react';
 import Button from '../button.jsx';
 import XIcon from '../../assets/XIconBlack.svg';

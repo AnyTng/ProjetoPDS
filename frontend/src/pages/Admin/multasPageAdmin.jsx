@@ -1,5 +1,3 @@
-// src/pages/admin/MultasPageAdmin.jsx
-
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import MultaCardAdmin from "../../components/Cards/multaCardAdmin.jsx";

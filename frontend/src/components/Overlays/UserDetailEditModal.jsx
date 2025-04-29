@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Button from '../button.jsx';
 import InputFieldLong from '../inputFieldLong.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
-import { fetchWithAuth } from '../../utils/api'; // Assuming this is correctly configured
+import { fetchWithAuth } from '../../utils/api';
 
-// Image handling functions removed
 
 const UserDetailEditModal = ({ isOpen, onClose, onSubmit, userData, userId, isLoading, error }) => {
     const initialFormData = {

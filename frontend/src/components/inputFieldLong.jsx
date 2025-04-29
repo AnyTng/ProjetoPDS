@@ -1,18 +1,14 @@
-// src/components/inputFieldLong.jsx
+import React from 'react';
 
-import React from 'react'; // Adiciona import do React se não tiver
-
-// Componente corrigido: Renderiza diretamente o input e passa todas as props relevantes
 const InputFieldLong = ({
-                            id, // Passar ID
-                            name, // Passar Name
+                            id,
+                            name,
                             type,
                             value,
                             onChange,
                             placeholder,
-                            required, // Passar Required
-                            className = "", // Aceita classes extras, com default vazio
-                            // Adiciona outras props que o input possa precisar (ex: autoComplete, step, min, max)
+                            required,
+                            className = "",
                             ...rest // Captura quaisquer outras props (ex: step, min, max)
                         }) => {
     return (

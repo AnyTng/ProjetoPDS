@@ -1,5 +1,3 @@
-// src/components/Cards/multaCardCliente.jsx
-
 import React, { useState } from "react";
 import Button from "../button.jsx";
 import { fetchWithAuth } from "../../utils/api";

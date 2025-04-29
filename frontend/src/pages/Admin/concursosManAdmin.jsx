@@ -1,5 +1,3 @@
-// src/pages/Admin/concursosManAdmin.jsx
-
 import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import ConcursosManutencaoAdminCard from "../../components/Cards/concursosManutencaoAdminCard.jsx";

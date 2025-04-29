@@ -1,4 +1,3 @@
-// src/pages/Admin/ConcursosPrestador.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/dashboardLayout.jsx";
 import ConcursoPrestadorCard from "../../components/Cards/ConcursoPrestadorCard.jsx";

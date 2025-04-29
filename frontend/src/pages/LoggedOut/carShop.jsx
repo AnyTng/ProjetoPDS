@@ -1,4 +1,3 @@
-// src/pages/LoggedOut/carShop.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ClientHeader from '../../components/clientHeader';
