@@ -124,6 +124,52 @@ namespace RESTful_API.Service
                     }
                 }
             }
+
+
+
+
+            var multas = await _context.Infracoes
+                .Include(a => a.AluguerIdaluguerNavigation)
+
+                .Where(a => a.EstadoInfracao != "Paga" || a.EstadoInfracao != "Contestação Aceite")
+                .ToListAsync();
+
+            foreach (var multa in multas)
+            {
+                var alugM = await _context.Aluguers
+                    .Include(a => a.ClienteIdclienteNavigation)
+                    .Where(a => a.Idaluguer == multa.AluguerIdaluguer)/*retorna apenas 1 aluguer*/
+                    .FirstAsync();
+
+                var clieM = await _context.Clientes
+                    .Include(c => c.LoginIdloginNavigation)
+                    .Where(c => c.Idcliente == alugM.ClienteIdcliente)
+                    .FirstAsync();
+
+                if (clieM != null)
+                {
+                    var dataLimite = multa.DataInfracao.HasValue ? multa.DataInfracao.Value.AddDays(14).ToString("dd/MM/yyyy") : "N/A";
+
+                    var email = clieM.LoginIdloginNavigation.Email;
+                    var assunto = "Notificação de Multa";
+                    var mensagem = $"Caro/a {clieM.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data Limite para pagamento da multa (ID:{multa.Idinfracao}, {multa.DescInfracao}) era {multa.DataInfracao}.<br>A partir deste momento tem até ao dia {dataLimite} para se deslocar a uma das nossas lojas e efetuar o pagamento.<br>Caso decida não pagar até a data limite encaminharemos a situação ao departamento juridico.  <br><br>" +
+                        $"<br><br><br>__<br>" +
+                        $"Com os melhores cumprimentos,<br>" +
+                        $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
+                        $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
+                        $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
+                        $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                    await _emailService.EnviarEmail(email, assunto, mensagem);
+
+                    multa.EstadoInfracao = "Em Falta";
+                    _context.Update(multa);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Multa em falta: {multaId}", multa.Idinfracao);
+                }
+
+
+            }
+
         }
 
     }
