@@ -37,7 +37,7 @@ namespace RESTful_API.Service
             // Lógica da tarefa interna
             var aluguers = await _context.Aluguers
                 .Include(a=>a.ClienteIdclienteNavigation)
-                .Where(a=>a.EstadoAluguer=="Aguarda Levantamento" || a.EstadoAluguer == "Alugado")
+                .Where(a=>a.EstadoAluguer=="Aguarda Levantamento" && a.EstadoAluguer == "Alugado")
                 .ToListAsync();
 
 
@@ -130,8 +130,7 @@ namespace RESTful_API.Service
 
             var multas = await _context.Infracoes
                 .Include(a => a.AluguerIdaluguerNavigation)
-
-                .Where(a => a.EstadoInfracao != "Paga" || a.EstadoInfracao != "Contestação Aceite")
+                .Where(a => a.EstadoInfracao != "Paga"&& a.EstadoInfracao != "Contestação Aceite")
                 .ToListAsync();
 
             foreach (var multa in multas)

@@ -137,8 +137,8 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<ServicoInterno>(
     "tarefa-diaria",
     tarefa => tarefa.Executar(),
-    "35 17 * * *", // Executa todos os dias às 16h42   ss mm hh
-    //"0 9 * * *", // Executa todos os dias às 9h
+    //"54 21 * * *", // Executa todos os dias às 16h42   ss mm hh
+    "0 9 * * *", // Executa todos os dias às 9h
     TimeZoneInfo.Local
 );
 
