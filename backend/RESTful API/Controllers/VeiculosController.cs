@@ -58,6 +58,8 @@ namespace RESTful_API.Controllers
         public string? DescVeiculo { get; set; }
         public string? EstadoVeiculo { get; set; }
         public IFormFile? ImagemVeiculo { get; set; }
+
+        public DateTime? UltimaMod { get; set; } // Adicionado para incluir a data da última modificação
     }
 
     public class ClienteVeiculoDTO
@@ -122,6 +124,12 @@ namespace RESTful_API.Controllers
                         imagemBase64 = $"data:image/{ext};base64,{Convert.ToBase64String(bytes)}";
                     }
                 }
+                // Adiciona a data da última modificação que esta na tabela concurso, Idveiculo é sua chave estrangeira
+                DateTime? ultimaMod = await _context.Despesas
+                    .Where(c => c.VeiculoIdveiculo == v.Idveiculo)
+                    .OrderByDescending(c => c.DataFim)
+                    .Select(c => c.DataFim)
+                    .FirstOrDefaultAsync();
 
 
 
@@ -143,7 +151,8 @@ namespace RESTful_API.Controllers
                     DescModelo = v.ModeloVeiculoIdmodeloNavigation.DescModelo,
                     DescMarca = v.ModeloVeiculoIdmodeloNavigation.MarcaVeiculoIdmarcaNavigation.DescMarca,
                     DescVeiculo = v.DescVeiculo,
-                    EstadoVeiculo = v.EstadoVeiculo
+                    EstadoVeiculo = v.EstadoVeiculo,
+                    UltimaMod = ultimaMod
                 });
             }
 
