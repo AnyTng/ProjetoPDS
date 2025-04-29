@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../button.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
 
-const ViewContestationModal = ({ isOpen, onClose, contestationText, isLoading }) => {
+const ViewContestationModal = ({ isOpen, onClose, contestationText, isLoading, onAccept, onReject, contestationId, contestationStatus }) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Check if contestation has already been responded to
+    const hasResponse = contestationStatus === 'Aceite' || contestationStatus === 'Negada';
 
     if (!isOpen) return null;
+
+    const handleAccept = async () => {
+        setIsSubmitting(true);
+        try {
+            await onAccept(contestationId);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleReject = async () => {
+        setIsSubmitting(true);
+        try {
+            await onReject(contestationId);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div
@@ -33,8 +55,37 @@ const ViewContestationModal = ({ isOpen, onClose, contestationText, isLoading })
                     )}
                 </div>
 
-                <div className="flex justify-end gap-4 pt-6">
-                    <Button text="Fechar" variant="secondary" type="button" onClick={onClose} className="!py-1.5" />
+                <div className="flex justify-between gap-4 pt-6">
+                    <div className="flex gap-4">
+                        {!hasResponse && (
+                            <>
+                                <Button 
+                                    text="Aceitar" 
+                                    variant="success" 
+                                    type="button" 
+                                    onClick={handleAccept} 
+                                    className="!py-1.5"
+                                    disabled={isSubmitting || isLoading} 
+                                />
+                                <Button 
+                                    text="Rejeitar" 
+                                    variant="danger" 
+                                    type="button" 
+                                    onClick={handleReject} 
+                                    className="!py-1.5"
+                                    disabled={isSubmitting || isLoading} 
+                                />
+                            </>
+                        )}
+                    </div>
+                    <Button 
+                        text="Fechar" 
+                        variant="secondary" 
+                        type="button" 
+                        onClick={onClose} 
+                        className="!py-1.5"
+                        disabled={isSubmitting} 
+                    />
                 </div>
             </div>
         </div>

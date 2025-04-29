@@ -9,11 +9,11 @@ const statusMap = {
     'Expirada':              'bg-gray-100      text-gray-800',
     'Contestada':            'bg-blue-100      text-blue-800',
     'Contestação Aceite':    'bg-green-50      text-green-900',
-    'Contestação Rejeitada': 'bg-red-100       text-red-800',
+    'Contestação Negada': 'bg-red-100       text-red-800',
     'Cancelada':             'bg-red-50        text-red-900',
 };
 
-const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
+const MultaCardAdmin = ({ multa, onViewContestationClick }) => {
     const {
         idinf,
         descInf,
@@ -32,7 +32,7 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
     let displayStatus;
     if (estadoContestacao) {
         if (estadoContestacao === 'Aceite') displayStatus = 'Contestação Aceite';
-        else if (estadoContestacao === 'Rejeitada') displayStatus = 'Contestação Rejeitada';
+        else if (estadoContestacao === 'Negada') displayStatus = 'Contestação Negada';
         else displayStatus = 'Contestada';
     } else if (estadoInf === 'Submetida') {
         displayStatus = 'Aguarda Pagamento';
@@ -51,8 +51,8 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
                     <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${badgeClasses}`}
                     >
-            {displayStatus}
-          </span>
+                        {displayStatus}
+                    </span>
                 </div>
 
                 {/* Cliente + Veículo */}
@@ -85,7 +85,7 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
             </div>
 
             {/* Footer Actions */}
-
+            <div className="mt-4">
                 {estadoContestacao && (
                     <Button
                         text="Ver Contestação"
@@ -95,7 +95,7 @@ const MultaCardAdmin = ({ multa, onEditClick, onViewContestationClick }) => {
                     />
                 )}
             </div>
-
+        </div>
     );
 };
 

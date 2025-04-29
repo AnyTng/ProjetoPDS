@@ -113,7 +113,7 @@ const CreateMultaModal = ({ isOpen, onClose, onSubmit }) => {
                             id="matricula"
                             name="matricula"
                             type="text"
-                            placeholder="Ex: BA-RB-IE"
+                            placeholder="Ex: AA-00-AA"
                             value={formData.matricula}
                             onChange={handleChange}
                             required

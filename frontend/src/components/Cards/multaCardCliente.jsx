@@ -1,10 +1,13 @@
 // src/components/Cards/multaCardCliente.jsx
 
-import React from "react";
+import React, { useState } from "react";
 import Button from "../button.jsx";
 import { fetchWithAuth } from "../../utils/api";
+import CreateContestationModal from "../Overlays/createContestationModal.jsx";
 
-const MultaCardCliente = ({ multa }) => {
+const MultaCardCliente = ({ multa, onUpdate }) => {
+    const [isContestModalOpen, setIsContestModalOpen] = useState(false);
+
     const {
         idinfracao,
         dataInfracao,
@@ -38,7 +41,7 @@ const MultaCardCliente = ({ multa }) => {
                 return "bg-blue-50 border-blue-200";
             case "contestação aceite":
                 return "bg-green-100 border-green-300";
-            case "contestação rejeitada":
+            case "contestação negada":
                 return "bg-red-50 border-red-200";
             case "cancelada":
                 return "bg-red-100 border-red-300";
@@ -55,14 +58,21 @@ const MultaCardCliente = ({ multa }) => {
         if (s.includes("paga")) return PaidIcon;
         if (s.includes("expirada")) return ExpiredIcon;
         if (s.includes("contestação aceite")) return AcceptedIcon;
-        if (s.includes("contestação rejeitada")) return RejectedIcon;
+        if (s.includes("contestação negada")) return RejectedIcon;
         if (s.includes("contestada")) return ContestedIcon;
         if (s.includes("cancelada")) return CanceledIcon;
         return DefaultIcon;
     };
 
-    const handleContestar = async () => {
+    const handleContestar = () => {
+        setIsContestModalOpen(true);
+    }
 
+    const handleContestSuccess = () => {
+        // If onUpdate is provided, call it to refresh the data
+        if (onUpdate) {
+            onUpdate();
+        }
     }
 
     // Componentes SVG
@@ -134,7 +144,7 @@ const MultaCardCliente = ({ multa }) => {
     }
 
     // Se o estado permitir pagamento, chama a Stripe
-    const canPay = ["submetida", "aguarda pagamento"].includes(estadoInfracao.toLowerCase());
+    const canPay = ["submetida", "aguarda pagamento", "contestação negada"].includes(estadoInfracao.toLowerCase());
     const handlePay = async () => {
         try {
             const res = await fetchWithAuth(
@@ -175,6 +185,14 @@ const MultaCardCliente = ({ multa }) => {
             {/* Botão de pagamento */}
 
             <div className="flex justify-end mt-2 gap-3">
+                {canContestar && (
+                    <Button
+                        text="Contestar Multa"
+                        variant="secondary"
+                        onClick={handleContestar}
+                        className="px-6 !py-1 text-base"
+                    />
+                )}
                 {canPay && (
                     <Button
                         text="Pagar Agora"
@@ -184,6 +202,14 @@ const MultaCardCliente = ({ multa }) => {
                     />
                 )}
             </div>
+
+            {/* Modal de Contestação */}
+            <CreateContestationModal
+                isOpen={isContestModalOpen}
+                onClose={() => setIsContestModalOpen(false)}
+                infracaoId={idinfracao}
+                onSuccess={handleContestSuccess}
+            />
         </div>
     );
 };

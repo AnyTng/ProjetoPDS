@@ -19,12 +19,12 @@ const MultasPageAdmin = () => {
     const [search, setSearch] = useState("");
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isViewContestationModalOpen, setIsViewContestationModalOpen] = useState(false);
 
     const [selectedMulta, setSelectedMulta] = useState(null);
     const [contestationText, setContestationText] = useState("");
     const [isFetchingContestation, setIsFetchingContestation] = useState(false);
+    const [isProcessingContestationAction, setIsProcessingContestationAction] = useState(false);
 
     // Busca todas as multas
     const fetchMultas = async () => {
@@ -56,7 +56,6 @@ const MultasPageAdmin = () => {
     // Fecha todos os modais
     const handleCloseModals = () => {
         setIsCreateModalOpen(false);
-        setIsEditModalOpen(false);
         setIsViewContestationModalOpen(false);
         setSelectedMulta(null);
         setContestationText("");
@@ -98,17 +97,52 @@ const MultasPageAdmin = () => {
         if (!multa.idCont) return;
         setIsFetchingContestation(true);
         setContestationText("");
+        setSelectedMulta(multa);
         setIsViewContestationModalOpen(true);
         try {
-            // Exemplo de fetch real:
-            // const { texto } = await fetchWithAuth(`/api/admin/contestacoes/${multa.idCont}`);
-            await new Promise((res) => setTimeout(res, 500));
-            setContestationText(`Simulação de texto da contestação #${multa.idCont}.`);
+            // Usar o texto da contestação que já vem na resposta da API
+            setContestationText(multa.descContestacao || "Não foi possível carregar o texto da contestação.");
         } catch (err) {
-            console.error("Erro ao buscar contestação:", err);
+            console.error("Erro ao processar contestação:", err);
             setContestationText("Erro ao carregar a contestação.");
         } finally {
             setIsFetchingContestation(false);
+        }
+    };
+
+    // Aceita a contestação
+    const handleAcceptContestation = async (contestationId) => {
+        setIsProcessingContestationAction(true);
+        try {
+            await fetchWithAuth(`/api/Contestacoes/AlterarContestacao?id=${contestationId}&estadoContestacao=Aceite`, {
+                method: "PUT"
+            });
+            alert("Contestação aceite com sucesso!");
+            handleCloseModals();
+            await fetchMultas(); // Recarrega a lista de multas
+        } catch (err) {
+            console.error("Erro ao aceitar contestação:", err);
+            alert("Erro ao aceitar a contestação: " + err.message);
+        } finally {
+            setIsProcessingContestationAction(false);
+        }
+    };
+
+    // Rejeita a contestação
+    const handleRejectContestation = async (contestationId) => {
+        setIsProcessingContestationAction(true);
+        try {
+            await fetchWithAuth(`/api/Contestacoes/AlterarContestacao?id=${contestationId}&estadoContestacao=Negada`, {
+                method: "PUT"
+            });
+            alert("Contestação rejeitada com sucesso!");
+            handleCloseModals();
+            await fetchMultas(); // Recarrega a lista de multas
+        } catch (err) {
+            console.error("Erro ao rejeitar contestação:", err);
+            alert("Erro ao rejeitar a contestação: " + err.message);
+        } finally {
+            setIsProcessingContestationAction(false);
         }
     };
 
@@ -133,7 +167,6 @@ const MultasPageAdmin = () => {
                     <MultaCardAdmin
                         key={multa.idinf}
                         multa={multa}
-                        onEditClick={() => handleOpenEditModal(multa.idinf)}
                         onViewContestationClick={() => handleOpenViewContestationModal(multa)}
                     />
                 ))}
@@ -172,20 +205,16 @@ const MultasPageAdmin = () => {
                 onSubmit={handleCreateMulta}
             />
 
-            {selectedMulta && (
-                <EditMultaModal
-                    isOpen={isEditModalOpen}
-                    onClose={handleCloseModals}
-                    onSubmit={(formData) => handleUpdateMulta(selectedMulta.idinf, formData)}
-                    multaData={selectedMulta}
-                />
-            )}
 
             <ViewContestationModal
                 isOpen={isViewContestationModalOpen}
                 onClose={handleCloseModals}
-                isLoading={isFetchingContestation}
+                isLoading={isFetchingContestation || isProcessingContestationAction}
                 contestationText={contestationText}
+                contestationId={selectedMulta?.idCont}
+                contestationStatus={selectedMulta?.estadoContestacao}
+                onAccept={handleAcceptContestation}
+                onReject={handleRejectContestation}
             />
         </>
     );
