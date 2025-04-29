@@ -130,7 +130,7 @@ namespace RESTful_API.Service
 
             var multas = await _context.Infracoes
                 .Include(a => a.AluguerIdaluguerNavigation)
-                .Where(a => a.EstadoInfracao != "Paga"&& a.EstadoInfracao != "Contestação Aceite")
+                .Where(a => a.EstadoInfracao != "Paga" && a.EstadoInfracao != "Contestação Aceite")
                 .ToListAsync();
 
             foreach (var multa in multas)
@@ -148,10 +148,11 @@ namespace RESTful_API.Service
                 if (clieM != null)
                 {
                     var dataLimite = multa.DataInfracao.HasValue ? multa.DataInfracao.Value.AddDays(14).ToString("dd/MM/yyyy") : "N/A";
+                    var dataPag = multa.DataInfracao.HasValue ? multa.DataInfracao.Value.ToString("dd/MM/yyyy") : "N/A";
 
                     var email = clieM.LoginIdloginNavigation.Email;
                     var assunto = "Notificação de Multa";
-                    var mensagem = $"Caro/a {clieM.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data Limite para pagamento da multa (ID:{multa.Idinfracao}, {multa.DescInfracao}) era {multa.DataInfracao}.<br>A partir deste momento tem até ao dia {dataLimite} para se deslocar a uma das nossas lojas e efetuar o pagamento.<br>Caso decida não pagar até a data limite encaminharemos a situação ao departamento juridico.  <br><br>" +
+                    var mensagem = $"Caro/a {clieM.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data Limite para pagamento da multa (ID:{multa.Idinfracao}, {multa.DescInfracao}) era {dataPag}.<br>A partir deste momento tem até ao dia {dataLimite} para se deslocar a uma das nossas lojas e efetuar o pagamento.<br>Caso decida não pagar até a data limite encaminharemos a situação ao departamento juridico.  <br><br>" +
                         $"<br><br><br>__<br>" +
                         $"Com os melhores cumprimentos,<br>" +
                         $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
@@ -165,7 +166,6 @@ namespace RESTful_API.Service
                     await _context.SaveChangesAsync();
                     _logger.LogInformation("Multa em falta: {multaId}", multa.Idinfracao);
                 }
-
 
             }
 
