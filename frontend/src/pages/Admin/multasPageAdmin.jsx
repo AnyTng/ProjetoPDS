@@ -110,6 +110,23 @@ const MultasPageAdmin = () => {
         }
     };
 
+    const handleCancelMulta = async (multaId) => {
+        setIsLoading(true);
+        try {
+            await fetchWithAuth(`/api/Infracoes/cancelar-multa?idInfracao=${multaId}`, {
+                method: "PUT",
+            });
+            alert("Multa cancelada com sucesso!");
+            handleCloseModals();
+            await fetchMultas(); // Recarrega a lista de multas
+        } catch (err) {
+            console.error("Erro ao cancelar multa:", err);
+            alert("Erro ao cancelar a multa: " + err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // Aceita a contestação
     const handleAcceptContestation = async (contestationId) => {
         setIsProcessingContestationAction(true);
@@ -168,6 +185,7 @@ const MultasPageAdmin = () => {
                         key={multa.idinf}
                         multa={multa}
                         onViewContestationClick={() => handleOpenViewContestationModal(multa)}
+                        onCancelClick={() => handleCancelMulta(multa.idinf)}
                     />
                 ))}
             </div>
@@ -213,6 +231,7 @@ const MultasPageAdmin = () => {
                 contestationText={contestationText}
                 contestationId={selectedMulta?.idCont}
                 contestationStatus={selectedMulta?.estadoContestacao}
+                multaStatus={selectedMulta?.estadoInf}
                 onAccept={handleAcceptContestation}
                 onReject={handleRejectContestation}
             />
