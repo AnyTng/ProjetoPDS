@@ -14,7 +14,7 @@ import RegisterPagePrestador from "../pages/Prestador/registerPrestador.jsx";
 import ConcursosPrestador from "../pages/Prestador/ConcursosPrestador.jsx";  // ← only import once
 import PropostasPrestador from "../pages/Prestador/PropostasPrestador.jsx";
 import HistoricoPropostasPrestador from "../pages/Prestador/HistoricoPropostasPrestador.jsx";
-
+import EditarPerfilPrestador from "../pages/Prestador/EditarPerfil.jsx";
 
 
 // Payment Pages
@@ -126,6 +126,16 @@ const AppRoutes = () => (
                 </PrivateRoute>
             }
         />
+
+        <Route
+            path="/prestador/perfil"
+            element={
+                <PrivateRoute allowedRoles={['empresa']}>
+                    <EditarPerfilPrestador />
+                </PrivateRoute>
+            }
+        />
+
         {/* <Route
 
         {/* --- Rotas do Admin (ID Role = 3) --- */}
