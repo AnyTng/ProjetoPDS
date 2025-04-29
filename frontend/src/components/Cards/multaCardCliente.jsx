@@ -47,6 +47,7 @@ const MultaCardCliente = ({ multa }) => {
         }
     };
 
+    const canContestar = ["submetida"].includes(estadoInfracao.toLowerCase());
     // Ícone conforme estado
     const getStateIcon = st => {
         const s = (st || "").toLowerCase();
@@ -59,6 +60,10 @@ const MultaCardCliente = ({ multa }) => {
         if (s.includes("cancelada")) return CanceledIcon;
         return DefaultIcon;
     };
+
+    const handleContestar = async () => {
+
+    }
 
     // Componentes SVG
     function PendingIcon() {
@@ -168,6 +173,7 @@ const MultaCardCliente = ({ multa }) => {
             </div>
 
             {/* Botão de pagamento */}
+
             <div className="flex justify-end mt-2 gap-3">
                 {canPay && (
                     <Button

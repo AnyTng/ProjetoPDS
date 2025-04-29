@@ -6,7 +6,7 @@ import Button from '../../components/button';
 import { fetchWithAuth } from '../../utils/api';
 import { useAuth } from '../../hooks/useAuth';
 
-const PaymentFailure = () => {
+const PaymentFailureAluguer = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [userImage, setUserImage] = useState(null);
@@ -85,7 +85,7 @@ const PaymentFailure = () => {
                             className="w-full sm:w-auto"
                         />
                         <Button
-                            text="Ver Meu Perfil"
+                            text="Ver o meu Perfil"
                             variant="secondary"
                             onClick={handleViewProfile}
                             className="w-full sm:w-auto"
@@ -99,4 +99,4 @@ const PaymentFailure = () => {
     );
 };
 
-export default PaymentFailure;
+export default PaymentFailureAluguer;
