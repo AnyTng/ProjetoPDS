@@ -150,6 +150,10 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Veículo não encontrado.");
             }
+            if(veiculo.EstadoVeiculo != "Disponível")
+            {
+                return BadRequest("O veículo não está disponivel para manutenção.");
+            }
 
             var despesa = new Despesa
             {
