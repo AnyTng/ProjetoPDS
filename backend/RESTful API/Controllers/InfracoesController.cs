@@ -489,10 +489,10 @@ namespace RESTful_API.Controllers
                 Mode = "payment",
                 Metadata = new Dictionary<string, string>
                 {
-                    { "aluguerId", infracao.Idinfracao.ToString() }
+                    { "ID Da Infração: ", infracao.Idinfracao.ToString() }
                 },
-                SuccessUrl = $"{frontendBase}/payment/success?aluguerId={infracao.Idinfracao}",
-                CancelUrl = $"{frontendBase}/payment/failure?aluguerId={infracao.Idinfracao}",
+                SuccessUrl = $"{frontendBase}/payment/success?multaId={infracao.Idinfracao}",
+                CancelUrl = $"{frontendBase}/payment/failure/multa?multaId={infracao.Idinfracao}",
                 ExpiresAt = DateTime.UtcNow.AddMinutes(30)
             };
 
@@ -576,22 +576,25 @@ namespace RESTful_API.Controllers
                                 .Include(a => a.AluguerIdaluguerNavigation)
                                 .FirstOrDefaultAsync(a => a.Idinfracao == infId.Value);
                             var contestacao = await _context.Contestacaos
-                                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == infId.Value);
+                                .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == idInfracao);
 
-                            if (infracao != null)
+                            // safely grab the EstadoContestacao (will be null if contestacao is null)
+                            string estado = contestacao?.EstadoContestacao;
+
+                            switch (estado)
                             {
-                                if (contestacao.EstadoContestacao == "Negada")
-                                {
+                                case "Negada":
                                     infracao.EstadoInfracao = "Contestação Negada";
-                                }
-                                if (contestacao.EstadoContestacao == "Pendentw")
-                                {
+                                    break;
+                                case "Pendente":
                                     infracao.EstadoInfracao = "Contestada";
-                                }
-                                if (contestacao.EstadoContestacao == null)
-                                {
+                                    break;
+                                case null:
                                     infracao.EstadoInfracao = "Submetida";
-                                }
+                                    break;
+                                default:
+                                    return BadRequest($"Estado da contestação '{estado}' é inválido.");
+                            }
                                 // Only set the vehicle status back if it was reserved/pending
 
                                 await _context.SaveChangesAsync();
@@ -612,13 +615,17 @@ namespace RESTful_API.Controllers
         [HttpPut("mudarEstado")]
         public async Task<IActionResult> MudarEstado(int idInfracao)
         {
+
+
+
+
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
             if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
                 return Unauthorized("Token inválido.");
             }
-            if (userTipoLogin != 3)//verifica se é admin
+            if (userTipoLogin != 1)//verifica se é admin
             {
                 return Forbid("Acesso restrito a admin.");
             }
@@ -627,28 +634,28 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Infração não encontrada.");
             }
-
             var contestacao = await _context.Contestacaos
                 .FirstOrDefaultAsync(c => c.InfracoesIdinfracao == idInfracao);
 
-            if (infracao != null)
-            {
-                if (contestacao.EstadoContestacao == "Negada")
-                {
-                    infracao.EstadoInfracao = "Contestação Negada";
-                }
-                if (contestacao.EstadoContestacao == "Pendentw")
-                {
-                    infracao.EstadoInfracao = "Contestada";
-                }
-                if (contestacao.EstadoContestacao == null)
-                {
-                    infracao.EstadoInfracao = "Submetida";
-                }
-                // Only set the vehicle status back if it was reserved/pending
+            // safely grab the EstadoContestacao (will be null if contestacao is null)
+            string estado = contestacao?.EstadoContestacao;
 
-                await _context.SaveChangesAsync();
+            switch (estado)
+            {
+                case "Negada":
+                    infracao.EstadoInfracao = "Contestação Negada";
+                    break;
+                case "Pendente":
+                    infracao.EstadoInfracao = "Contestada";
+                    break;
+                case null:
+                    infracao.EstadoInfracao = "Submetida";
+                    break;
+                default:
+                    return BadRequest($"Estado da contestação '{estado}' é inválido.");
             }
+
+            await _context.SaveChangesAsync();
             return NoContent();
         }
     }
