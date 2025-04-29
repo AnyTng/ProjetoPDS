@@ -37,19 +37,20 @@ namespace RESTful_API.Service
             // Lógica da tarefa interna
             var aluguers = await _context.Aluguers
                 .Include(a=>a.ClienteIdclienteNavigation)
-                .Where(a=>a.EstadoAluguer=="Aguada Levantamento" || a.EstadoAluguer == "Alugado")
+                .Where(a=>a.EstadoAluguer=="Aguarda Levantamento" || a.EstadoAluguer == "Alugado")
                 .ToListAsync();
 
 
             foreach (var aluguer in aluguers)
             {
-                if (aluguer.DataDevolucao < DateTime.Now && aluguer.EstadoAluguer == "Alugado")
+                if (aluguer.DataEntregaPrevista < DateTime.Now && aluguer.EstadoAluguer == "Alugado")
                 {
-                    var cliente = aluguer.ClienteIdclienteNavigation;
-                    if (cliente != null )
+                    var cliente = await _context.Clientes
+                        .Include(c => c.LoginIdloginNavigation)
+                        .FirstOrDefaultAsync(c => c.Idcliente == aluguer.ClienteIdcliente); if (cliente != null )
                     {
                         var email = cliente.LoginIdloginNavigation.Email;
-                        var assunto = "Notificação de Infração - Resolução da sua contestacao";
+                        var assunto = "Notificação de Devolução do Veiculo";
                         var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data de devolução do veiculo alugado foi a {aluguer.DataEntregaPrevista}.<br>Fique avisado que cada dia de atraso ser-lhe a cobrado, por isso devolva o veiculo o quanto antes<br><br>" +
                                         $"<br><br><br>__<br>" +
                                         $"Com os melhores cumprimentos,<br>" +
@@ -66,51 +67,63 @@ namespace RESTful_API.Service
                     }
                 }
 
-                if (aluguer.DataLevantamento < DateTime.Now && aluguer.EstadoAluguer == "Aguada Levantamento")
+                if (aluguer.DataLevantamento < DateTime.Now && aluguer.EstadoAluguer == "Aguarda Levantamento")
                 {
-                    var cliente = aluguer.ClienteIdclienteNavigation;
-
-                    // se o dia de hoje for igual ao dia de levantamento + 1 dia
-                    if (aluguer.DataLevantamento.HasValue && aluguer.DataLevantamento.Value.AddDays(1).Date == DateTime.Today)
-                    {
-                        if (cliente != null)
+                    var cliente = await _context.Clientes
+                        .Include(c => c.LoginIdloginNavigation)
+                        .FirstOrDefaultAsync(c => c.Idcliente == aluguer.ClienteIdcliente); 
+                    
+                    if (cliente != null)
+                    { 
+                        // se o dia de hoje for igual ao dia de levantamento + 1 dia
+                        if (aluguer.DataLevantamento.HasValue && aluguer.DataLevantamento.Value.AddDays(1).Date == DateTime.Today)
                         {
-                            var email = cliente.LoginIdloginNavigation.Email;
-                            var assunto = "Notificação de Infração - Resolução da sua contestacao";
-                            var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data de levantamento do veiculo alugado foi a {aluguer.DataLevantamento}.<br>Tem um praso de 2 dias para decorrer ao levantamento do veiculo, apos esse periodo a reserva sera cancelada.<br><br>" +
-                                            $"<br><br><br>__<br>" +
-                                            $"Com os melhores cumprimentos,<br>" +
-                                            $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
-                                            $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
-                                            $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
-                                            $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
-                            await _emailService.EnviarEmail(email, assunto, mensagem);
-
-                        }
-                    }
-                    // se o dia de hoje for igual ao dia de levantamento + 3 dias   
-                    if (aluguer.DataLevantamento.HasValue && aluguer.DataLevantamento.Value.AddDays(3).Date == DateTime.Today)
-                    {
-                        if (cliente != null)
-                        {
-                            aluguer.EstadoAluguer = "Cancelado";
-                            _context.Update(aluguer);
-                            await _context.SaveChangesAsync();
-                            var veiculo = await _context.Veiculos.FindAsync(aluguer.VeiculoIdveiculo);
-                            if (veiculo != null)
+                            if (cliente != null)
                             {
-                                veiculo.EstadoVeiculo = "Disponivel";
-                                _context.Update(veiculo);
+                                var email = cliente.LoginIdloginNavigation.Email;
+                                var assunto = "Notificação de Levantamento de Veiculo";
+                                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a data de levantamento do veiculo alugado foi a {aluguer.DataLevantamento}.<br>Tem um praso de 2 dias para decorrer ao levantamento do veiculo, apos esse periodo a reserva sera cancelada.<br><br>" +
+                                                $"<br><br><br>__<br>" +
+                                                $"Com os melhores cumprimentos,<br>" +
+                                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
+                                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
+                                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
+                                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                                await _emailService.EnviarEmail(email, assunto, mensagem);
+
+                            }
+                        }
+                        // se o dia de hoje for igual ao dia de levantamento + 3 dias   
+                        if (aluguer.DataLevantamento.HasValue && aluguer.DataLevantamento.Value.AddDays(4).Date <= DateTime.Today)
+                        {
+                            if (cliente != null)
+                            {
+                                aluguer.EstadoAluguer = "Cancelado";
+                                _context.Update(aluguer);
                                 await _context.SaveChangesAsync();
+                                var veiculo = await _context.Veiculos.FindAsync(aluguer.VeiculoIdveiculo);
+                                if (veiculo != null)
+                                {
+                                    veiculo.EstadoVeiculo = "Disponivel";
+                                    _context.Update(veiculo);
+                                    await _context.SaveChangesAsync();
+                                }
+
+                                var email = cliente.LoginIdloginNavigation.Email;
+                                var assunto = "Notificação de cancelamento de reserva por não levantamento";
+                                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, no seguimento da (Notificação de Levantamento de Veiculo), que a data para levantamento do veiculo alugado foi a {aluguer.DataLevantamento}, e como o praso de 2 dias para levantamento do veiculo não foi comprido, fique ciente que a sua reserva foi cancelada.<br><br>" +
+                                                $"<br><br><br>__<br>" +
+                                                $"Com os melhores cumprimentos,<br>" +
+                                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
+                                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
+                                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
+                                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                                await _emailService.EnviarEmail(email, assunto, mensagem);
                             }
                         }
                     }
                 }
             }
-
-
-
-
         }
 
     }
