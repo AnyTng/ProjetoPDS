@@ -17,3 +17,5 @@ backend/RESTful API/.DS_Store
 backend/RESTful API/appsettings.json
 /Diagramas/DER/.vpprefdata
 /Gemini
+/backend/Tests/RESTful_API.Tests/bin
+/backend/Tests/RESTful_API.Tests/obj
