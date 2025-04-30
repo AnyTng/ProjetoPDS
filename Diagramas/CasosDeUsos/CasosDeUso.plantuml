@@ -1,0 +1,147 @@
+@startuml Casos de Uso CarXpress
+
+!theme materia
+left to right direction
+skinparam linetype ortho
+
+' --- Atores ---
+actor "Utilizador Não Autenticado" as Guest
+actor "Cliente" as Cli
+actor "Prestador" as Pre
+actor "Administrador" as Adm
+actor "Stripe" as Stripe <<external>>
+actor "Serviço de Email" as Email <<external>>
+
+rectangle "Sistema CarXpress" {
+
+    package "Autenticação e Gestão de Conta" {
+        usecase UC01 as "Registar Conta Cliente"
+        usecase UC02 as "Registar Conta Prestador"
+        usecase UC03 as "Efetuar Login"
+        usecase UC04 as "Efetuar Logout"
+        usecase UC05 as "Gerir Perfil Pessoal"
+        usecase UC25 as "Gerir Perfil Empresa"
+    }
+
+    package "Gestão de Veículos e Alugueres (Cliente)" {
+        usecase UC06 as "Pesquisar/Filtrar Veículos"
+        usecase UC07 as "Ver Detalhes do Veículo"
+        usecase UC08 as "Alugar Veículo"
+        usecase UC09 as "Ver Histórico de Alugueres"
+        usecase UC10 as "Pagar Reserva" <<payment>>
+    }
+
+    package "Gestão de Multas (Cliente)" {
+        usecase UC12 as "Ver Multas"
+        usecase UC13 as "Contestar Multa"
+        usecase UC14 as "Pagar Multa" <<payment>>
+    }
+
+    package "Gestão de Manutenções (Prestador)" {
+        usecase UC15 as "Ver Concursos Ativos"
+        usecase UC16 as "Submeter Proposta"
+        usecase UC17 as "Ver Histórico de Propostas"
+        usecase UC18 as "Submeter Fatura Manutenção"
+    }
+
+    package "Administração do Sistema" {
+        usecase UC19 as "Gerir Utilizadores"
+        usecase UC20 as "Gerir Veículos"
+        usecase UC21 as "Gerir Marcas/Modelos"
+        usecase UC22 as "Gerir Alugueres"
+        usecase UC23 as "Gerir Seguros"
+    }
+
+    package "Administração de Manutenções" {
+        usecase UC26 as "Criar Concurso Manutenção"
+        usecase UC27 as "Gerir Propostas"
+        usecase UC28 as "Confirmar Manutenção"
+    }
+
+    package "Administração de Multas" {
+        usecase UC29 as "Criar Multa"
+        usecase UC30 as "Gerir Contestações"
+        usecase UC31 as "Gerir Multas"
+    }
+
+    package "Funcionalidades Sistema/Externas" {
+        usecase UC90 as "Processar Pagamento"
+        usecase UC91 as "Enviar Email"
+        usecase UC92 as "Atualizar Estados"
+        usecase UC93 as "Validar Dados"
+    }
+}
+
+' --- Heranças ---
+Cli --|> Guest
+Pre --|> Guest
+Adm --|> Guest
+
+' --- Ligações principais por grupo ---
+
+' Utilizador Não Autenticado
+Guest --> UC01
+Guest --> UC02
+Guest --> UC03
+Guest --> UC06
+Guest --> UC07
+
+' Cliente
+Cli --> UC04
+Cli --> UC05
+Cli --> UC08
+Cli --> UC09
+Cli --> UC12
+Cli --> UC13
+Cli --> UC14
+
+' Prestador
+Pre --> UC04
+Pre --> UC25
+Pre --> UC15
+Pre --> UC16
+Pre --> UC17
+Pre --> UC18
+
+' Administrador
+Adm --> UC04
+Adm --> UC19
+Adm --> UC20
+Adm --> UC21
+Adm --> UC22
+Adm --> UC23
+Adm --> UC26
+Adm --> UC27
+Adm --> UC28
+Adm --> UC29
+Adm --> UC30
+Adm --> UC31
+
+' --- Inclusões e Extensões ---
+UC08 --> UC10 : <<include>>
+UC10 --> UC90 : <<extend>>
+UC14 --> UC90 : <<extend>>
+
+UC27 --> UC91 : <<include>>
+UC29 --> UC91 : <<include>>
+UC30 --> UC91 : <<include>>
+
+' --- Ligações a funcionalidades internas ---
+UC01 --> UC92
+UC02 --> UC92
+UC08 --> UC92
+UC13 --> UC92
+UC14 --> UC92
+UC16 --> UC92
+UC18 --> UC92
+UC20 --> UC92
+UC27 --> UC92
+UC28 --> UC92
+UC29 --> UC92
+UC30 --> UC92
+
+' --- Integrações externas ---
+UC90 --> Stripe : Interage com
+UC91 --> Email : Usa
+
+@enduml

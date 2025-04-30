@@ -1,0 +1,106 @@
+@startuml Aluguer Veiculo Stripe
+
+!theme materia
+
+actor "Cliente" as Cli
+participant "Frontend" as FE <<React>>
+participant "VeiculosController" as VeiC <<API>>
+participant "AlugueresController" as AluC <<API>>
+database "Base de Dados" as DB <<PostgreSQL>>
+participant "Stripe" as Stripe <<External Service>>
+
+skinparam sequence {
+    ArrowColor #555
+    ActorBorderColor #555
+    LifeLineBorderColor #AAA
+    LifeLineBackgroundColor #EEE
+
+    ParticipantBorderColor #007bff
+    ParticipantBackgroundColor #ADD8E6
+    ParticipantFontColor #000
+
+    DatabaseBorderColor #A0522D
+    DatabaseBackgroundColor #F4A460
+}
+
+title Aluguer de Veículo (com Pagamento Stripe)
+
+Cli -> FE: Navega para eShop, pesquisa veículos
+activate FE
+FE -> VeiC: GET /api/Veiculos/clientePesquisaVeiculo
+activate VeiC
+VeiC -> DB: SELECT Veiculos disponíveis
+activate DB
+DB --> VeiC: Lista de veículos
+deactivate DB
+VeiC --> FE: Retorna lista de veículos
+deactivate VeiC
+FE -> Cli: Exibe veículos
+
+Cli -> FE: Seleciona um veículo (navega para /eShop/:carID)
+FE -> VeiC: GET /api/Veiculos/clienteVeiculo?id={carID}
+activate VeiC
+VeiC -> DB: SELECT detalhes do veículo
+activate DB
+DB --> VeiC: Detalhes do veículo
+deactivate DB
+VeiC --> FE: Retorna detalhes
+deactivate VeiC
+FE -> Cli: Exibe detalhes do veículo
+
+Cli -> FE: Clica "Alugar" (navega para /eShop/rent/:carID)
+FE -> Cli: Exibe formulário de aluguer (AlugarCarroForm.jsx)
+Cli -> FE: Seleciona datas, clica "Pagar Taxa de Reserva"
+activate FE
+
+FE -> AluC: POST /api/Alugueres/fazaluguer (carID, datas, token JWT)
+activate AluC
+AluC -> DB: Verifica disponibilidade, calcula preço, cria Aluguer (Estado="Pendente")
+activate DB
+DB --> AluC: Aluguer criado
+deactivate DB
+AluC -> Stripe: Cria Sessão de Checkout (valor da reserva)
+activate Stripe
+Stripe --> AluC: Retorna ID da sessão e URL de checkout
+deactivate Stripe
+AluC --> FE: Retorna URL de checkout Stripe
+deactivate AluC
+
+FE -> Cli: Redireciona para página de pagamento Stripe
+deactivate FE
+
+Cli -> Stripe: Efetua pagamento
+activate Stripe
+Stripe --> Cli: Confirmação / Falha de pagamento
+Stripe -> AluC: Webhook POST /api/Alugueres/webhook (evento: checkout.session.completed)
+deactivate Stripe
+activate AluC
+AluC -> AluC: Valida evento Stripe
+alt Pagamento com Sucesso
+    AluC -> DB: UPDATE Aluguer (Estado="Aguarda levantamento")
+    activate DB
+    DB --> AluC: Aluguer atualizado
+    deactivate DB
+    AluC -> DB: UPDATE Veiculo (Estado="Alugado")
+    activate DB
+    DB --> AluC: Veículo atualizado
+    deactivate DB
+else Pagamento Falhou ou Expirou
+    AluC -> DB: UPDATE Aluguer (Estado="Cancelado")
+    activate DB
+    DB --> AluC: Aluguer atualizado
+    deactivate DB
+    AluC -> DB: UPDATE Veiculo (Estado="Disponível")
+    activate DB
+    DB --> AluC: Veículo atualizado
+    deactivate DB
+end
+AluC --> Stripe: Resposta 200 OK (webhook recebido)
+deactivate AluC
+
+Cli -> FE: É redirecionado do Stripe para /payment/success ou /payment/failure
+activate FE
+FE -> Cli: Exibe página de confirmação/falha
+deactivate FE
+
+@enduml
