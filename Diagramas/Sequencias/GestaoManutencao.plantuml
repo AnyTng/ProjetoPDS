@@ -1,0 +1,156 @@
+@startuml Gestao Manutencao
+
+!theme materia
+
+actor "Admin" as Adm
+actor "Prestador" as Pre
+participant "Frontend Admin" as FEA <<React>>
+participant "Frontend Prestador" as FEP <<React>>
+participant "DespesasController" as DesC <<API>>
+participant "ManutencoesController" as ManC <<API>>
+participant "VeiculosController" as VeiC <<API>>
+participant "EmailService" as Mail <<Service>>
+database "Base de Dados" as DB <<PostgreSQL>>
+
+skinparam sequence {
+    ArrowColor #555
+    ActorBorderColor #555
+    LifeLineBorderColor #AAA
+    LifeLineBackgroundColor #EEE
+
+    ParticipantBorderColor #007bff
+    ParticipantBackgroundColor #ADD8E6
+    ParticipantFontColor #000
+
+    DatabaseBorderColor #A0522D
+    DatabaseBackgroundColor #F4A460
+}
+
+title Processo de Gestão de Manutenção
+
+box "Criação do Concurso" #LightBlue
+Adm -> FEA: Abre modal para criar concurso
+activate FEA
+FEA -> Adm: Exibe formulário (CreateConcursoModal.jsx)
+Adm -> FEA: Preenche (matrícula, descrição) e submete
+activate FEA
+FEA -> DesC: POST /api/Despesas/CriarConcurso (dados, token Admin)
+activate DesC
+DesC -> DB: Encontra Veículo, cria Despesa (Estado="Ativo")
+activate DB
+DB --> DesC: Despesa criada
+deactivate DB
+DesC -> DB: Atualiza Veiculo (Estado="Avariado")
+activate DB
+DB --> DesC: Veículo atualizado
+deactivate DB
+DesC --> FEA: Resposta 201 Created
+deactivate DesC
+FEA -> Adm: Notifica sucesso, fecha modal
+deactivate FEA
+end box
+
+box "Submissão da Proposta" #LightGreen
+Pre -> FEP: Acede a Concursos Ativos (/prestador/concursos)
+activate FEP
+FEP -> DesC: GET /api/Despesas/ConcursosAtivos (token Prestador)
+activate DesC
+DesC -> DB: SELECT Despesas (Estado="Ativo")
+activate DB
+DB --> DesC: Lista de concursos
+deactivate DB
+DesC --> FEP: Retorna lista
+deactivate DesC
+FEP -> Pre: Exibe concursos (ConcursoPrestadorCard.jsx)
+
+Pre -> FEP: Seleciona concurso, abre modal proposta (CreatePropostaModal.jsx)
+activate FEP
+FEP -> Pre: Exibe formulário
+Pre -> FEP: Preenche (descrição, valor, datas) e submete
+activate FEP
+FEP -> ManC: POST /api/Manutencoes/FazerProposta (dados, token Prestador)
+activate ManC
+ManC -> DB: Valida, cria Manutencao (Proposta, Estado="Pendente")
+activate DB
+DB --> ManC: Proposta criada
+deactivate DB
+ManC --> FEP: Resposta 201 Created
+deactivate ManC
+FEP -> Pre: Notifica sucesso, fecha modal
+deactivate FEP
+end box
+
+box "Aceitação/Rejeição da Proposta" #LightCoral
+Adm -> FEA: Acede a propostas de um concurso (/admin/propostas/:despesaId)
+activate FEA
+FEA -> ManC: GET /api/Manutencoes/VerPropostaAdmin (despesaId, token Admin)
+activate ManC
+ManC -> DB: SELECT Manutencoes (Propostas) para a Despesa
+activate DB
+DB --> ManC: Lista de propostas
+deactivate DB
+ManC --> FEA: Retorna lista
+deactivate ManC
+FEA -> Adm: Exibe propostas (PropostaCardAdmin.jsx)
+
+Adm -> FEA: Clica "Aceitar" numa proposta
+activate FEA
+FEA -> ManC: PUT /api/Manutencoes/AceitarProposta (propostaId, token Admin)
+activate ManC
+ManC -> DB: UPDATE Manutencao aceite (Estado="Aceite")
+activate DB
+DB --> ManC: Proposta aceite atualizada
+deactivate DB
+ManC -> DB: UPDATE outras Manutencoes (Estado="Rejeitada")
+activate DB
+DB --> ManC: Outras propostas atualizadas
+deactivate DB
+ManC -> DB: UPDATE Despesa (Estado="Em Manutenção")
+activate DB
+DB --> ManC: Despesa atualizada
+deactivate DB
+ManC -> DB: UPDATE Veiculo (Estado="Em Manutenção")
+activate DB
+DB --> ManC: Veículo atualizado
+deactivate DB
+ManC -> Mail: Envia email de notificação para Empresa aceite
+activate Mail
+Mail --> ManC: Email enviado
+deactivate Mail
+ManC --> FEA: Resposta 200 OK
+deactivate ManC
+FEA -> Adm: Atualiza UI
+deactivate FEA
+end box
+
+box "Conclusão da Manutenção" #LightYellow
+note right of Pre : Prestador realiza a manutenção\ne submete fatura (não no frontend)
+Pre -> DesC: (Via API) PUT /api/Despesas/SubmeterFatura (despesaId, file, token Prestador)
+activate DesC
+DesC -> DesC: Guarda ficheiro fatura
+DesC -> DB: UPDATE Despesa (Estado="Fatura Submetida", FaturaPath)
+activate DB
+DB --> DesC: Despesa atualizada
+deactivate DB
+DesC --> Pre: (Via API) Resposta 200 OK
+deactivate DesC
+
+Adm -> FEA: Clica "Veículo Devolvido"
+activate FEA
+FEA -> DesC: PUT /api/Despesas/TerminoConcurso (despesaId, token Admin)
+activate DesC
+DesC -> DB: UPDATE Despesa (Estado="Concluído", DataFim)
+activate DB
+DB --> DesC: Despesa atualizada
+deactivate DB
+DesC -> DB: UPDATE Veiculo (Estado="Disponível")
+activate DB
+DB --> DesC: Veículo atualizado
+deactivate DB
+DesC --> FEA: Resposta 200 OK
+deactivate DesC
+FEA -> Adm: Atualiza UI
+deactivate FEA
+end box
+
+@enduml
