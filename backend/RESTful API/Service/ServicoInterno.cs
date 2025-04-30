@@ -130,7 +130,7 @@ namespace RESTful_API.Service
 
             var multas = await _context.Infracoes
                 .Include(a => a.AluguerIdaluguerNavigation)
-                .Where(a => a.EstadoInfracao != "Paga" && a.EstadoInfracao != "Contestação Aceite")
+                .Where(a => a.EstadoInfracao != "Paga" && a.EstadoInfracao != "Contestação Aceite" && a.EstadoInfracao != "Em Falta")
                 .ToListAsync();
 
             foreach (var multa in multas)

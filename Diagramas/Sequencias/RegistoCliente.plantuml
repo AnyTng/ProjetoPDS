@@ -1,0 +1,197 @@
+@startuml Gestao Multas Completo
+
+!theme materia
+
+actor "Admin" as Adm
+actor "Cliente" as Cli
+participant "Frontend Admin" as FEA <<React>>
+participant "Frontend Cliente" as FEC <<React>>
+participant "InfracoesController" as InfC <<API>>
+participant "ContestacoesController" as ConC <<API>>
+participant "EmailService" as Mail <<Service>>
+database "Base de Dados" as DB <<PostgreSQL>>
+participant "Stripe" as Stripe <<External Service>>
+
+skinparam sequence {
+    ArrowColor #555
+    ActorBorderColor #555
+    LifeLineBorderColor #AAA
+    LifeLineBackgroundColor #EEE
+
+    ParticipantBorderColor #007bff
+    ParticipantBackgroundColor #ADD8E6
+    ParticipantFontColor #000
+
+    DatabaseBorderColor #A0522D
+    DatabaseBackgroundColor #F4A460
+}
+
+title Gestão de Multas Completa (Criação, Contestação, Pagamento, Resolução)
+
+box "Criação da Multa (Admin)" #LightBlue
+Adm -> FEA: Abre modal para criar multa (CreateMultaModal.jsx)
+activate FEA
+FEA -> Adm: Exibe formulário
+Adm -> FEA: Preenche dados (matrícula, data, valor, etc.) e submete
+activate FEA
+FEA -> InfC: POST /api/Infracoes/inserir-multa (dados, token Admin)
+activate InfC
+InfC -> DB: Encontra Aluguer, cria Infracao (Estado="Submetida")
+activate DB
+DB --> InfC: Infracao criada
+deactivate DB
+InfC -> Mail: Envia email de notificação ao Cliente
+activate Mail
+Mail --> InfC: Email enviado
+deactivate Mail
+InfC --> FEA: Resposta 201 Created
+deactivate InfC
+FEA -> Adm: Notifica sucesso, fecha modal
+deactivate FEA
+end box
+
+box "Visualização e Ações do Cliente" #LightGreen
+Cli -> FEC: Acede à página de multas (/user/multas)
+activate FEC
+FEC -> InfC: GET /api/Infracoes/MultasCliente (token Cliente)
+activate InfC
+InfC -> DB: SELECT Infracoes do Cliente
+activate DB
+DB --> InfC: Lista de multas
+deactivate DB
+InfC --> FEC: Retorna lista
+deactivate InfC
+FEC -> Cli: Exibe multas (MultaCardCliente.jsx)
+note right of Cli
+  Para cada multa:
+  - Se Estado="Submetida": Mostra botões "Contestar Multa" e "Pagar Multa".
+  - Se Estado="Contestação Negada": Mostra botão "Pagar Multa".
+  - Se Estado="Paga" ou "Contestação Aceite": Apenas mostra info.
+  - Se Estado="Contestada": Apenas mostra info (aguarda Admin).
+end note
+
+alt Cliente decide Contestar (Estado="Submetida")
+    Cli -> FEC: Clica "Contestar Multa"
+    activate FEC
+    FEC -> Cli: Abre modal de contestação (CreateContestationModal.jsx)
+    Cli -> FEC: Escreve justificação e submete
+    activate FEC
+    FEC -> ConC: POST /api/Contestacoes/CriarContestacao (infracaoId, descricao, token Cliente)
+    activate ConC
+    ConC -> DB: Cria Contestacao (Estado="Pendente")
+    activate DB
+    DB --> ConC: Contestacao criada
+    deactivate DB
+    ConC -> DB: UPDATE Infracao (Estado="Contestada")
+    activate DB
+    DB --> ConC: Infracao atualizada
+    deactivate DB
+    ConC --> FEC: Resposta 201 Created
+    deactivate ConC
+    FEC -> Cli: Notifica sucesso, fecha modal
+    deactivate FEC
+end
+
+alt Cliente decide Pagar (Estado="Submetida" ou "Contestação Negada")
+    Cli -> FEC: Clica "Pagar Multa"
+    activate FEC
+    FEC -> InfC: POST /api/Infracoes/PagarMultaStripe (infracaoId, token Cliente)
+    activate InfC
+    InfC -> DB: Verifica estado da Infracao
+    activate DB
+    DB --> InfC: Estado válido para pagamento
+    deactivate DB
+    InfC -> Stripe: Cria Sessão de Checkout (valor da multa)
+    activate Stripe
+    Stripe --> InfC: Retorna ID da sessão e URL de checkout
+    deactivate Stripe
+    InfC --> FEC: Retorna URL de checkout Stripe
+    deactivate InfC
+    FEC -> Cli: Redireciona para página de pagamento Stripe
+    deactivate FEC
+
+    Cli -> Stripe: Efetua pagamento
+    activate Stripe
+    Stripe --> Cli: Confirmação / Falha de pagamento
+    Stripe -> InfC: Webhook POST /api/Infracoes/WebhookMulta (evento: checkout.session.completed)
+    deactivate Stripe
+    activate InfC
+    InfC -> InfC: Valida evento Stripe
+    alt Pagamento com Sucesso
+        InfC -> DB: UPDATE Infracao (Estado="Paga")
+        activate DB
+        DB --> InfC: Infracao atualizada para "Paga"
+        deactivate DB
+    else Pagamento Falhou ou Expirou
+        InfC -> DB: Verifica estado atual (não altera se falhou)
+        activate DB
+        DB --> InfC: Estado não alterado
+        deactivate DB
+        note right of InfC: Nenhuma ação de BD se pagamento falhar
+    end
+    InfC --> Stripe: Resposta 200 OK (webhook recebido)
+    deactivate InfC
+
+    Cli -> FEC: É redirecionado do Stripe para /payment/success-multa ou /payment/failure-multa
+    activate FEC
+    FEC -> Cli: Exibe página de confirmação/falha
+    deactivate FEC
+end
+
+deactivate FEC
+end box
+
+box "Visualização e Resolução pelo Admin" #LightCoral
+Adm -> FEA: Acede à página de multas (/admin/multas)
+activate FEA
+FEA -> InfC: GET /api/Infracoes/vermultasAdmin (token Admin)
+activate InfC
+InfC -> DB: SELECT todas Infracoes (incluindo Contestacoes)
+activate DB
+DB --> InfC: Lista de multas e contestações
+deactivate DB
+InfC --> FEA: Retorna lista
+deactivate InfC
+FEA -> Adm: Exibe multas (MultaCardAdmin.jsx)
+note right of Adm
+  Para cada multa:
+  - Se Estado="Contestada": Mostra botão "Ver Contestação".
+  - Se Estado="Paga", "Contestação Aceite", etc.: Apenas mostra info.
+end note
+
+alt Admin resolve Contestação (Estado="Contestada")
+    Adm -> FEA: Clica "Ver Contestação"
+    activate FEA
+    FEA -> Adm: Abre modal (ViewContestationModal.jsx) com detalhes
+    Adm -> FEA: Lê a contestação e clica "Aceitar" ou "Rejeitar"
+    activate FEA
+    FEA -> ConC: PUT /api/Contestacoes/AlterarContestacao (contestacaoId, estado="Aceite" ou "Negada", token Admin)
+    activate ConC
+    ConC -> DB: UPDATE Contestacao (Estado="Aceite" ou "Negada")
+    activate DB
+    DB --> ConC: Contestacao atualizada
+    deactivate DB
+    alt Contestação Aceite
+        ConC -> DB: UPDATE Infracao (Estado="Contestação Aceite")
+        activate DB
+        DB --> ConC: Infracao atualizada
+        deactivate DB
+    else Contestação Negada
+        ConC -> DB: UPDATE Infracao (Estado="Contestação Negada")
+        activate DB
+        DB --> ConC: Infracao atualizada
+        deactivate DB
+    end
+    ConC -> Mail: Envia email ao Cliente com a decisão
+    activate Mail
+    Mail --> ConC: Email enviado
+    deactivate Mail
+    ConC --> FEA: Resposta 200 OK
+    deactivate ConC
+    FEA -> Adm: Atualiza UI, fecha modal
+    deactivate FEA
+end
+deactivate FEA
+end box
+
+@enduml
