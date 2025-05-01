@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
@@ -42,23 +44,6 @@ namespace RESTful_API.Tests
             }
 
             return context;
-        }
-
-        [Fact]
-        public async Task GetAluguers_ReturnsAllAluguers()
-        {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-
-            // Act
-            var result = await controller.GetAluguers();
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<Aluguer>>>(result);
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var aluguers = Assert.IsAssignableFrom<IEnumerable<Aluguer>>(okResult.Value);
-            Assert.Equal(2, aluguers.Count());
         }
 
         [Fact]
@@ -105,20 +90,160 @@ namespace RESTful_API.Tests
         }
 
         [Fact]
-        public async Task DeleteAluguer_DeletesAluguer()
+        public async Task PutAluguer_UpdatesExistingAluguer()
         {
             // Arrange
             await using var context = GetInMemoryContext();
             var controller = new AlugueresController(context, _mockConfig.Object);
-            var testId = 1;
+            var updateAluguer = new Aluguer
+            {
+                Idaluguer = 1,
+                ClienteIdcliente = 1,
+                VeiculoIdveiculo = 1,
+                DataLevantamento = DateTime.Now,
+                DataEntregaPrevista = DateTime.Now.AddDays(7),
+                EstadoAluguer = "Alugado"
+            };
 
             // Act
-            var result = await controller.DeleteAluguer(testId);
+            var result = await controller.PutAluguer(1, updateAluguer);
 
             // Assert
-            var actionResult = Assert.IsType<NoContentResult>(result);
-            var aluguer = await context.Aluguers.FindAsync(testId);
-            Assert.Null(aluguer);
+            Assert.IsType<NoContentResult>(result);
+            var aluguer = await context.Aluguers.FindAsync(1);
+            Assert.Equal("Alugado", aluguer.EstadoAluguer);
+        }
+
+        [Fact]
+        public async Task GetAlugueres_ReturnsAllAlugueres()
+        {
+            // Arrange
+            await using var context = GetInMemoryContext();
+            var controller = new AlugueresController(context, _mockConfig.Object);
+
+            // Act
+            var result = await controller.GetAluguers();
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<Aluguer>>>(result);
+            var alugueres = Assert.IsAssignableFrom<IEnumerable<Aluguer>>(actionResult.Value);
+            Assert.Equal(2, alugueres.Count());
+        }
+
+        [Fact]
+        public async Task PutAvaliaAluguer_UpdatesClassificacao()
+        {
+            // Arrange
+            await using var context = GetInMemoryContext();
+            var controller = new AlugueresController(context, _mockConfig.Object);
+
+            // Setup user claims
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim("roleId", "1")
+            };
+            var identity = new ClaimsIdentity(claims);
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Add a completed aluguer to test
+            var testAluguer = new Aluguer
+            {
+                Idaluguer = 3,
+                ClienteIdcliente = 1,
+                EstadoAluguer = "Concluido"
+            };
+            context.Aluguers.Add(testAluguer);
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await controller.PutAvaliaAluguer(3, 5);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+            var updatedAluguer = await context.Aluguers.FindAsync(3);
+            Assert.Equal(5, updatedAluguer.Classificacao);
+        }
+
+        [Fact]
+        public async Task PutCancelarAluguer_CancelsAluguer()
+        {
+            // Arrange
+            await using var context = GetInMemoryContext();
+            var controller = new AlugueresController(context, _mockConfig.Object);
+
+            // Setup user claims
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim("roleId", "1")
+            };
+            var identity = new ClaimsIdentity(claims);
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Add a pending aluguer
+            var veiculo = new Veiculo { Idveiculo = 3, EstadoVeiculo = "Alugado" };
+            context.Veiculos.Add(veiculo);
+            var testAluguer = new Aluguer
+            {
+                Idaluguer = 3,
+                VeiculoIdveiculo = 3,
+                EstadoAluguer = "Pendente",
+                VeiculoIdveiculoNavigation = veiculo
+            };
+            context.Aluguers.Add(testAluguer);
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await controller.PutCancelarAluguer(3);
+
+            // Assert
+            Assert.IsType<OkResult>(result);
+            var updatedAluguer = await context.Aluguers.FindAsync(3);
+            Assert.Equal("Cancelado", updatedAluguer.EstadoAluguer);
+            Assert.Equal("Disponível", updatedAluguer.VeiculoIdveiculoNavigation.EstadoVeiculo);
+        }
+
+        [Fact]
+        public async Task GetHistoricoAluguer_ReturnsClienteAlugueres()
+        {
+            // Arrange
+            await using var context = GetInMemoryContext();
+            var controller = new AlugueresController(context, _mockConfig.Object);
+
+            // Setup user claims
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim("roleId", "1")
+            };
+            var identity = new ClaimsIdentity(claims);
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Add a cliente
+            var cliente = new Cliente { Idcliente = 1, LoginIdlogin = 1 };
+            context.Clientes.Add(cliente);
+            await context.SaveChangesAsync();
+
+            // Act
+            var result = await controller.historicoAluguer();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var historico = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value);
+            Assert.NotNull(historico);
         }
     }
 }
