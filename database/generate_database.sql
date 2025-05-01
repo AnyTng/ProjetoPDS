@@ -13581,28 +13581,617 @@ INSERT INTO TipoLogin (TLogin) VALUES
 
 INSERT INTO MarcaVeiculo (DescMarca) VALUES
 ('Toyota'),
-('Ford'),
-('BMW'),
+('Ford'),/**/
+('BMW'),/**/
 ('Mercedes'),
-('Audi'),
+('Audi'),/**/
 ('Volkswagen'),
-('Renault'),
+('Renault'),/**/
 ('Peugeot'),
-('Nissan'),
-('Tesla');
+('Nissan'),/**/
+('Tesla'),
+-- A
+('Alfa Romeo'),
+('Aston Martin'),
+-- B
+('Bentley'),
+('Bugatti'),
+('BYD'),
+-- C
+('Cadillac'),
+('Changan'),
+('Chery'),
+('Chevrolet'),
+('Chrysler'),
+('Citroën'),
+('Cupra'),
+-- D
+('Dacia'),
+('Daihatsu'),
+('Dodge'),
+-- E
+('Ferrari'),
+('Fiat'),
+('Fisker'),
+-- G
+('Geely'),
+('Genesis'),
+('GMC'),
+-- H
+('Haval'),
+('Hino'),
+('Honda'),
+('Hyundai'),
+-- I
+('Infiniti'),
+('Isuzu'),
+('Iveco'),
+-- J
+('Jaguar'),
+('Jeep'),
+-- K
+('Kia'),
+('Koenigsegg'),
+-- L
+('Lada'),
+('Lamborghini'),
+('Lancia'),
+('Land Rover'),
+('Lexus'),
+('Lincoln'),
+('Lotus'),
+-- M
+('Maserati'),
+('Mazda'),
+('McLaren'),
+('Mini'),
+('Mitsubishi'),
+-- N
+('Nio'),
+-- O
+('Opel'),
+-- P
+('Polestar'),
+('Pontiac'),
+('Porsche'),
+('Proton'),
+-- R
+('RAM'),
+('Rimac'),
+('Rolls-Royce'),
+('Rover'),
+-- S
+('Saab'),
+('Scania'),
+('Seat'),
+('Skoda'),
+('Smart'),
+('SsangYong'),
+('Subaru'),
+('Suzuki'),
+-- T
+('Tata'),
+-- V
+('Volvo'),
+-- W
+('Wuling'),
+-- Z
+('Zotye');
 
 
 INSERT INTO ModeloVeiculo (DescModelo, MarcaVeiculoIDMarca) VALUES
-('Corolla', 1),
-('Focus', 2),
-('X5', 3),
-('C-Class', 4),
-('A4', 5),
-('Golf', 6),
-('Clio', 7),
-('208', 8),
-('Qashqai', 9),
-('Model S', 10);
+('Corolla', 1),/**/
+('Focus', 2),/**/
+('X5', 3),/**/
+('C-Class', 4),/**/
+('A4', 5),/**/
+('Golf', 6),/**/
+('Clio', 7),/**/
+('208', 8),/**/
+('Qashqai', 9),/**/
+('Model S', 10),/**/
+
+-- Toyota
+('Camry', 1),
+('RAV4', 1),
+('Hilux', 1),
+('Prius', 1),
+('Yaris', 1),
+('Land Cruiser', 1),
+('Supra', 1),
+('Tacoma', 1),
+('Tundra', 1),
+
+-- Ford
+('Fiesta', 2),
+('Mustang', 2),
+('Explorer', 2),
+('Ranger', 2),
+('F-150', 2),
+('Edge', 2),
+('Escape', 2),
+('Transit', 2),
+('Bronco', 2),
+
+-- BMW
+('X3', 3),
+('X7', 3),
+('3 Series', 3),
+('5 Series', 3),
+('7 Series', 3),
+('i8', 3),
+('Z4', 3),
+('M3', 3),
+('M5', 3),
+
+-- Mercedes
+('E-Class', 4),
+('S-Class', 4),
+('GLA', 4),
+('GLC', 4),
+('GLE', 4),
+('GLS', 4),
+('A-Class', 4),
+('B-Class', 4),
+('AMG GT', 4),
+
+-- Audi
+('A6', 5),
+('A8', 5),
+('Q3', 5),
+('Q5', 5),
+('Q7', 5),
+('Q8', 5),
+('TT', 5),
+('R8', 5),
+('e-tron', 5),
+
+-- Volkswagen
+('Passat', 6),
+('Tiguan', 6),
+('Arteon', 6),
+('Polo', 6),
+('Jetta', 6),
+('Atlas', 6),
+('ID.4', 6),
+('Beetle', 6),
+('Touareg', 6),
+
+-- Renault
+('Megane', 7),
+('Captur', 7),
+('Kadjar', 7),
+('Twingo', 7),
+('Zoe', 7),
+('Duster', 7),
+('Koleos', 7),
+('Scenic', 7),
+('Alaskan', 7),
+
+-- Peugeot
+('308', 8),
+('508', 8),
+('2008', 8),
+('3008', 8),
+('5008', 8),
+('Rifter', 8),
+('Partner', 8),
+('Expert', 8),
+('Boxer', 8),
+
+-- Nissan
+('Juke', 9),
+('X-Trail', 9),
+('Leaf', 9),
+('Micra', 9),
+('Navara', 9),
+('Patrol', 9),
+('370Z', 9),
+('GT-R', 9),
+('Ariya', 9),
+
+-- Tesla
+('Model 3', 10),
+('Model X', 10),
+('Model Y', 10),
+('Cybertruck', 10),
+('Roadster', 10),
+('Semi', 10),
+
+-- Alfa Romeo
+('Giulia', 11),
+('Stelvio', 11),
+('Tonale', 11),
+('4C', 11),
+('8C', 11),
+
+-- Aston Martin
+('DB11', 12),
+('Vantage', 12),
+('DBS Superleggera', 12),
+('DBX', 12),
+('Valhalla', 12),
+
+-- Bentley
+('Continental GT', 13),
+('Bentayga', 13),
+('Flying Spur', 13),
+('Mulsanne', 13),
+
+-- Bugatti
+('Chiron', 14),
+('Veyron', 14),
+('Divo', 14),
+('Centodieci', 14),
+
+-- BYD
+('Han', 15),
+('Tang', 15),
+('Yuan', 15),
+('Qin', 15),
+
+-- Cadillac
+('Escalade', 16),
+('CT5', 16),
+('XT5', 16),
+('Lyriq', 16),
+
+-- Changan
+('CS75', 17),
+('Eado', 17),
+('UNI-T', 17),
+('Alsvin', 17),
+
+-- Chery
+('Tiggo', 18),
+('Arrizo', 18),
+('QQ', 18),
+('Exeed', 18),
+
+-- Chevrolet
+('Camaro', 19),
+('Corvette', 19),
+('Cruze', 19),
+('Equinox', 19),
+('Silverado', 19),
+('Suburban', 19),
+('Tahoe', 19),
+('Trailblazer', 19),
+('Spark', 19),
+('Bolt', 19),
+
+-- Chrysler
+('300', 20),
+('Pacifica', 20),
+('Voyager', 20),
+
+-- Citroën
+('C3', 21),
+('C4', 21),
+('C5 Aircross', 21),
+('Berlingo', 21),
+('Jumpy', 21),
+
+-- Cupra
+('Formentor', 22),
+('Leon', 22),
+('Ateca', 22),
+
+-- Dacia
+('Sandero', 23),
+('Duster', 23),
+('Logan', 23),
+('Spring', 23),
+
+-- Daihatsu
+('Terios', 24),
+('Mira', 24),
+('Move', 24),
+
+-- Dodge
+('Challenger', 25),
+('Charger', 25),
+('Durango', 25),
+('Journey', 25),
+
+-- Ferrari
+('488', 26),
+('F8 Tributo', 26),
+('Roma', 26),
+('SF90 Stradale', 26),
+('Portofino', 26),
+
+-- Fiat
+('500', 27),
+('Panda', 27),
+('Tipo', 27),
+('Pulse', 27),
+('Strada', 27),
+
+-- Fisker
+('Ocean', 28),
+('Pear', 28),
+
+-- Geely
+('Coolray', 29),
+('Emgrand', 29),
+('Tugella', 29),
+
+-- Genesis
+('G70', 30),
+('G80', 30),
+('GV80', 30),
+
+-- GMC
+('Sierra', 31),
+('Yukon', 31),
+('Acadia', 31),
+('Hummer EV', 31),
+
+-- Haval
+('H6', 32),
+('Jolion', 32),
+('Big Dog', 32),
+
+-- Hino
+('Dutro', 33),
+('Ranger', 33),
+('300 Series', 33),
+
+-- Honda
+('Civic', 34),
+('Accord', 34),
+('CR-V', 34),
+('HR-V', 34),
+('Jazz', 34),
+('NSX', 34),
+
+-- Hyundai
+('Tucson', 35),
+('Santa Fe', 35),
+('Kona', 35),
+('i30', 35),
+('Elantra', 35),
+('Palisade', 35),
+('IONIQ 5', 35),
+('Genesis', 35),
+
+-- Infiniti
+('Q50', 36),
+('QX60', 36),
+('QX80', 36),
+
+-- Isuzu
+('D-Max', 37),
+('MU-X', 37),
+('NPR', 37),
+
+-- Iveco
+('Daily', 38),
+('Stralis', 38),
+('Trakker', 38),
+
+-- Jaguar
+('F-Pace', 39),
+('XE', 39),
+('XF', 39),
+('I-Pace', 39),
+('F-Type', 39),
+
+-- Jeep
+('Wrangler', 40),
+('Grand Cherokee', 40),
+('Renegade', 40),
+('Compass', 40),
+('Gladiator', 40),
+
+-- Kia
+('Sportage', 41),
+('Sorento', 41),
+('Rio', 41),
+('Picanto', 41),
+('Stinger', 41),
+('EV6', 41),
+('Carnival', 41),
+
+-- Koenigsegg
+('Jesko', 42),
+('Gemera', 42),
+('Regera', 42),
+
+-- Lada
+('Vesta', 43),
+('Granta', 43),
+('Niva', 43),
+
+-- Lamborghini
+('Huracan', 44),
+('Aventador', 44),
+('Urus', 44),
+('Countach', 44),
+
+-- Lancia
+('Ypsilon', 45),
+('Delta', 45),
+
+-- Land Rover
+('Defender', 46),
+('Discovery', 46),
+('Range Rover', 46),
+('Range Rover Sport', 46),
+('Range Rover Evoque', 46),
+
+-- Lexus
+('RX', 47),
+('NX', 47),
+('ES', 47),
+('LS', 47),
+('LC', 47),
+('UX', 47),
+
+-- Lincoln
+('Navigator', 48),
+('Aviator', 48),
+('Corsair', 48),
+('Nautilus', 48),
+
+-- Lotus
+('Emira', 49),
+('Evija', 49),
+('Elise', 49),
+
+-- Maserati
+('Ghibli', 50),
+('Quattroporte', 50),
+('Levante', 50),
+('MC20', 50),
+
+-- Mazda
+('CX-5', 51),
+('CX-30', 51),
+('MX-5', 51),
+('3', 51),
+('6', 51),
+
+-- McLaren
+('720S', 52),
+('Artura', 52),
+('GT', 52),
+('Senna', 52),
+
+-- Mini
+('Cooper', 53),
+('Countryman', 53),
+('Clubman', 53),
+
+-- Mitsubishi
+('Outlander', 54),
+('ASX', 54),
+('Eclipse Cross', 54),
+('L200', 54),
+('Pajero', 54),
+
+-- Nio
+('ET7', 55),
+('ES8', 55),
+('EC6', 55),
+
+-- Opel
+('Corsa', 56),
+('Astra', 56),
+('Mokka', 56),
+('Insignia', 56),
+('Zafira', 56),
+
+-- Polestar
+('1', 57),
+('2', 57),
+('3', 57),
+
+-- Pontiac
+('Firebird', 58),
+('GTO', 58),
+('Solstice', 58),
+
+-- Porsche
+('911', 59),
+('Cayenne', 59),
+('Macan', 59),
+('Panamera', 59),
+('Taycan', 59),
+('Boxster', 59),
+
+-- Proton
+('Saga', 60),
+('X70', 60),
+('X50', 60),
+
+-- RAM
+('1500', 61),
+('2500', 61),
+('Promaster', 61),
+
+-- Rimac
+('Nevera', 62),
+('Concept One', 62),
+
+-- Rolls-Royce
+('Phantom', 63),
+('Cullinan', 63),
+('Ghost', 63),
+('Wraith', 63),
+
+-- Rover
+('Range Rover', 64),
+('Discovery', 64),
+
+-- Saab
+('9-3', 65),
+('9-5', 65),
+('900', 65),
+
+-- Scania
+('R Series', 66),
+('S Series', 66),
+('P Series', 66),
+
+-- Seat
+('Leon', 67),
+('Ibiza', 67),
+('Arona', 67),
+('Tarraco', 67),
+
+-- Skoda
+('Octavia', 68),
+('Superb', 68),
+('Kodiaq', 68),
+('Karoq', 68),
+('Fabia', 68),
+
+-- Smart
+('ForTwo', 69),
+('ForFour', 69),
+
+-- SsangYong
+('Tivoli', 70),
+('Rexton', 70),
+('Korando', 70),
+
+-- Subaru
+('Outback', 71),
+('Forester', 71),
+('Impreza', 71),
+('WRX', 71),
+('BRZ', 71),
+
+-- Suzuki
+('Swift', 72),
+('Vitara', 72),
+('Jimny', 72),
+('Ignis', 72),
+('Baleno', 72),
+
+-- Tata
+('Harrier', 73),
+('Nexon', 73),
+('Safari', 73),
+
+-- Volvo
+('XC90', 74),
+('XC60', 74),
+('XC40', 74),
+('S90', 74),
+('V90', 74),
+
+-- Wuling
+('Almaz', 75),
+('Cortez', 75),
+('Hongguang', 75),
+
+-- Zotye
+('T600', 76),
+('Z300', 76),
+('E200', 76);
 
 
 INSERT INTO Veiculo (MatriculaVeiculo, LotacaoVeiculo, TaraVeiculo, DescCor, DataLegal, DataFabricacao, DataAquisicao, ValorDiarioVeiculo, ModeloVeiculoIDModelo, CaminhoFotoVeiculo, DescVeiculo) VALUES
@@ -13617,27 +14206,9 @@ INSERT INTO Veiculo (MatriculaVeiculo, LotacaoVeiculo, TaraVeiculo, DescCor, Dat
 ('II-88-II', 5, 2300, 'Laranja', '2020-09-09', '2019-09-09', '2020-09-09', 90.00, 9, 'imageVeiculo/II-88-II/7bc7334e-27e0-4557-9909-578219aa7b2d_nissan.jpg', NULL),
 ('JJ-99-JJ', 5, 2400, 'Roxo', '2020-10-10', '2019-10-10', '2020-10-10', 95.00, 10, 'imageVeiculo/JJ-99-JJ/d8583836-4772-4b05-ad48-e6e150b380d0_s.jpg', NULL);
 
-INSERT INTO Seguradora (DescSeguradora) VALUES
-('Allianz'),
-('Fidelidade'),
-('AXA'),
-('Generali'),
-('Tranquilidade'),
-('Logo'),
-('Multicare'),
-('Ageas'),
-('Seguros de Portugal'),
-('Mapfre');
 
 
-INSERT INTO Seguro (ApoliceSeguro, DataRenovacao, ValorInicial, DescSeguro, SeguradoraIDSeguradora, VeiculoIDVeiculo) VALUES
-('A123456789', '2021-01-01', 500.00, 'Seguro Completo', 1, 1),
-('B123456789', '2021-02-02', 550.00, 'Seguro Básico', 2, 2),
-('C123456789', '2021-03-03', 600.00, 'Seguro Completo', 3, 3),
-('D123456789', '2021-04-04', 650.00, 'Seguro Básico', 4, 4),
-('E123456789', '2021-05-05', 700.00, 'Seguro Completo', 5, 5),
-('F123456789', '2021-06-06', 750.00, 'Seguro Básico', 6, 6),
-('G123456789', '2021-07-07', 800.00, 'Seguro Completo', 7, 7),
-('H123456789', '2021-08-08', 850.00, 'Seguro Básico', 8, 8),
-('I123456789', '2021-09-09', 900.00, 'Seguro Completo', 9, 9),
-('J123456789', '2021-10-10', 950.00, 'Seguro Básico', 10, 10);
+INSERT INTO login(Email, HashPassword, TipoLoginIDTLogin) VALUES
+('goncalo.tierri+admin@gmail.com','$2a$11$G.TqQTQ7MSI0HBN7SYmaM.jGwz8xHtY6JMb9UFHl.S0lx1p.pADsq',3)/*PASS: teste */,
+('ad@ad.ad', '$2a$11$G.TqQTQ7MSI0HBN7SYmaM.jGwz8xHtY6JMb9UFHl.S0lx1p.pADsq',3)/*PASS: teste */;
+
