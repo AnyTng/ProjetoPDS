@@ -20,3 +20,5 @@ backend/RESTful API/appsettings.json
 /backend/Tests/RESTful_API.Tests/bin
 /backend/Tests/RESTful_API.Tests/obj
 backend/RESTful API/appsettings.json
+/backend/CarXpressTesteUnitario/bin/Debug
+/backend/CarXpressTesteUnitario/obj

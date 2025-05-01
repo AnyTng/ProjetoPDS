@@ -159,3 +159,4 @@ RecurringJob.AddOrUpdate<ServicoInterno>(
 
 app.MapControllers();
 app.Run();
+public partial class Program { }
