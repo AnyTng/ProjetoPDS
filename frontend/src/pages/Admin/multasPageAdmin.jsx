@@ -45,11 +45,14 @@ const MultasPageAdmin = () => {
     }, []);
 
     // Filtra lista pelo input de pesquisa
-    const filtered = multas.filter((m) =>
-        m.idinf.toString().includes(search.toLowerCase()) ||
-        (m.nomeCliente || "").toLowerCase().includes(search.toLowerCase()) ||
-        (m.matriculaVeiculo || "").toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = multas
+        .slice() // cria uma cópia para não mutar o estado
+        .sort((a, b) => b.idinf - a.idinf) // ordena do maior para o menor ID
+        .filter((m) =>
+            m.idinf.toString().includes(search.toLowerCase()) ||
+            (m.nomeCliente || "").toLowerCase().includes(search.toLowerCase()) ||
+            (m.matriculaVeiculo || "").toLowerCase().includes(search.toLowerCase())
+        );
 
     // Fecha todos os modais
     const handleCloseModals = () => {
@@ -238,3 +241,5 @@ const MultasPageAdmin = () => {
 };
 
 export default MultasPageAdmin;
+
+
