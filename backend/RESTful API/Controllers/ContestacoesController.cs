@@ -131,7 +131,7 @@ namespace RESTful_API.Controllers
             }
             if (userTipoLogin != 1)
             {
-                return Forbid("Acesso restrito a cliente.");
+                return Forbid("Acesso restrito para clientes.");
             }
 
             var cliente = await _context.Clientes
@@ -271,5 +271,3 @@ namespace RESTful_API.Controllers
         }
     }
 }
-
-

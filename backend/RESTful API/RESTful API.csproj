@@ -30,4 +30,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="8.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Tests\" />
+  </ItemGroup>
+
 </Project>
