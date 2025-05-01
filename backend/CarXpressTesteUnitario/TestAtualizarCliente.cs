@@ -27,6 +27,7 @@ namespace CarXpressTesteIntegracao
             form.Add(new StringContent("João Atualizado"), "NomeCliente");
             form.Add(new StringContent("1990-01-01T00:00:00"), "DataNascCliente");
             form.Add(new StringContent("Rua Nova Atualizada"), "RuaCliente");
+            form.Add(new StringContent("916345679"), "ContactoC1");
             form.Add(new StringContent("912345679"), "ContactoC2");
             form.Add(new StringContent("4710001"), "CodigoPostal");
             form.Add(new StringContent("p"), "Localidade");
