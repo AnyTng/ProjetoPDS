@@ -1,18 +1,18 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RESTful_API.Controllers;
 using RESTful_API.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace CarXpressTesteIntegracao
 {
     [TestClass]
-    public class TestAluguer
+    public class TestCarroConcurso
     {
-        private PdsContext _context;
-        private VeiculosController _veiculosController;
-        private DespesasController _despesasController;
+        private PdsContext? _context;
+        private DespesasController? _despesasController;
 
         [TestInitialize]
         public void Initialize()
@@ -22,7 +22,6 @@ namespace CarXpressTesteIntegracao
                 .Options;
 
             _context = new PdsContext(options);
-            _veiculosController = new VeiculosController(_context);
             _despesasController = new DespesasController(_context);
         }
 
@@ -62,8 +61,22 @@ namespace CarXpressTesteIntegracao
             _context.Veiculos.Add(veiculo);
             await _context.SaveChangesAsync();
 
+            // Mock user for controller as an administrator
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "1"),  // must be an int
+                new Claim("roleId",                "3")   // 3 == administrator
+            };
+            var identity = new ClaimsIdentity(claims, "mock");
+            var user = new ClaimsPrincipal(identity);
+
+            _despesasController.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
+
             // Act
-            var result = await _despesasController.CriarConcurso("BB-00-BB", "Concurso de Teste");
+            await _despesasController.CriarConcurso("BB-00-BB", "Concurso de Teste");
 
             var concurso = await _context.Despesas.FirstOrDefaultAsync(d => d.VeiculoIdveiculo == veiculo.Idveiculo);
 
