@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Xunit;
 
-namespace RESTful_API.Tests
+namespace Unit_Tests
 {
     public class ContestacoesControllerTests
     {

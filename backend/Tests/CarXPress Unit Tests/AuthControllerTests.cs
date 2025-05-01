@@ -15,7 +15,7 @@ using RESTful_API.Models;
 // BCrypt pelo namespace completo para evitar conflitos
 using BcryptNet = BCrypt.Net.BCrypt;
 
-namespace RESTful_API.Tests
+namespace Unit_Tests
 {
     public class AuthControllerTests
     {

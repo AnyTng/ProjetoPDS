@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTful API", "RESTful API\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C27E2602-F827-4DDD-B5CC-0510D304D1CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RESTful_API.Tests", "Tests\RESTful_API.Tests\RESTful_API.Tests.csproj", "{A7F0A945-29DD-4B41-8417-D12F4660C817}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarXPress Unit Tests", "Tests\CarXPress Unit Tests\CarXPress Unit Tests.csproj", "{A7F0A945-29DD-4B41-8417-D12F4660C817}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarXpressTesteIntegracao", "CarXpressTesteUnitario\CarXpressTesteIntegracao.csproj", "{CCC5A0E9-4F68-4611-9F1B-69907CF45480}"
 EndProject
