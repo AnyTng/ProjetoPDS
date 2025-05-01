@@ -9,7 +9,7 @@ using RESTful_API.Models;
 using FluentAssertions;
 using Xunit;
 
-namespace RESTful_API.Tests
+namespace Unit_Tests
 {
     public class LoginsControllerTests
     {

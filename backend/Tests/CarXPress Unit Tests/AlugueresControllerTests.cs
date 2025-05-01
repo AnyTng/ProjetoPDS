@@ -12,7 +12,7 @@ using Xunit;
 using RESTful_API.Controllers;
 using RESTful_API.Models;
 
-namespace RESTful_API.Tests
+namespace Unit_Tests
 {
     public class AlugueresControllerTests
     {
