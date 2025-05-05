@@ -20,13 +20,13 @@ namespace CarXpressTesteIntegracao
             var factory = new WebApplicationFactory<Program>();
             var client = factory.CreateClient();
 
-            var tokenJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImdvbmNhbG8udGllcnJpK2NsaWVudGVAZ21haWwuY29tIiwibmFtZWlkIjoiMSIsInJvbGUiOiJjbGllbnRlIiwicm9sZUlkIjoiMSIsIm5iZiI6MTc0NjExNDEzNywiZXhwIjoxNzQ2MTQyOTM3LCJpYXQiOjE3NDYxMTQxMzd9.g7RUO5mwCjOYb92rI79ZwnIfXpSWYn6zrfzxFD60W6g"; // Token de teste
+            var tokenJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImdvbmNhbG8udGllcnJpK2NsaWVudGVAZ21haWwuY29tIiwibmFtZWlkIjoiMyIsInJvbGUiOiJjbGllbnRlIiwicm9sZUlkIjoiMSIsIm5iZiI6MTc0NjQ4NDMzMCwiZXhwIjoxNzQ2NTEzMTMwLCJpYXQiOjE3NDY0ODQzMzB9.JK86QiaiUc7AY2zfH0HXKZQR4WJmavBVhA5qSI1J0vw"; // Token de teste
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenJwt);
 
             var form = new MultipartFormDataContent();
-            form.Add(new StringContent("João Atualizado"), "NomeCliente");
-            form.Add(new StringContent("1990-01-01T00:00:00"), "DataNascCliente");
-            form.Add(new StringContent("Rua Nova Atualizada"), "RuaCliente");
+            form.Add(new StringContent("Gonçalo Tierri"), "NomeCliente");
+            form.Add(new StringContent("2003-05-19T00:00:00"), "DataNascCliente");
+            form.Add(new StringContent("Rua da Baixia"), "RuaCliente");
             form.Add(new StringContent("916345679"), "ContactoC1");
             form.Add(new StringContent("912345679"), "ContactoC2");
             form.Add(new StringContent("4710001"), "CodigoPostal");
