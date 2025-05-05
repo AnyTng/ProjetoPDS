@@ -8,13 +8,16 @@ using System.Text.Json.Serialization;
 using QuestPDF.Infrastructure;
 using RESTful_API.Interface;
 using RESTful_API.Service;
-using Hangfire; // ?? Hangfire
-using Hangfire.SqlServer; // ?? Hangfire com SQL Server
+using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.Newtonsoft;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurar JWT
-var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "chave-super-secreta");
+var key = Encoding.ASCII.GetBytes(
+    builder.Configuration["JwtSettings:Secret"] ?? "chave-super-secreta");
 
 // Connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -48,62 +51,74 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configuração JSON
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
+// Configuração JSON + Newtonsoft support for cycle handling
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .AddNewtonsoftJson(opts =>
+    {
+        opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    });
 
-// Swagger
+// Swagger + Newtonsoft support
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
+builder.Services
+    .AddSwaggerGen(c =>
     {
-        Title = "Minha API PDS",
-        Version = "v1",
-        Description = "Documentação da API do Projeto PDS",
-        Contact = new OpenApiContact
+        c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Name = "Nome da Equipa",
-            Email = string.Empty,
-        }
-    });
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Autorização JWT usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
+            Title = "Minha API PDS",
+            Version = "v1",
+            Description = "Documentação da API do Projeto PDS",
+            Contact = new OpenApiContact
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-            },
-            new string[] {}
-        }
-    });
-});
+                Name = "Nome da Equipa",
+                Email = string.Empty,
+            }
+        });
+
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Autorização JWT usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
+    })
+    .AddSwaggerGenNewtonsoftSupport();
 
 // Serviços da API
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// ?? Hangfire: registrar e configurar com SQL Server
+// Hangfire configuração
 builder.Services.AddHangfire(config =>
     config.UseSqlServerStorage(connectionString));
 builder.Services.AddHangfireServer();
 
-// ?? Serviço da tarefa agendada
+// Serviço da tarefa agendada
 builder.Services.AddTransient<ServicoInterno>();
 
-// ?? CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -115,9 +130,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ?? Swagger
+// Developer exceptions + Swagger UI
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -130,17 +146,17 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ?? Hangfire dashboard (opcional)
+// Hangfire dashboard
 app.UseHangfireDashboard("/hangfire");
 
-// ?? Agendar tarefa diária às 2h
+// Agendar tarefa diária às 9h
 RecurringJob.AddOrUpdate<ServicoInterno>(
     "tarefa-diaria",
     tarefa => tarefa.Executar(),
-    //"05 22 * * *", // Executa todos os dias às 16h42   ss mm hh
-    "0 9 * * *", // Executa todos os dias às 9h
+    "0 9 * * *",
     TimeZoneInfo.Local
 );
 
 app.MapControllers();
 app.Run();
+public partial class Program { }
