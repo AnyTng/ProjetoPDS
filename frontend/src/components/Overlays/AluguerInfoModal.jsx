@@ -3,7 +3,7 @@ import Button from '../button.jsx';
 import XIcon from '../../assets/XIconBlack.svg';
 import { fetchWithAuth } from "../../utils/api";
 
-// Funções auxiliares para formatar (mantidas)
+
 const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
