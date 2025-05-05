@@ -1,7 +1,5 @@
-// src/components/Cards/veiculoCard.jsx
 import Button from "../button.jsx";
 
-// Recebe onVerInfoClick como prop
 const VeiculoCard = ({
                          CarroId,
                          CarroNome,

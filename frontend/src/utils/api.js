@@ -1,4 +1,3 @@
-// srcFrontend/utils/api.js
 
 // Define a URL base da tua API. Podes movê-la para um ficheiro .env mais tarde.
 export const API_BASE_URL = "http://localhost:5159";

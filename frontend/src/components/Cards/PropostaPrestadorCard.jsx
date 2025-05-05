@@ -1,4 +1,3 @@
-// src/components/Cards/PropostaPrestadorCard.jsx
 import React, { useState } from "react";
 import Button from "../button.jsx";
 import { fetchWithAuth, API_BASE_URL } from "../../utils/api";
