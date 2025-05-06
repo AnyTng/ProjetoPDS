@@ -82,9 +82,6 @@ namespace RESTful_API.Controllers
     }
     #endregion
 
-
-
-
     [Route("api/[controller]")]
     [ApiController]
     public class ClientesController : ControllerBase
@@ -96,19 +93,21 @@ namespace RESTful_API.Controllers
             _context = context;
         }
 
-        // GET: api/Clientes (Admin only - example)
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClienteResponseDto>>> GetClientes()
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
         {
-            return await _context.Clientes
-                                 .Include(c => c.CodigoPostalCpNavigation)
-                                 .Include(c => c.LoginIdloginNavigation)
-                                 .Select(c => new ClienteResponseDto { /* Mapping */ })
-                                 .ToListAsync();
+            var cliente = await _context.Clientes
+                                     .Include(c => c.CodigoPostalCpNavigation)
+                                     .Include(c => c.LoginIdloginNavigation)
+                                     .Where(c => c.Idcliente == id)
+                                     .Select(c => new ClienteResponseDto { /* Mapping */ })
+                                     .FirstOrDefaultAsync();
+
+            if (cliente == null) return NotFound();
+            return cliente;
         }
 
         // GET: api/clientes/me (For the logged-in user)
-
         [HttpGet("me")]
         public async Task<ActionResult<ClienteResponseDto>> GetMe()
         {
@@ -162,22 +161,6 @@ namespace RESTful_API.Controllers
 
             return Ok(clienteResponse);
         }
-
-        // GET: api/Clientes/5 (Admin only - example)
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
-        {
-             var cliente = await _context.Clientes
-                                      .Include(c => c.CodigoPostalCpNavigation)
-                                      .Include(c => c.LoginIdloginNavigation)
-                                      .Where(c => c.Idcliente == id)
-                                      .Select(c => new ClienteResponseDto { /* Mapping */ })
-                                      .FirstOrDefaultAsync();
-
-             if (cliente == null) return NotFound();
-             return cliente;
-        }
-
 
         [HttpGet("listAdmin")]
         public async Task<ActionResult<List<ClienteResponseDtoAdmin>>> GetClientesAdmin()
@@ -238,9 +221,6 @@ namespace RESTful_API.Controllers
             }
             return listaDTO;
         }
-
-
-
 
         // *** NEW: PUT /api/clientes/me ***
         [HttpPut("me")]
@@ -510,7 +490,6 @@ namespace RESTful_API.Controllers
             return NoContent(); // Success
         }
 
-
         // POST: api/Clientes (Create new client - remains the same)
         [HttpPost]
         [Authorize]
@@ -578,8 +557,6 @@ namespace RESTful_API.Controllers
 
             return CreatedAtAction(nameof(GetCliente), new { id = cliente.Idcliente }, createdClienteResponse);
         }
-
-
 
         // DELETE: api/Clientes/5 (Anonymizes Login, keeps Cliente record)
         [HttpDelete("{id}")]

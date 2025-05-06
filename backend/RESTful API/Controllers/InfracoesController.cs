@@ -171,71 +171,6 @@ namespace RESTful_API.Controllers
             return Ok(infracoes);
         }
 
-        // PUT: api/Infracoes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutInfracao(int id, Infracao infracao)
-        {
-            if (id != infracao.Idinfracao)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(infracao).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!InfracaoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Infracoes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Infracao>> PostInfracao(Infracao infracao)
-        {
-            _context.Infracoes.Add(infracao);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetInfracao", new { id = infracao.Idinfracao }, infracao);
-        }
-
-        // DELETE: api/Infracoes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteInfracao(int id)
-        {
-            var infracao = await _context.Infracoes.FindAsync(id);
-            if (infracao == null)
-            {
-                return NotFound();
-            }
-
-            _context.Infracoes.Remove(infracao);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool InfracaoExists(int id)
-        {
-            return _context.Infracoes.Any(e => e.Idinfracao == id);
-        }
-
-
-
         ///////////////////
         //     Admin 
         //
@@ -428,7 +363,6 @@ namespace RESTful_API.Controllers
             return Ok(infracaoDTOs);
         }
 
-
         //pagar multa como stripe
         [HttpPost("PagarMulta")]
         public async Task<IActionResult> PagarMulta(int idInfracao)
@@ -505,7 +439,6 @@ namespace RESTful_API.Controllers
                 InfracaoId = infracao.Idinfracao 
             });
         }
-
 
         [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
@@ -619,10 +552,6 @@ namespace RESTful_API.Controllers
         [HttpPut("mudarEstado")]
         public async Task<IActionResult> MudarEstado(int idInfracao)
         {
-
-
-
-
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var roleIdClaim = User.FindFirstValue("roleId");
             if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
