@@ -1,76 +1,123 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using Xunit;
 using RESTful_API.Controllers;
 using RESTful_API.Models;
+using Xunit;
 
 namespace Unit_Tests
 {
-    public class AlugueresControllerTests
+    public class AlugueresControllerTests : IDisposable
     {
         private readonly DbContextOptions<PdsContext> _options;
         private readonly Mock<IConfiguration> _mockConfig;
 
         public AlugueresControllerTests()
         {
+            // each test class instance gets its own random DB name
             _options = new DbContextOptionsBuilder<PdsContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
             _mockConfig = new Mock<IConfiguration>();
-            _mockConfig.Setup(config => config["Stripe:SecretKey"]).Returns("sk_test_4eC39HqLyjWDarjtT1zdp7dc");
+            _mockConfig.Setup(c => c["Stripe:SecretKey"])
+                .Returns("sk_test_4eC39HqLyjWDarjtT1zdp7dc");
+            _mockConfig.Setup(c => c["Frontend:BaseUrl"])
+                .Returns("https://example.com");
         }
 
+        /// <summary>
+        /// Shared seeding for the simple GET/PUT tests.
+        /// </summary>
         private PdsContext GetInMemoryContext()
         {
-            var context = new PdsContext(_options);
-            context.Database.EnsureCreated();
+            var ctx = new PdsContext(_options);
+            ctx.Database.EnsureCreated();
 
-            if (!context.Aluguers.Any())
+            // seed two Aluguers so that GetAluguer and GetAlugueres pass
+            if (!ctx.Aluguers.Any(a => a.Idaluguer == 1))
             {
-                context.Aluguers.AddRange(
-                    new Aluguer { Idaluguer = 1, ClienteIdcliente = 1, VeiculoIdveiculo = 1, DataLevantamento = DateTime.Now, DataEntregaPrevista = DateTime.Now.AddDays(5) },
-                    new Aluguer { Idaluguer = 2, ClienteIdcliente = 2, VeiculoIdveiculo = 2, DataLevantamento = DateTime.Now, DataEntregaPrevista = DateTime.Now.AddDays(3) }
+                ctx.Aluguers.AddRange(
+                    new Aluguer
+                    {
+                        Idaluguer = 1,
+                        ClienteIdcliente = 1,
+                        VeiculoIdveiculo = 1,
+                        DataLevantamento = DateTime.Now,
+                        DataEntregaPrevista = DateTime.Now.AddDays(5)
+                    },
+                    new Aluguer
+                    {
+                        Idaluguer = 2,
+                        ClienteIdcliente = 2,
+                        VeiculoIdveiculo = 2,
+                        DataLevantamento = DateTime.Now,
+                        DataEntregaPrevista = DateTime.Now.AddDays(3)
+                    }
                 );
-                context.SaveChanges();
+                ctx.SaveChanges();
             }
 
-            return context;
+            return ctx;
+        }
+
+        private void SetUser(ControllerBase ctrl, int userId, int roleId)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim("roleId", roleId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "test");
+            var principal = new ClaimsPrincipal(identity);
+
+            ctrl.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = principal }
+            };
         }
 
         [Fact]
         public async Task GetAluguer_ReturnsAluguer()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-            var testId = 1;
+            await using var ctx = GetInMemoryContext();
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
 
-            // Act
-            var result = await controller.GetAluguer(testId);
+            var result = await ctrl.GetAluguer(1);
 
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<Aluguer>>(result);
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var aluguer = Assert.IsType<Aluguer>(okResult.Value);
-            Assert.Equal(testId, aluguer.Idaluguer);
+            var ar = Assert.IsType<ActionResult<Aluguer>>(result);
+            var ok = Assert.IsType<OkObjectResult>(ar.Result);
+            var item = Assert.IsType<Aluguer>(ok.Value);
+            Assert.Equal(1, item.Idaluguer);
+        }
+
+        [Fact]
+        public async Task GetAlugueres_ReturnsAllAlugueres()
+        {
+            await using var ctx = GetInMemoryContext();
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+
+            var result = await ctrl.GetAluguers();
+
+            var ar = Assert.IsType<ActionResult<IEnumerable<Aluguer>>>(result);
+            var list = Assert.IsAssignableFrom<IEnumerable<Aluguer>>(ar.Value);
+            Assert.Equal(2, list.Count());
         }
 
         [Fact]
         public async Task PostAluguer_CreatesNewAluguer()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-            var newAluguer = new Aluguer
+            await using var ctx = GetInMemoryContext();
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+
+            var novo = new Aluguer
             {
                 ClienteIdcliente = 3,
                 VeiculoIdveiculo = 3,
@@ -78,24 +125,23 @@ namespace Unit_Tests
                 DataEntregaPrevista = DateTime.Now.AddDays(7)
             };
 
-            // Act
-            var result = await controller.PostAluguer(newAluguer);
+            var result = await ctrl.PostAluguer(novo);
 
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<Aluguer>>(result);
-            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            var createdAluguer = Assert.IsType<Aluguer>(createdAtActionResult.Value);
-            Assert.Equal(newAluguer.ClienteIdcliente, createdAluguer.ClienteIdcliente);
-            Assert.Equal(newAluguer.VeiculoIdveiculo, createdAluguer.VeiculoIdveiculo);
+            var ar = Assert.IsType<ActionResult<Aluguer>>(result);
+            var created = Assert.IsType<CreatedAtActionResult>(ar.Result);
+            var item = Assert.IsType<Aluguer>(created.Value);
+
+            Assert.Equal(3, item.ClienteIdcliente);
+            Assert.Equal(3, item.VeiculoIdveiculo);
         }
 
         [Fact]
         public async Task PutAluguer_UpdatesExistingAluguer()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-            var updateAluguer = new Aluguer
+            await using var ctx = GetInMemoryContext();
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+
+            var upd = new Aluguer
             {
                 Idaluguer = 1,
                 ClienteIdcliente = 1,
@@ -105,145 +151,188 @@ namespace Unit_Tests
                 EstadoAluguer = "Alugado"
             };
 
+            var result = await ctrl.PutAluguer(1, upd);
+
+            Assert.IsType<NoContentResult>(result);
+            var fromDb = await ctx.Aluguers.FindAsync(1);
+            Assert.Equal("Alugado", fromDb.EstadoAluguer);
+        }
+
+
+        [Fact]
+        public async Task GetHistoricoAluguer_ReturnsClienteAlugueres()
+        {
+            var histOptions = new DbContextOptionsBuilder<PdsContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            await using var ctx = new PdsContext(histOptions);
+
+
+            var loginCliente = new Login
+            {
+                Idlogin = 1,
+                HashPassword = "dummy",
+                TipoLoginIdtlogin = 1
+            };
+            ctx.Logins.Add(loginCliente);
+
+            var cliente = new Cliente
+            {
+                Idcliente = 1,
+                LoginIdlogin = loginCliente.Idlogin,
+                NomeCliente = "Teste",
+                ContactoC1 = 912345678,
+                Nifcliente = 123123123
+            };
+            ctx.Clientes.Add(cliente);
+
+            var marca = new MarcaVeiculo
+            {
+                Idmarca = 1,
+                DescMarca = "Marca Teste"
+            };
+            ctx.MarcaVeiculos.Add(marca);
+
+            var modelo = new ModeloVeiculo
+            {
+                Idmodelo = 1,
+                DescModelo = "Modelo Teste",
+                MarcaVeiculoIdmarca = marca.Idmarca
+            };
+            ctx.ModeloVeiculos.Add(modelo);
+
+            var veiculo = new Veiculo
+            {
+                Idveiculo = 7,
+                MatriculaVeiculo = "XX-00-YY",
+                EstadoVeiculo = "Disponível",
+                LotacaoVeiculo = 4,
+                ModeloVeiculoIdmodelo = modelo.Idmodelo
+            };
+            ctx.Veiculos.Add(veiculo);
+
+            var aluguer = new Aluguer
+            {
+                Idaluguer = 99,
+                ClienteIdcliente = cliente.Idcliente,
+                VeiculoIdveiculo = veiculo.Idveiculo,
+                DataLevantamento = DateTime.Now,
+                DataEntregaPrevista = DateTime.Now.AddDays(2),
+                EstadoAluguer = "Concluido"
+            };
+            ctx.Aluguers.Add(aluguer);
+
+            await ctx.SaveChangesAsync();
+
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+            SetUser(ctrl, loginCliente.Idlogin,
+                loginCliente.TipoLoginIdtlogin); // Use o Idlogin e TipoLoginIdtlogin do login semeado
+
             // Act
-            var result = await controller.PutAluguer(1, updateAluguer);
+            var result = await ctrl.historicoAluguer();
 
             // Assert
-            Assert.IsType<NoContentResult>(result);
-            var aluguer = await context.Aluguers.FindAsync(1);
-            Assert.Equal("Alugado", aluguer.EstadoAluguer);
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var list = Assert.IsAssignableFrom<IEnumerable<object>>(ok.Value);
+
+            Assert.NotEmpty(list);
+
+            var historicoItem = Assert.Single(list);
         }
 
         [Fact]
-        public async Task GetAlugueres_ReturnsAllAlugueres()
+        public async Task GetHistoricoAluguer_AsAdmin_ShouldFail()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
+            await using var ctx = GetInMemoryContext();
+            // just need a login entry for the admin check
+            ctx.Logins.Add(new Login
+            {
+                Idlogin = 3,
+                HashPassword = "dummy",
+                TipoLoginIdtlogin = 3
+            });
+            await ctx.SaveChangesAsync();
 
-            // Act
-            var result = await controller.GetAluguers();
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+            SetUser(ctrl, 3, 3);
 
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<Aluguer>>>(result);
-            var alugueres = Assert.IsAssignableFrom<IEnumerable<Aluguer>>(actionResult.Value);
-            Assert.Equal(2, alugueres.Count());
+            var result = await ctrl.historicoAluguer();
+            Assert.IsType<ForbidResult>(result);
         }
 
         [Fact]
         public async Task PutAvaliaAluguer_UpdatesClassificacao()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-
-            // Setup user claims
-            var claims = new[]
+            await using var ctx = GetInMemoryContext();
+            ctx.Logins.Add(new Login
             {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
-                new Claim("roleId", "1")
-            };
-            var identity = new ClaimsIdentity(claims);
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-            };
-
-            // Add a completed aluguer to test
-            var testAluguer = new Aluguer
+                Idlogin = 1,
+                HashPassword = "dummy",
+                TipoLoginIdtlogin = 1
+            });
+            ctx.Aluguers.Add(new Aluguer
             {
                 Idaluguer = 3,
                 ClienteIdcliente = 1,
                 EstadoAluguer = "Concluido"
-            };
-            context.Aluguers.Add(testAluguer);
-            await context.SaveChangesAsync();
+            });
+            await ctx.SaveChangesAsync();
 
-            // Act
-            var result = await controller.PutAvaliaAluguer(3, 5);
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+            SetUser(ctrl, 1, 1);
 
-            // Assert
+            var result = await ctrl.PutAvaliaAluguer(3, 5);
             Assert.IsType<NoContentResult>(result);
-            var updatedAluguer = await context.Aluguers.FindAsync(3);
-            Assert.Equal(5, updatedAluguer.Classificacao);
+
+            var updated = await ctx.Aluguers.FindAsync(3);
+            Assert.Equal(5, updated.Classificacao);
         }
 
         [Fact]
         public async Task PutCancelarAluguer_CancelsAluguer()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-
-            // Setup user claims
-            var claims = new[]
+            await using var ctx = GetInMemoryContext();
+            ctx.Logins.Add(new Login
             {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
-                new Claim("roleId", "1")
-            };
-            var identity = new ClaimsIdentity(claims);
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-            controller.ControllerContext = new ControllerContext
+                Idlogin = 1,
+                HashPassword = "dummy",
+                TipoLoginIdtlogin = 1
+            });
+            var carro = new Veiculo
             {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                Idveiculo = 7,
+                EstadoVeiculo = "Alugado"
             };
-
-            // Add a pending aluguer
-            var veiculo = new Veiculo { Idveiculo = 3, EstadoVeiculo = "Alugado" };
-            context.Veiculos.Add(veiculo);
-            var testAluguer = new Aluguer
+            ctx.Veiculos.Add(carro);
+            ctx.Aluguers.Add(new Aluguer
             {
                 Idaluguer = 3,
-                VeiculoIdveiculo = 3,
+                ClienteIdcliente = 1,
+                VeiculoIdveiculo = 7,
                 EstadoAluguer = "Pendente",
-                VeiculoIdveiculoNavigation = veiculo
-            };
-            context.Aluguers.Add(testAluguer);
-            await context.SaveChangesAsync();
+                VeiculoIdveiculoNavigation = carro
+            });
+            await ctx.SaveChangesAsync();
 
-            // Act
-            var result = await controller.PutCancelarAluguer(3);
+            var ctrl = new AlugueresController(ctx, _mockConfig.Object);
+            SetUser(ctrl, 1, 1);
 
-            // Assert
+            var result = await ctrl.PutCancelarAluguer(3);
             Assert.IsType<OkResult>(result);
-            var updatedAluguer = await context.Aluguers.FindAsync(3);
-            Assert.Equal("Cancelado", updatedAluguer.EstadoAluguer);
-            Assert.Equal("Disponível", updatedAluguer.VeiculoIdveiculoNavigation.EstadoVeiculo);
+
+            var fromDb = await ctx.Aluguers
+                .Include(a => a.VeiculoIdveiculoNavigation)
+                .FirstAsync(a => a.Idaluguer == 3);
+            Assert.Equal("Cancelado", fromDb.EstadoAluguer);
+            Assert.Equal("Disponível", fromDb.VeiculoIdveiculoNavigation.EstadoVeiculo);
         }
 
-        [Fact]
-        public async Task GetHistoricoAluguer_ReturnsClienteAlugueres()
+        public void Dispose()
         {
-            // Arrange
-            await using var context = GetInMemoryContext();
-            var controller = new AlugueresController(context, _mockConfig.Object);
-
-            // Setup user claims
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
-                new Claim("roleId", "1")
-            };
-            var identity = new ClaimsIdentity(claims);
-            var claimsPrincipal = new ClaimsPrincipal(identity);
-            controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-            };
-
-            // Add a cliente
-            var cliente = new Cliente { Idcliente = 1, LoginIdlogin = 1 };
-            context.Clientes.Add(cliente);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await controller.historicoAluguer();
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var historico = Assert.IsAssignableFrom<IEnumerable<object>>(okResult.Value);
-            Assert.NotNull(historico);
+            // tear down the in-memory database
+            using var ctx = new PdsContext(_options);
+            ctx.Database.EnsureDeleted();
         }
     }
 }
