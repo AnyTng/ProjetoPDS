@@ -4,8 +4,8 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'backend/**' # Aciona apenas se houver alterações na pasta backend
-  workflow_dispatch: # Permite acionamento manual
+      - 'backend/**'
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
@@ -13,7 +13,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./backend # Define o diretório de trabalho para os comandos
+        working-directory: ./backend
 
     steps:
     - name: Checkout repository
@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x' # Especifique a sua versão do .NET SDK
+        dotnet-version: '9.0.x'
 
     - name: Restore dependencies for API
       run: dotnet restore "RESTful API/RESTful API.csproj"
@@ -37,7 +37,7 @@ jobs:
       run: dotnet build "RESTful API/RESTful API.csproj" --configuration Release --no-restore
 
     - name: Test Unit Tests
-      run: dotnet test "Tests/CarXPress Unit Tests/CarXPress Unit Tests.csproj" --configuration Release --no-build --verbosity normal
+      run: dotnet test "Tests/CarXPress Unit Tests/CarXPress Unit Tests.csproj" --configuration Release --verbosity normal
 
     - name: Publish API
       run: dotnet publish "RESTful API/RESTful API.csproj" --configuration Release --no-build -o ./publish-output
@@ -46,4 +46,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: backend-api-published
-        path: backend/publish-output # O caminho para os artefactos publicados
+        path: backend/publish-output
