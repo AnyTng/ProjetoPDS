@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ClientHeader from '../../components/clientHeader.jsx';
 import Footer from '../../components/footer.jsx';
 import Button from '../../components/button.jsx'; // Import se precisar de botões
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth.js';
+import { fetchWithAuth } from '../../utils/api';
 
 // Componente para o cartão de parceiro (com placeholder de imagem)
 const PartnerCard = ({ title, description, imageUrl = null }) => (
@@ -23,6 +25,27 @@ const PartnerCard = ({ title, description, imageUrl = null }) => (
 // Componente Principal da Página "Sobre Nós"
 const SobreNosPage = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [userImage, setUserImage] = useState(null);
+
+    // Fetch user profile data when component mounts and user is logged in
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                // Fetch user profile data
+                const profileData = await fetchWithAuth(`/api/clientes/me`);
+                if (profileData?.imagemBase64) {
+                    setUserImage(profileData.imagemBase64);
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        if (user?.id) {
+            fetchUserProfile();
+        }
+    }, [user?.id]);
 
     // Dados de Exemplo (substituir pelos reais)
     const infoSections = [
@@ -44,8 +67,7 @@ const SobreNosPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            {/* Assume-se que o ClientHeader pode lidar com userImage nulo */}
-            <ClientHeader userImage={null} />
+            <ClientHeader userImage={userImage} />
 
             <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="max-w-5xl mx-auto">

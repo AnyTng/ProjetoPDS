@@ -4,7 +4,6 @@ import InputFieldLong from "../inputFieldLong.jsx";
 import XIcon from "../../assets/XIconBlack.svg";
 import { API_BASE_URL } from "../../utils/api";
 
-// mantém estado em camelCase, mas depois mapeamos para PascalCase ao enviar
 const initialFormData = {
     marcaVeiculoIdmarca:  "",
     modeloVeiculoIdmodelo:"",

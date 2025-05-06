@@ -12,7 +12,6 @@ using RESTful_API.Interface;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Security.Cryptography;
 
-
 namespace RESTful_API.Controllers
 {
     [Route("api/[controller]")]
@@ -26,7 +25,6 @@ namespace RESTful_API.Controllers
         {
             _context = context;
             _emailService = emailService;
-
         }
 
         // GET: api/Contestacoes
@@ -51,7 +49,6 @@ namespace RESTful_API.Controllers
         }
 
         // PUT: api/Contestacoes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutContestacao(int id, Contestacao contestacao)
         {
@@ -82,7 +79,6 @@ namespace RESTful_API.Controllers
         }
 
         // POST: api/Contestacoes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Contestacao>> PostContestacao(Contestacao contestacao)
         {
@@ -113,25 +109,26 @@ namespace RESTful_API.Controllers
             return _context.Contestacaos.Any(e => e.Idcontestacao == id);
         }
 
-
         //////////
-        ///Cliente
-        ///
+        /// Cliente
+        //////////
 
-        // cria contestaçao pelo id do token e recebe idinfraçao
-
+        // cria contestação pelo id do token e recebe id infracao
         [HttpPost("CriarContestacao")]
         public async Task<IActionResult> CriarContestacao(string descContestacao, int idInf)
         {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            var idLoginClaim  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim   = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin)
+                || !int.TryParse(roleIdClaim, out int userTipoLogin)
+                || userIdLogin  <= 0
+                || userTipoLogin <= 0)
             {
                 return Unauthorized("Token inválido.");
             }
             if (userTipoLogin != 1)
             {
-                return Forbid("Acesso restrito a cliente.");
+                return Forbid("Acesso restrito para clientes.");
             }
 
             var cliente = await _context.Clientes
@@ -158,15 +155,14 @@ namespace RESTful_API.Controllers
             // Cria a nova contestação
             var contestacao = new Contestacao
             {
-                ClienteIdcliente = cliente.Idcliente, // Aqui você deve definir o ID do cliente relacionado
-                DescContestacao = descContestacao, // Aqui você pode definir a descrição da contestação
-                EstadoContestacao = "Pendente", // Estado inicial da contestação
-                InfracoesIdinfracao = idInf // Aqui você deve definir o ID da infração relacionada
+                ClienteIdcliente    = cliente.Idcliente,
+                DescContestacao     = descContestacao,
+                EstadoContestacao   = "Pendente",
+                InfracoesIdinfracao = idInf
             };
-            //Muda stato da infracao para "Contestada"
+            // Muda estado da infração para "Contestada"
             infracao.EstadoInfracao = "Contestada";
             _context.Entry(infracao).State = EntityState.Modified;
-
 
             // Adiciona a contestação ao contexto
             _context.Contestacaos.Add(contestacao);
@@ -175,16 +171,19 @@ namespace RESTful_API.Controllers
         }
 
         ////////
-        ///Admin
-        ///
+        /// Admin
+        ////////
 
-        // put para aceitar ou negar contestacao
+        // altera contestação (aceita ou nega)
         [HttpPut("AlterarContestacao")]
         public async Task<IActionResult> AlterarContestacao(int id, string estadoContestacao)
         {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            var idLoginClaim  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim   = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin)
+                || !int.TryParse(roleIdClaim, out int userTipoLogin)
+                || userIdLogin  <= 0
+                || userTipoLogin <= 0)
             {
                 return Unauthorized("Token inválido.");
             }
@@ -202,52 +201,48 @@ namespace RESTful_API.Controllers
             {
                 return BadRequest("Estado da contestação inválido. Deve ser 'Aceite' ou 'Negada'.");
             }
+
             contestacao.EstadoContestacao = estadoContestacao;
             _context.Entry(contestacao).State = EntityState.Modified;
 
             var cliente = await _context.Clientes
-                .Include(c => c.LoginIdloginNavigation)
-                .FirstOrDefaultAsync(c => c.Idcliente == contestacao.ClienteIdcliente);
+                                        .Include(c => c.LoginIdloginNavigation)
+                                        .FirstOrDefaultAsync(c => c.Idcliente == contestacao.ClienteIdcliente);
 
             var infracao = await _context.Infracoes
-                .Include(i => i.AluguerIdaluguerNavigation)
-                    .ThenInclude(a => a.VeiculoIdveiculoNavigation)
-                .FirstOrDefaultAsync(i => i.Idinfracao == contestacao.InfracoesIdinfracao);
-            
+                                        .Include(i => i.AluguerIdaluguerNavigation)
+                                            .ThenInclude(a => a.VeiculoIdveiculoNavigation)
+                                        .FirstOrDefaultAsync(i => i.Idinfracao == contestacao.InfracoesIdinfracao);
 
             var veiculo = await _context.Veiculos
-                .Where(v => v.Idveiculo == infracao.AluguerIdaluguerNavigation.VeiculoIdveiculo)
-                .FirstOrDefaultAsync();
+                                        .FirstOrDefaultAsync(v => v.Idveiculo == infracao.AluguerIdaluguerNavigation.VeiculoIdveiculo);
 
             if (cliente != null && estadoContestacao == "Aceite")
             {
-                var email = cliente.LoginIdloginNavigation.Email;
-                var assunto = "Notificação de Infração - Resolução da sua contestacao";
-                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a sua contestação à multa do dia {infracao.DataInfracao} com descrição { infracao.DescInfracao}, no aluguer do veículo { veiculo.MatriculaVeiculo}, foi Aceite.<br><br>" +
-                                $"<br><br><br>__<br>" +
-                                $"Com os melhores cumprimentos,<br>" +
-                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
-                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
-                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
-                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                var email   = cliente.LoginIdloginNavigation.Email;
+                var assunto = "Notificação de Infração - Resolução da sua contestação";
+                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>" +
+                               $"Informamos que a sua contestação à multa do dia {infracao.DataInfracao:dd/MM/yyyy} " +
+                               $"com descrição \"{infracao.DescInfracao}\" no veículo {veiculo.MatriculaVeiculo} foi <b>Aceite</b>.<br><br>" +
+                               $"Com os melhores cumprimentos,<br>" +
+                               $"<i>CarXpress Team</i>";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
-                
+
                 infracao.EstadoInfracao = "Contestação Aceite";
                 _context.Entry(infracao).State = EntityState.Modified;
             }
 
             if (cliente != null && estadoContestacao == "Negada")
             {
-                var email = cliente.LoginIdloginNavigation.Email;
-                var assunto = "Notificação de Infração - Resolução da sua contestacao";
-                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>Vimos por este meio informá-lo(a) de que, a sua contestação à multa do dia {infracao.DataInfracao} com descrição {infracao.DescInfracao}, no aluguer do veículo {veiculo.MatriculaVeiculo}, foi Negada.<br><br>Solicitamos que vossa Ex. aceda ao nosso site para efetuar o pagamento até {infracao.DataLimPagInfracoes}.<br><br>" +
-                                $"<br><br><br>__<br>" +
-                                $"Com os melhores cumprimentos,<br>" +
-                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
-                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
-                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
-                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
+                var email   = cliente.LoginIdloginNavigation.Email;
+                var assunto = "Notificação de Infração - Resolução da sua contestação";
+                var mensagem = $"Caro/a {cliente.NomeCliente},<br><br>" +
+                               $"A sua contestação à multa do dia {infracao.DataInfracao:dd/MM/yyyy} " +
+                               $"foi <b>Negada</b>. Por favor, efetue o pagamento até {infracao.DataLimPagInfracoes:dd/MM/yyyy}.<br><br>" +
+                               $"Com os melhores cumprimentos,<br>" +
+                               $"<i>CarXpress Team</i>";
                 await _emailService.EnviarEmail(email, assunto, mensagem);
+
                 infracao.EstadoInfracao = "Contestação Negada";
                 _context.Entry(infracao).State = EntityState.Modified;
             }
@@ -267,9 +262,8 @@ namespace RESTful_API.Controllers
                     throw;
                 }
             }
+
             return NoContent();
         }
     }
 }
-
-

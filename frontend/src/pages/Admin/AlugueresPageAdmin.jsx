@@ -4,7 +4,7 @@ import PedidoAluguerCard from "../../components/Cards/pedidoAluguerCard.jsx";
 import FilterInput from "../../components/filterInput.jsx";
 import { useAuth } from "../../hooks/useAuth.js";
 import AluguerInfoModal from "../../components/Overlays/AluguerInfoModal.jsx";
-import { API_BASE_URL, fetchWithAuth } from "../../utils/api";
+import { fetchWithAuth } from "../../utils/api";
 
 const AlugueresPageAdmin = () => {
     const [alugueres, setAlugueres] = useState([]);
@@ -21,7 +21,6 @@ const AlugueresPageAdmin = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // Certifique-se que este é o endpoint correto para a nova estrutura
             const data = await fetchWithAuth("/api/Alugueres/pesquisapedido");
             setAlugueres(Array.isArray(data) ? data : []);
         } catch (err) {
@@ -37,21 +36,24 @@ const AlugueresPageAdmin = () => {
         fetchAlugueres();
     }, []);
 
-    // Atualizar filtragem para pesquisar nos campos nested
-    const filtered = !isLoading && !error ? alugueres.filter((aluguer) => {
-        const searchTerm = search.toLowerCase();
-        const idMatch = (aluguer.idaluguer?.toString() || "").includes(searchTerm);
-        // Pesquisar no nome do cliente (nested)
-        const clienteMatch = (aluguer.cliente?.nomeCliente?.toLowerCase() || "").includes(searchTerm);
-        // Pesquisar na matrícula, marca ou modelo do veículo (nested)
-        const veiculoMatch =
-            (aluguer.veiculo?.matriculaVeiculo?.toLowerCase() || "").includes(searchTerm) ||
-            (aluguer.veiculo?.marca?.toLowerCase() || "").includes(searchTerm) ||
-            (aluguer.veiculo?.modelo?.toLowerCase() || "").includes(searchTerm);
-        const estadoMatch = (aluguer.estadoAluguer?.toLowerCase() || "").includes(searchTerm);
 
-        return idMatch || clienteMatch || veiculoMatch || estadoMatch;
-    }) : [];
+    const filtered = !isLoading && !error
+        ? alugueres
+            .slice() // cria uma cópia para não mutar o estado original
+            .sort((a, b) => b.idaluguer - a.idaluguer) // ordena do maior para o menor
+            .filter((aluguer) => {
+                const searchTerm = search.toLowerCase();
+                const idMatch = (aluguer.idaluguer?.toString() || "").includes(searchTerm);
+                const clienteMatch = (aluguer.cliente?.nomeCliente?.toLowerCase() || "").includes(searchTerm);
+                const veiculoMatch =
+                    (aluguer.veiculo?.matriculaVeiculo?.toLowerCase() || "").includes(searchTerm) ||
+                    (aluguer.veiculo?.marca?.toLowerCase() || "").includes(searchTerm) ||
+                    (aluguer.veiculo?.modelo?.toLowerCase() || "").includes(searchTerm);
+                const estadoMatch = (aluguer.estadoAluguer?.toLowerCase() || "").includes(searchTerm);
+
+                return idMatch || clienteMatch || veiculoMatch || estadoMatch;
+            })
+        : [];
 
     const handleOpenDetailModal = (aluguer) => {
         setSelectedAluguer(aluguer);
@@ -65,7 +67,7 @@ const AlugueresPageAdmin = () => {
 
     // Esta função será chamada pelo Modal após uma atualização bem-sucedida
     const handleStatusUpdate = () => {
-        fetchAlugueres(); // Recarrega a lista
+        fetchAlugueres();
     };
 
     let content;
@@ -112,14 +114,12 @@ const AlugueresPageAdmin = () => {
                 {content}
             </DashboardLayout>
 
-            {/* Passar a função de callback para o Modal */}
             {selectedAluguer && (
                 <AluguerInfoModal
                     isOpen={isDetailModalOpen}
                     onClose={handleCloseDetailModal}
                     aluguerData={selectedAluguer}
-                    onStatusUpdate={handleStatusUpdate} // Passa a função para recarregar a lista
-                    // Remover onApprove/onReject se não forem mais usados pelo modal atualizado
+                    onStatusUpdate={handleStatusUpdate}
                 />
             )}
         </>

@@ -52,7 +52,7 @@ namespace RESTful_API.Controllers
                 return NotFound();
             }
 
-            return aluguer;
+            return Ok(aluguer);
         }
 
         // PUT: api/Alugueres/5
@@ -64,7 +64,14 @@ namespace RESTful_API.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(aluguer).State = EntityState.Modified;
+            var existingAluguer = await _context.Aluguers.FindAsync(id);
+            if (existingAluguer == null)
+            {
+                return NotFound();
+            }
+
+            // Update the existing entity's properties
+            _context.Entry(existingAluguer).CurrentValues.SetValues(aluguer);
 
             try
             {
@@ -793,3 +800,4 @@ namespace RESTful_API.Controllers
         }
     }
 }
+

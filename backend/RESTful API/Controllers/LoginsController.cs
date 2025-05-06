@@ -1,107 +1,72 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Models;
 
 namespace RESTful_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class LoginsController : ControllerBase
     {
         private readonly PdsContext _context;
+        public LoginsController(PdsContext context) => _context = context;
 
-        public LoginsController(PdsContext context)
-        {
-            _context = context;
-        }
-
-        // GET: api/Logins
+        // GET api/Logins
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Login>>> GetLogins()
-        {
-            return await _context.Logins.ToListAsync();
-        }
+            => await _context.Logins.ToListAsync();
 
-        // GET: api/Logins/5
+        // GET api/Logins/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Login>> GetLogin(int id)
         {
             var login = await _context.Logins.FindAsync(id);
-
-            if (login == null)
-            {
-                return NotFound();
-            }
-
+            if (login == null) return NotFound();
             return login;
         }
 
-        // PUT: api/Logins/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutLogin(int id, Login login)
-        {
-            if (id != login.Idlogin)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(login).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!LoginExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Logins
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST api/Logins
         [HttpPost]
         public async Task<ActionResult<Login>> PostLogin(Login login)
         {
             _context.Logins.Add(login);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetLogin", new { id = login.Idlogin }, login);
+            return CreatedAtAction(nameof(GetLogin),
+                                   new { id = login.Idlogin },
+                                   login);
         }
 
-        // DELETE: api/Logins/5
+        // PUT api/Logins/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutLogin(int id, Login login)
+        {
+            if (id != login.Idlogin)
+                return BadRequest();
+
+            var existing = await _context.Logins.FindAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            existing.Email             = login.Email;
+            existing.HashPassword      = login.HashPassword;
+            existing.TipoLoginIdtlogin = login.TipoLoginIdtlogin;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE api/Logins/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLogin(int id)
         {
             var login = await _context.Logins.FindAsync(id);
-            if (login == null)
-            {
-                return NotFound();
-            }
+            if (login == null) return NotFound();
 
             _context.Logins.Remove(login);
             await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private bool LoginExists(int id)
-        {
-            return _context.Logins.Any(e => e.Idlogin == id);
         }
     }
 }

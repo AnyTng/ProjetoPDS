@@ -1,6 +1,4 @@
-﻿// srcBackend/backend/RESTful API/Controllers/AuthController.cs
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -129,7 +127,7 @@ namespace RESTful_API.Controllers
             var tipoLoginExists = await _context.TipoLogins.AnyAsync(tl => tl.Idtlogin == request.TipoLoginIDTLogin);
              if (!tipoLoginExists)
              {
-                 // Este erro não deveria acontecer se a validação acima for feita, mas é uma segurança extra
+
                  return BadRequest($"Tipo de login ID {request.TipoLoginIDTLogin} não existe na base de dados.");
              }
 

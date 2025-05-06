@@ -271,7 +271,7 @@ namespace RESTful_API.Controllers
                 m.EstadoProposta = "Rejeitada";
             }
 
-            // Atualizar o estado da despesa para "Em Andamento"
+            // Atualizar o estado da despesa para "Em Manutencao"
             var despesa = await _context.Despesas.FindAsync(proposta.DespesaIddespesa);
             if (despesa != null)
             {
