@@ -141,6 +141,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a cliente.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             // Encontra cliente associado ao idLogin do token
             int idCliente = await _context.Clientes
@@ -346,6 +354,14 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             // 2) Only clients (roleId == 1) may cancel
             if (userTipoLogin != 1)
@@ -399,6 +415,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             var alugueres = await _context.Aluguers
                 .Include(a => a.ClienteIdclienteNavigation)
@@ -446,6 +470,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             var aluguer = await _context.Aluguers.FindAsync(id);
             if (aluguer == null)
@@ -482,6 +514,16 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
+
             var aluguer = await _context.Aluguers.FindAsync(idAluguer);
             if (aluguer == null)
             {
@@ -520,6 +562,14 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 1) //verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
+            }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             int idCliente = await _context.Clientes
@@ -583,6 +633,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a cliente.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             var aluguer = await _context.Aluguers.FindAsync(idAluguer);
             if (aluguer == null)
@@ -606,8 +664,6 @@ namespace RESTful_API.Controllers
             return NoContent();
         }
 
-
-
         //--------------------//
         //Fatura (PDF)
         //--------------------//
@@ -624,6 +680,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 1 && userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var aluguer = await _context.Aluguers
