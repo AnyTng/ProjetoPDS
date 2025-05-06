@@ -122,6 +122,15 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a Administrador.");
             }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
             return await _context.Despesas
                 .Include(d => d.VeiculoIdveiculoNavigation)
                     .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
@@ -143,6 +152,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3) // Verifica se é administrador
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var veiculo = _context.Veiculos.FirstOrDefault(v => v.MatriculaVeiculo == matricula);
@@ -185,6 +203,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Administrador.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var despesa = await _context.Despesas.FindAsync(id);
             if (despesa == null)
             {
@@ -224,6 +251,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3) // Verifica se é administrador
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var despesa = await _context.Despesas.FindAsync(id);
@@ -271,7 +307,14 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
-
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             // Buscar despesas ativas ou relacionadas às manutenções da empresa
             var despesas = await _context.Despesas
@@ -298,6 +341,15 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a Empresas.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var despesa = await _context.Despesas.FindAsync(idConcurso);
             if (despesa == null)
             {
@@ -388,6 +440,7 @@ namespace RESTful_API.Controllers
             {
                 return NotFound("Fatura não encontrada.");
             }
+
 
             var absoluteFilePath = Path.Combine(Directory.GetCurrentDirectory(), despesa.CaminhoFaturaPDF.Replace('/', Path.DirectorySeparatorChar));
 

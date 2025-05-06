@@ -212,6 +212,7 @@ namespace RESTful_API.Controllers
         public async Task<IActionResult> PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
         {
 
+
             var veiculo = await _context.Veiculos.FindAsync(veiculoDTO.Idveiculo);
             if (veiculo == null)
             {
@@ -370,6 +371,7 @@ namespace RESTful_API.Controllers
                 return BadRequest("O ID do modelo é inválido.");
             }
 
+
             // Processar imagem (se existir)
             string? imageRelativePath = null;
 
@@ -460,12 +462,10 @@ namespace RESTful_API.Controllers
             return _context.Veiculos.Any(e => e.MatriculaVeiculo == matricula);
         }
 
-
         private bool VeiculoExists(int id)
         {
             return _context.Veiculos.Any(e => e.Idveiculo == id);
         }
-
 
         //----------------------------------------
         //Cliente pesquisa veiculo

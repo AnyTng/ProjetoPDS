@@ -47,6 +47,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Administrador.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var concurso = _context.Despesas.FirstOrDefault(v => v.Iddespesa == idConcurso);
             if (concurso == null)
             {
@@ -94,6 +103,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
                 .Include(m => m.DespesaIddespesaNavigation)
@@ -124,6 +142,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Administrador.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
                 .Include(m => m.EmpresaIdempresaNavigation)
@@ -145,6 +172,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var loginteste = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (loginteste.HashPassword == null || userTipoLogin != loginteste.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var proposta = await _context.Manutencaos.FindAsync(idProposta);

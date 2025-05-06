@@ -66,6 +66,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito para clientes.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             var cliente = await _context.Clientes
                                         .Include(c => c.CodigoPostalCpNavigation)
@@ -126,6 +134,14 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a administrador.");
+            }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var contestacao = await _context.Contestacaos.FindAsync(id);

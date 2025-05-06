@@ -188,6 +188,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             var veiculo = await _context.Veiculos
                 .Include(v => v.ModeloVeiculoIdmodeloNavigation)
@@ -269,6 +277,14 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
             var infracao = await _context.Infracoes.FindAsync(idInfracao);
             if (infracao == null)
             {
@@ -295,6 +311,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 1) // Verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var cliente = await _context.Clientes
@@ -376,6 +401,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 1) // Verifica se é cliente
             {
                 return Forbid("Acesso restrito a cliente.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var infracao = await _context.Infracoes.FindAsync(idInfracao);
@@ -562,6 +596,16 @@ namespace RESTful_API.Controllers
             {
                 return Forbid("Acesso restrito a admin.");
             }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var infracao = await _context.Infracoes.FindAsync(idInfracao);
             if (infracao == null)
             {

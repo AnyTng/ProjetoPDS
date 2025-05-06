@@ -119,6 +119,8 @@ namespace RESTful_API.Controllers
                 return Unauthorized("ID do login inválido no token.");
             }
 
+
+
             var cliente = await _context.Clientes
                                         .Include(c => c.CodigoPostalCpNavigation)
                                         .FirstOrDefaultAsync(c => c.LoginIdlogin == idLogin);
@@ -173,7 +175,14 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             if (userTipoLogin != 3)
             {
@@ -401,6 +410,24 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a administradores.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var loginteste = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (loginteste.HashPassword == null || userTipoLogin != loginteste.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var clienteToUpdate = await _context.Clientes
                                                 .Include(c => c.LoginIdloginNavigation)
                                                 .Include(c => c.CodigoPostalCpNavigation)
@@ -569,6 +596,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
+
 
             var cliente = await _context.Clientes.FindAsync(id);
             if (cliente == null)
