@@ -1,0 +1,54 @@
+name: .NET Build and Publish Backend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**' # Aciona apenas se houver alterações na pasta backend
+  workflow_dispatch: # Permite acionamento manual
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./backend # Define o diretório de trabalho para os comandos
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x' # Especifique a sua versão do .NET SDK
+
+    - name: Restore dependencies for API
+      run: dotnet restore "RESTful API/RESTful API.csproj"
+
+    - name: Restore dependencies for Unit Tests
+      run: dotnet restore "Tests/CarXPress Unit Tests/CarXPress Unit Tests.csproj"
+
+    - name: Restore dependencies for Integration Tests
+      run: dotnet restore "Tests/CarXpressTesteIntegracao/CarXpressTesteIntegracao.csproj"
+
+    - name: Build API
+      run: dotnet build "RESTful API/RESTful API.csproj" --configuration Release --no-restore
+
+    - name: Test Unit Tests
+      run: dotnet test "Tests/CarXPress Unit Tests/CarXPress Unit Tests.csproj" --configuration Release --no-build --verbosity normal
+
+    - name: Test Integration Tests
+      run: dotnet test "Tests/CarXpressTesteIntegracao/CarXpressTesteIntegracao.csproj" --configuration Release --no-build --verbosity normal
+      # Se os testes de integração precisarem de serviços externos (ex: base de dados),
+      # poderá precisar de configurar 'services' no job ou usar 'docker-compose'
+
+    - name: Publish API
+      run: dotnet publish "RESTful API/RESTful API.csproj" --configuration Release --no-build -o ./publish-output
+
+    - name: Upload published artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-api-published
+        path: backend/publish-output # O caminho para os artefactos publicados
