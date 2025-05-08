@@ -82,9 +82,6 @@ namespace RESTful_API.Controllers
     }
     #endregion
 
-
-
-
     [Route("api/[controller]")]
     [ApiController]
     public class ClientesController : ControllerBase
@@ -96,19 +93,21 @@ namespace RESTful_API.Controllers
             _context = context;
         }
 
-        // GET: api/Clientes (Admin only - example)
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClienteResponseDto>>> GetClientes()
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
         {
-            return await _context.Clientes
-                                 .Include(c => c.CodigoPostalCpNavigation)
-                                 .Include(c => c.LoginIdloginNavigation)
-                                 .Select(c => new ClienteResponseDto { /* Mapping */ })
-                                 .ToListAsync();
+            var cliente = await _context.Clientes
+                                     .Include(c => c.CodigoPostalCpNavigation)
+                                     .Include(c => c.LoginIdloginNavigation)
+                                     .Where(c => c.Idcliente == id)
+                                     .Select(c => new ClienteResponseDto { /* Mapping */ })
+                                     .FirstOrDefaultAsync();
+
+            if (cliente == null) return NotFound();
+            return cliente;
         }
 
         // GET: api/clientes/me (For the logged-in user)
-
         [HttpGet("me")]
         public async Task<ActionResult<ClienteResponseDto>> GetMe()
         {
@@ -119,6 +118,8 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("ID do login inválido no token.");
             }
+
+
 
             var cliente = await _context.Clientes
                                         .Include(c => c.CodigoPostalCpNavigation)
@@ -163,22 +164,6 @@ namespace RESTful_API.Controllers
             return Ok(clienteResponse);
         }
 
-        // GET: api/Clientes/5 (Admin only - example)
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ClienteResponseDto>> GetCliente(int id)
-        {
-             var cliente = await _context.Clientes
-                                      .Include(c => c.CodigoPostalCpNavigation)
-                                      .Include(c => c.LoginIdloginNavigation)
-                                      .Where(c => c.Idcliente == id)
-                                      .Select(c => new ClienteResponseDto { /* Mapping */ })
-                                      .FirstOrDefaultAsync();
-
-             if (cliente == null) return NotFound();
-             return cliente;
-        }
-
-
         [HttpGet("listAdmin")]
         public async Task<ActionResult<List<ClienteResponseDtoAdmin>>> GetClientesAdmin()
         {
@@ -190,7 +175,14 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
-
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
 
             if (userTipoLogin != 3)
             {
@@ -238,9 +230,6 @@ namespace RESTful_API.Controllers
             }
             return listaDTO;
         }
-
-
-
 
         // *** NEW: PUT /api/clientes/me ***
         [HttpPut("me")]
@@ -421,6 +410,24 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a administradores.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var loginteste = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (loginteste.HashPassword == null || userTipoLogin != loginteste.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             var clienteToUpdate = await _context.Clientes
                                                 .Include(c => c.LoginIdloginNavigation)
                                                 .Include(c => c.CodigoPostalCpNavigation)
@@ -510,7 +517,6 @@ namespace RESTful_API.Controllers
             return NoContent(); // Success
         }
 
-
         // POST: api/Clientes (Create new client - remains the same)
         [HttpPost]
         [Authorize]
@@ -579,8 +585,6 @@ namespace RESTful_API.Controllers
             return CreatedAtAction(nameof(GetCliente), new { id = cliente.Idcliente }, createdClienteResponse);
         }
 
-
-
         // DELETE: api/Clientes/5 (Anonymizes Login, keeps Cliente record)
         [HttpDelete("{id}")]
         [Authorize]
@@ -592,6 +596,7 @@ namespace RESTful_API.Controllers
             {
                 return Unauthorized("Token inválido.");
             }
+
 
             var cliente = await _context.Clientes.FindAsync(id);
             if (cliente == null)

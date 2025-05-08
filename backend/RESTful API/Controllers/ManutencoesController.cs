@@ -25,94 +25,10 @@ namespace RESTful_API.Controllers
             _emailService = emailService;  // Injetando o serviço de email
         }
 
-
-        // GET: api/Manutencoes
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Manutencao>>> GetManutencaos()
-        {
-            return await _context.Manutencaos.ToListAsync();
-        }
-
-        // GET: api/Manutencoes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Manutencao>> GetManutencao(int id)
-        {
-            var manutencao = await _context.Manutencaos.FindAsync(id);
-
-            if (manutencao == null)
-            {
-                return NotFound();
-            }
-
-            return manutencao;
-        }
-
-        // PUT: api/Manutencoes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutManutencao(int id, Manutencao manutencao)
-        {
-            if (id != manutencao.Idmanutencao)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(manutencao).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ManutencaoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Manutencoes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Manutencao>> PostManutencao(Manutencao manutencao)
-        {
-            _context.Manutencaos.Add(manutencao);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetManutencao", new { id = manutencao.Idmanutencao }, manutencao);
-        }
-
-        // DELETE: api/Manutencoes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteManutencao(int id)
-        {
-            var manutencao = await _context.Manutencaos.FindAsync(id);
-            if (manutencao == null)
-            {
-                return NotFound();
-            }
-
-            _context.Manutencaos.Remove(manutencao);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
         private bool ManutencaoExists(int id)
         {
             return _context.Manutencaos.Any(e => e.Idmanutencao == id);
         }
-
-
-
-
 
         ////////////
         ///EMP
@@ -129,6 +45,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 2) // Verifica se é administrador
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var concurso = _context.Despesas.FirstOrDefault(v => v.Iddespesa == idConcurso);
@@ -178,6 +103,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
             // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
                 .Include(m => m.DespesaIddespesaNavigation)
@@ -190,7 +124,6 @@ namespace RESTful_API.Controllers
 
             return manutencoes;
         }
-
 
         /////////////////////
         /// Administrador
@@ -207,6 +140,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             // Buscar todas as manutenções da empresa
@@ -230,6 +172,15 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a Administrador.");
+            }
+
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var loginteste = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (loginteste.HashPassword == null || userTipoLogin != loginteste.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var proposta = await _context.Manutencaos.FindAsync(idProposta);
@@ -308,7 +259,6 @@ namespace RESTful_API.Controllers
             }
             return NoContent();
         }   
-
 
     }
 }

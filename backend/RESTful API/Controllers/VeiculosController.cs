@@ -207,13 +207,11 @@ namespace RESTful_API.Controllers
             return Ok(dto);
         }
 
-
-
         // PUT: api/Veiculos/edit
         [HttpPut("edit")]
-        public async Task<IActionResult>
-            PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
+        public async Task<IActionResult> PutVeiculo([FromForm] VeiculoEditDTO veiculoDTO) // Adicionado id ao parâmetro para consistência com a rota
         {
+
 
             var veiculo = await _context.Veiculos.FindAsync(veiculoDTO.Idveiculo);
             if (veiculo == null)
@@ -373,6 +371,7 @@ namespace RESTful_API.Controllers
                 return BadRequest("O ID do modelo é inválido.");
             }
 
+
             // Processar imagem (se existir)
             string? imageRelativePath = null;
 
@@ -463,35 +462,10 @@ namespace RESTful_API.Controllers
             return _context.Veiculos.Any(e => e.MatriculaVeiculo == matricula);
         }
 
-        // DELETE: api/Veiculos/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVeiculo(int id)
-        {
-            var veiculo = await _context.Veiculos.FindAsync(id);
-            if (veiculo == null) return NotFound();
-
-            var imagePath = veiculo.CaminhoFotoVeiculo;
-            _context.Veiculos.Remove(veiculo);
-            await _context.SaveChangesAsync();
-
-            if (!string.IsNullOrEmpty(imagePath))
-            {
-                var absFile = Path.Combine(
-                    Directory.GetCurrentDirectory(),
-                    imagePath.Replace('/', Path.DirectorySeparatorChar)
-                );
-                if (System.IO.File.Exists(absFile))
-                    System.IO.File.Delete(absFile);
-            }
-
-            return NoContent();
-        }
-
         private bool VeiculoExists(int id)
         {
             return _context.Veiculos.Any(e => e.Idveiculo == id);
         }
-
 
         //----------------------------------------
         //Cliente pesquisa veiculo

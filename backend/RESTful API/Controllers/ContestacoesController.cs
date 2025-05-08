@@ -27,14 +27,6 @@ namespace RESTful_API.Controllers
             _emailService = emailService;
         }
 
-        // GET: api/Contestacoes
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Contestacao>>> GetContestacaos()
-        {
-            return await _context.Contestacaos.ToListAsync();
-        }
-
-        // GET: api/Contestacoes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Contestacao>> GetContestacao(int id)
         {
@@ -46,62 +38,6 @@ namespace RESTful_API.Controllers
             }
 
             return contestacao;
-        }
-
-        // PUT: api/Contestacoes/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutContestacao(int id, Contestacao contestacao)
-        {
-            if (id != contestacao.Idcontestacao)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(contestacao).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ContestacaoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Contestacoes
-        [HttpPost]
-        public async Task<ActionResult<Contestacao>> PostContestacao(Contestacao contestacao)
-        {
-            _context.Contestacaos.Add(contestacao);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetContestacao", new { id = contestacao.Idcontestacao }, contestacao);
-        }
-
-        // DELETE: api/Contestacoes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteContestacao(int id)
-        {
-            var contestacao = await _context.Contestacaos.FindAsync(id);
-            if (contestacao == null)
-            {
-                return NotFound();
-            }
-
-            _context.Contestacaos.Remove(contestacao);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         private bool ContestacaoExists(int id)
@@ -129,6 +65,14 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 1)
             {
                 return Forbid("Acesso restrito para clientes.");
+            }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var cliente = await _context.Clientes
@@ -190,6 +134,14 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 3)
             {
                 return Forbid("Acesso restrito a administrador.");
+            }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var contestacao = await _context.Contestacaos.FindAsync(id);

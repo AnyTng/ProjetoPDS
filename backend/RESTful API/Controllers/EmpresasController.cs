@@ -75,6 +75,15 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
 
             var empresa = await _context.Empresas
                 .Where(e=>e.LoginIdlogin== userIdLogin)
@@ -102,6 +111,14 @@ namespace RESTful_API.Controllers
             if (userTipoLogin != 2)
             {
                 return Forbid("Acesso restrito a Empresas.");
+            }
+            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
             }
 
             var empresaToUpdate = await _context.Empresas.FirstOrDefaultAsync(e => e.LoginIdlogin == userIdLogin);

@@ -1,3 +1,5 @@
+using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,23 +8,29 @@ using Moq;
 using RESTful_API.Controllers;
 using RESTful_API.Interface;
 using RESTful_API.Models;
-using System.Collections.Generic;
-using System.Security.Claims;
 using Xunit;
 
 namespace Unit_Tests
 {
-    public class ContestacoesControllerTests
+    public class ContestacoesControllerTests : IDisposable
     {
-        private readonly Mock<PdsContext> _mockContext;
-        private readonly Mock<IEmailService> _mockEmailService;
+        private readonly PdsContext _context;
         private readonly ContestacoesController _controller;
+        private readonly Mock<IEmailService> _mockEmailService;
 
         public ContestacoesControllerTests()
         {
-            _mockContext = new Mock<PdsContext>();
+            // 1) In-memory EF Core context
+            var options = new DbContextOptionsBuilder<PdsContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+            _context = new PdsContext(options);
+
+            // 2) Mock email service
             _mockEmailService = new Mock<IEmailService>();
-            _controller = new ContestacoesController(_mockContext.Object, _mockEmailService.Object);
+
+            // 3) Controller under test
+            _controller = new ContestacoesController(_context, _mockEmailService.Object);
         }
 
         private void SetUser(int userId, int roleId)
@@ -41,7 +49,7 @@ namespace Unit_Tests
         [Fact]
         public async Task CriarContestacao_ReturnsUnauthorized_WhenTokenInvalid()
         {
-            SetUser(0, 0); // Invalid token
+            SetUser(0, 0);
             var result = await _controller.CriarContestacao("desc", 1);
             Assert.IsType<UnauthorizedObjectResult>(result);
         }
@@ -49,7 +57,7 @@ namespace Unit_Tests
         [Fact]
         public async Task CriarContestacao_ReturnsForbid_WhenNotCliente()
         {
-            SetUser(1, 2); // Not a client
+            SetUser(1, 2);
             var result = await _controller.CriarContestacao("desc", 1);
             Assert.IsType<ForbidResult>(result);
         }
@@ -57,7 +65,7 @@ namespace Unit_Tests
         [Fact]
         public async Task AlterarContestacao_ReturnsUnauthorized_WhenTokenInvalid()
         {
-            SetUser(0, 0); // Invalid token
+            SetUser(0, 0);
             var result = await _controller.AlterarContestacao(1, "Aceite");
             Assert.IsType<UnauthorizedObjectResult>(result);
         }
@@ -65,7 +73,7 @@ namespace Unit_Tests
         [Fact]
         public async Task AlterarContestacao_ReturnsForbid_WhenNotAdmin()
         {
-            SetUser(1, 1); // Not an admin
+            SetUser(1, 1);
             var result = await _controller.AlterarContestacao(1, "Aceite");
             Assert.IsType<ForbidResult>(result);
         }
@@ -73,12 +81,39 @@ namespace Unit_Tests
         [Fact]
         public async Task AlterarContestacao_ReturnsBadRequest_WhenEstadoInvalid()
         {
-            SetUser(1, 3); // Admin
-            _mockContext.Setup(x => x.Contestacaos.FindAsync(1)).ReturnsAsync(new Contestacao());
+            // Arrange: valid admin login
+            _context.Logins.Add(new Login {
+                Idlogin           = 1,
+                Email             = "admin@teste.com",
+                HashPassword      = "hashdummy",
+                TipoLoginIdtlogin = 3
+            });
+
+            // Arrange: existing contestação
+            _context.Contestacaos.Add(new Contestacao {
+                Idcontestacao       = 1,
+                ClienteIdcliente    = 42,
+                InfracoesIdinfracao = 99,
+                EstadoContestacao   = "Pendente"
+            });
+
+            await _context.SaveChangesAsync();
+
+            // Act as admin
+            SetUser(1, 3);
             var result = await _controller.AlterarContestacao(1, "Outro");
-            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Estado da contestação inválido. Deve ser 'Aceite' ou 'Negada'.", badRequest.Value);
+
+            // Assert
+            var badReq = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(
+                "Estado da contestação inválido. Deve ser 'Aceite' ou 'Negada'.",
+                badReq.Value
+            );
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }
-
