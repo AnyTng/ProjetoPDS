@@ -92,7 +92,7 @@ namespace RESTful_API.Controllers
                     new Claim(ClaimTypes.Role, roleName), // Claim de Role standard com o NOME
                     new Claim("roleId", user.TipoLoginIdtlogin.ToString()) // Claim custom com o ID numérico
                 }),
-                Expires = DateTime.UtcNow.AddHours(8),
+                Expires = DateTime.UtcNow.AddHours(1),/*token 1 hora*/
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
