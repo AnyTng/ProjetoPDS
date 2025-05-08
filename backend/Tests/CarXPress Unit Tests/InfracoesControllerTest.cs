@@ -88,6 +88,47 @@ namespace Unit_Tests
 
 
         [Fact]
+        public async Task CancelarMulta_Cliente_Fails()
+        {
+            // Arrange
+            await using var context = GetInMemoryContext();
+
+            // Semeia o Login do administrador que executará a ação.
+            // O Idlogin "2" corresponde ao ClaimTypes.NameIdentifier usado abaixo.
+            // HashPassword deve ser não-nulo para passar a verificação no controller.
+            var clientLogin = new Login { Idlogin = 2, Email = "cliente@example.com", HashPassword = "clientepass", TipoLoginIdtlogin = 1 };
+            context.Logins.Add(clientLogin);
+
+            // Semeia a Infracao a ser cancelada.
+            var infracao = new Infracao { Idinfracao = 1, EstadoInfracao = "Submetida" };
+            context.Infracoes.Add(infracao);
+            await context.SaveChangesAsync();
+
+            var controller = new InfracoesController(context, _mockEmailService.Object, _mockConfig.Object);
+            // Simula um utilizador administrador autenticado.
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "1"), // Idlogin do Cliente
+                        new Claim("roleId", "1") // roleId para o Cliente
+                    }))
+                }
+            };
+
+            // Act: Chama o método para cancelar a multa.
+            var result = await controller.CancelarMulta(1);
+
+            // Assert: Verifica se o resultado é NoContentResult e se o estado da infração foi atualizado.
+            Assert.IsType<ForbidResult>(result);;
+            var updated = await context.Infracoes.FindAsync(1);
+            Assert.NotNull(updated);
+            Assert.Equal("Submetida", updated.EstadoInfracao);
+        }
+
+        [Fact]
         public async Task PagarMulta_Client_UpdatesEstadoToAwaiting()
         {
             // Arrange
