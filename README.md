@@ -38,6 +38,12 @@ Este projeto é desenvolvido, no ambito da Unidade Curricular (UC) de Projeto e 
 [**Sprints e Product Backlog**](ESI_PDS_ALM_20242025_10.xlsx)
 _____________________________________________________________________________________
 
+**Tema:**
+O setor do aluguer de veículos tem vindo a crescer de forma significativa, motivado pela procura de mobilidade flexível e soluções económicas. Com o aumento da procura, as empresas deste setor enfrentam desafios cada vez maiores no que diz respeito à gestão eficiente dos seus processos operacionais.  
+A digitalização e automatização de processos como o aluguer de veículos, a gestão de multas e a manutenção da frota tornam-se, assim, fundamentais para assegurar um serviço de qualidade, otimizar os processos internos e proporcionar uma melhor experiência aos clientes. 
+
+_____________________________________________________________________________________
+
 [**Solução BackEnd**](backend)
 
 [**Solução FrontEnd**](frontend)
