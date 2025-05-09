@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RESTful_API.Interface;
 using RESTful_API.Models;
-using RESTful_API.Service; 
+using RESTful_API.Service;
 
 namespace RESTful_API.Controllers
 {
@@ -17,12 +16,12 @@ namespace RESTful_API.Controllers
     public class ManutencoesController : ControllerBase
     {
         private readonly PdsContext _context;
-        private readonly IEmailService _emailService;  // Adicionar a dependência do IEmailService
+        private readonly IEmailService _emailService;
 
         public ManutencoesController(PdsContext context, IEmailService emailService)
         {
             _context = context;
-            _emailService = emailService;  // Injetando o serviço de email
+            _emailService = emailService;
         }
 
         private bool ManutencaoExists(int id)
@@ -30,71 +29,31 @@ namespace RESTful_API.Controllers
             return _context.Manutencaos.Any(e => e.Idmanutencao == id);
         }
 
-        ////////////
-        ///EMP
-        ///
-        [HttpPost("FazerProposta")]
-        public async Task<ActionResult<Manutencao>> FazerProposta(int idConcurso, string descProposta, float valorProposta, DateTime dataIn, DateTime dataFim)
+        // GET api/Manutencoes/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Manutencao>> GetManutencao(int id)
         {
-            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
-            {
-                return Unauthorized("Token inválido.");
-            }
-            if (userTipoLogin != 2) // Verifica se é administrador
-            {
-                return Forbid("Acesso restrito a Administrador.");
-            }
-
-            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
-            var login = await _context.Logins
-                .Where(l => l.Idlogin == userIdLogin)
-                .FirstAsync();
-            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
-            {
-                return Forbid("Acesso restrito a cliente com password definida.");
-            }
-
-            var concurso = _context.Despesas.FirstOrDefault(v => v.Iddespesa == idConcurso);
-            if (concurso == null)
-            {
-                return NotFound("Proposta não encontrado.");
-            }
-
-            var empresa = _context.Empresas.FirstOrDefault(v => v.LoginIdlogin == userIdLogin);
-            if (empresa == null)
-            {
-                return NotFound("Utilizador não encontrado.");
-            }
-
-
-            var proposta = new Manutencao
-            {
-                DescProposta = descProposta,
-                ValorProposta = valorProposta,
-                EstadoProposta = "Pendente",
-                DataInicioMan = dataIn,
-                DataFimMan = dataFim,
-                EmpresaIdempresa = empresa.Idempresa,
-                DespesaIddespesa = concurso.Iddespesa
-
-            };
-
-
-            _context.Manutencaos.Add(proposta);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction("GetManutencao", new { id = proposta.Idmanutencao }, proposta);
-
+            var man = await _context.Manutencaos.FindAsync(id);
+            if (man == null)
+                return NotFound();
+            return Ok(man);
         }
 
+        // GET api/Manutencoes
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Manutencao>>> GetManutencaos()
+        {
+            return await _context.Manutencaos.ToListAsync();
+        }
 
+        // GET api/Manutencoes/PropostaEmp
         [HttpGet("PropostaEmp")]
         public async Task<ActionResult<IEnumerable<Manutencao>>> GetConcursosEmp()
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            var roleIdClaim  = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
                 return Unauthorized("Token inválido.");
             }
@@ -103,7 +62,6 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Empresas.");
             }
 
-            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
             var login = await _context.Logins
                 .Where(l => l.Idlogin == userIdLogin)
                 .FirstAsync();
@@ -112,28 +70,25 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a cliente com password definida.");
             }
 
-            // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
                 .Include(m => m.DespesaIddespesaNavigation)
                     .ThenInclude(d => d.VeiculoIdveiculoNavigation)
                         .ThenInclude(v => v.ModeloVeiculoIdmodeloNavigation)
-                            .ThenInclude(n => n.MarcaVeiculoIdmarcaNavigation)
+                            .ThenInclude(mo => mo.MarcaVeiculoIdmarcaNavigation)
                 .Where(m => m.EmpresaIdempresaNavigation.LoginIdlogin == userIdLogin)
                 .ToListAsync();
-
 
             return manutencoes;
         }
 
-        /////////////////////
-        /// Administrador
-        /// 
+        // GET api/Manutencoes/VerPropostaAdmin?idConcurso=#
         [HttpGet("VerPropostaAdmin")]
         public async Task<ActionResult<IEnumerable<Manutencao>>> GetEscolherP(int idConcurso)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            var roleIdClaim  = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
                 return Unauthorized("Token inválido.");
             }
@@ -142,7 +97,6 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Administrador.");
             }
 
-            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
             var login = await _context.Logins
                 .Where(l => l.Idlogin == userIdLogin)
                 .FirstAsync();
@@ -151,21 +105,81 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a cliente com password definida.");
             }
 
-            // Buscar todas as manutenções da empresa
             var manutencoes = await _context.Manutencaos
                 .Include(m => m.EmpresaIdempresaNavigation)
-                .Where(m => m.DespesaIddespesa==idConcurso)
+                .Where(m => m.DespesaIddespesa == idConcurso)
                 .ToListAsync();
 
             return manutencoes;
         }
 
+        // POST api/Manutencoes/FazerProposta
+        [HttpPost("FazerProposta")]
+        public async Task<ActionResult<Manutencao>> FazerProposta(
+            int idConcurso,
+            string descProposta,
+            float valorProposta,
+            DateTime dataIn,
+            DateTime dataFim)
+        {
+            var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleIdClaim  = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
+            {
+                return Unauthorized("Token inválido.");
+            }
+            if (userTipoLogin != 2)
+            {
+                return Forbid("Acesso restrito a Administrador.");
+            }
+
+            var login = await _context.Logins
+                .Where(l => l.Idlogin == userIdLogin)
+                .FirstAsync();
+            if (login.HashPassword == null || userTipoLogin != login.TipoLoginIdtlogin)
+            {
+                return Forbid("Acesso restrito a cliente com password definida.");
+            }
+
+            var concurso = await _context.Despesas
+                .FirstOrDefaultAsync(v => v.Iddespesa == idConcurso);
+            if (concurso == null)
+                return NotFound("Proposta não encontrada.");
+
+            var empresa = await _context.Empresas
+                .FirstOrDefaultAsync(v => v.LoginIdlogin == userIdLogin);
+            if (empresa == null)
+                return NotFound("Utilizador não encontrado.");
+
+            var proposta = new Manutencao
+            {
+                DescProposta      = descProposta,
+                ValorProposta     = valorProposta,
+                EstadoProposta    = "Pendente",
+                DataInicioMan     = dataIn,
+                DataFimMan        = dataFim,
+                EmpresaIdempresa  = empresa.Idempresa,
+                DespesaIddespesa  = concurso.Iddespesa
+            };
+
+            _context.Manutencaos.Add(proposta);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(
+                nameof(GetManutencao),
+                new { id = proposta.Idmanutencao },
+                proposta);
+        }
+
+        // PUT api/Manutencoes/AceitarProposta?idProposta=#
         [HttpPut("AceitarProposta")]
         public async Task<IActionResult> AceitarProposta(int idProposta)
         {
             var idLoginClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var roleIdClaim = User.FindFirstValue("roleId");
-            if (!int.TryParse(idLoginClaim, out int userIdLogin) || !int.TryParse(roleIdClaim, out int userTipoLogin))
+            var roleIdClaim  = User.FindFirstValue("roleId");
+            if (!int.TryParse(idLoginClaim, out int userIdLogin) ||
+                !int.TryParse(roleIdClaim, out int userTipoLogin))
             {
                 return Unauthorized("Token inválido.");
             }
@@ -174,7 +188,6 @@ namespace RESTful_API.Controllers
                 return Forbid("Acesso restrito a Administrador.");
             }
 
-            //verifica se o login tem password diferente de null e se o id do token é igual ao id do login da BD
             var loginteste = await _context.Logins
                 .Where(l => l.Idlogin == userIdLogin)
                 .FirstAsync();
@@ -185,63 +198,43 @@ namespace RESTful_API.Controllers
 
             var proposta = await _context.Manutencaos.FindAsync(idProposta);
             if (proposta == null)
-            {
                 return NotFound();
-            }
 
             proposta.EstadoProposta = "Aceite";
-            
 
-            //quero que envie um email para a em presa 
-            //enviar email para a empresa
+            // Enviar email de confirmação
             var empresa = await _context.Empresas.FindAsync(proposta.EmpresaIdempresa);
-            var login = await _context.Logins.FindAsync(empresa.LoginIdlogin);
-
-            if (empresa != null)
+            var login   = await _context.Logins.FindAsync(empresa.LoginIdlogin);
+            if (empresa != null && login != null)
             {
-                var email = login.Email;
-                var assunto = "Proposta Aceite";
-                var mensagem = $"Caro/a {empresa.FuncionarioEmpresa}.<br>A sua proposta para {proposta.DescProposta} com o ID {proposta.Idmanutencao} foi {proposta.EstadoProposta}." +
-                                $"<br><br><br>__<br>" +
-                                $"Com os melhores cumprimentos,<br>" +
-                                $"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<b><i>CarXpress Team</i></b><br><br>" +
-                                $"&emsp;<b>Empresa:</b>&emsp;&emsp;&emsp;  CarExpress, Lda<br>" +
-                                $"&emsp;<b>Contacto:</b>&emsp;&emsp;&emsp;  963 183 446<br>" +
-                                $"&emsp;<b>Morada:</b>&emsp;&emsp;&emsp;&emsp;Rua das Ameixas, Nº54, 1234-567, Frossos, Braga";
-                await _emailService.EnviarEmail(email, assunto, mensagem);
+                var assunto  = "Proposta Aceite";
+                var mensagem =
+                    $"Caro/a {empresa.FuncionarioEmpresa},<br/>" +
+                    $"A sua proposta \"{proposta.DescProposta}\" (ID {proposta.Idmanutencao}) foi aceite.<br/><br/>" +
+                    $"Com os melhores cumprimentos,<br/>" +
+                    $"<b><i>CarXpress Team</i></b>";
+                await _emailService.EnviarEmail(login.Email, assunto, mensagem);
             }
-           
-            var manutencoes = await _context.Manutencaos
-                .Where(m => m.DespesaIddespesa == proposta.DespesaIddespesa && 
-                m.Idmanutencao!= idProposta)
+
+            // Rejeitar restantes propostas
+            var outras = await _context.Manutencaos
+                .Where(m => m.DespesaIddespesa == proposta.DespesaIddespesa
+                         && m.Idmanutencao != idProposta)
                 .ToListAsync();
+            outras.ForEach(m => m.EstadoProposta = "Rejeitada");
 
-            //MUDAR O EstadoProposta DE OUTRAS PROPOSTAS PARA REJEITADA
-            foreach (var m in manutencoes)
-            {
-                m.EstadoProposta = "Rejeitada";
-            }
-
-            // Atualizar o estado da despesa para "Em Manutencao"
+            // Atualizar estado da despesa e do veículo
             var despesa = await _context.Despesas.FindAsync(proposta.DespesaIddespesa);
             if (despesa != null)
-            {
                 despesa.EstadoConcurso = "Em Manutencao";
-            }
 
-            //selecionar o veiculo associado ao ao concurso e modar a seu estado para "Em Manutencao"
             var veiculo = await _context.Veiculos
-                .Include(v => v.ModeloVeiculoIdmodeloNavigation)
-                    .ThenInclude(m => m.MarcaVeiculoIdmarcaNavigation)
                 .FirstOrDefaultAsync(v => v.Idveiculo == proposta.DespesaIddespesaNavigation.VeiculoIdveiculo);
             if (veiculo != null)
-            {
                 veiculo.EstadoVeiculo = "Em Manutencao";
-            }
-
-
 
             _context.Entry(proposta).State = EntityState.Modified;
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -249,16 +242,11 @@ namespace RESTful_API.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!ManutencaoExists(idProposta))
-                {
                     return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
-            return NoContent();
-        }   
 
+            return NoContent();
+        }
     }
 }
